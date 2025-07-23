@@ -3,6 +3,7 @@
 import { AppSidebar } from "./app-sidebar"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "./ui/sidebar"
 import { Separator } from "./ui/separator"
+import { ThemeToggle } from "./theme-toggle"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,7 +24,7 @@ export function DashboardLayout({ children, breadcrumbs = [] }: DashboardLayoutP
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             {breadcrumbs.length > 0 && (
@@ -51,6 +52,9 @@ export function DashboardLayout({ children, breadcrumbs = [] }: DashboardLayoutP
                 </BreadcrumbList>
               </Breadcrumb>
             )}
+          </div>
+          <div className="flex items-center gap-2 px-4">
+            <ThemeToggle />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

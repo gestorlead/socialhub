@@ -3,12 +3,16 @@
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { AlertTriangle } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function UnauthorizedPage() {
   const router = useRouter()
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="text-center space-y-6 p-8">
         <div className="flex justify-center">
           <AlertTriangle className="h-24 w-24 text-red-500" />

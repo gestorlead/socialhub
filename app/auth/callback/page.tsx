@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/supabase-auth-helpers'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -24,6 +25,9 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="text-center">
         <h2 className="text-xl font-semibold mb-2">Authenticating...</h2>
         <p className="text-muted-foreground">Please wait while we log you in.</p>

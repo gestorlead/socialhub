@@ -4,7 +4,9 @@ import { useAuth } from "@/lib/supabase-auth-helpers"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
 import { useTikTokTokenStatus } from "@/hooks/use-tiktok-token-status"
+import { useTikTokLiveStats } from "@/hooks/use-tiktok-live-stats"
 import { TokenStatusIndicator } from "@/components/token-status-indicator"
+import { TikTokStatCard } from "@/components/tiktok-stat-card"
 import { useEffect, useState } from "react"
 import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Play, Heart, Clock, AlertTriangle, Unlink, Key, Copy, Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
@@ -20,6 +22,31 @@ export default function TikTokPage() {
   const [disconnecting, setDisconnecting] = useState(false)
 
   const tiktokConnection = getConnection('tiktok')
+  const profile = tiktokConnection?.profile_data
+  
+  // Use live stats hook
+  const storedStats = profile ? {
+    follower_count: profile.follower_count || 0,
+    following_count: profile.following_count || 0,
+    likes_count: profile.likes_count || 0,
+    video_count: profile.video_count || 0
+  } : null
+  
+  const { liveStats, comparison, loading: statsLoading, refetch: refetchLiveStats } = useTikTokLiveStats(storedStats)
+  
+  // Use live stats if available, otherwise fall back to stored stats
+  const displayStats = liveStats || storedStats
+  
+  // Debug logs
+  useEffect(() => {
+    if (tiktokConnection) {
+      console.log('=== TIKTOK CONNECTION DATA ===')
+      console.log('Full connection:', JSON.stringify(tiktokConnection, null, 2))
+      console.log('Profile data:', JSON.stringify(tiktokConnection.profile_data, null, 2))
+      console.log('Live stats:', liveStats)
+      console.log('Comparison:', comparison)
+    }
+  }, [tiktokConnection, liveStats, comparison])
 
   // Function to format large numbers elegantly
   const formatNumber = (num: number): string => {
@@ -43,6 +70,10 @@ export default function TikTokPage() {
     
     setRefreshing(true)
     try {
+      // Refresh live stats
+      await refetchLiveStats()
+      
+      // Also refresh profile data
       const response = await fetch(`/api/social/tiktok/refresh?user_id=${user.id}`, {
         method: 'POST'
       })
@@ -50,6 +81,7 @@ export default function TikTokPage() {
         await refresh()
       }
     } catch (error) {
+      console.error('Error refreshing:', error)
     } finally {
       setRefreshing(false)
     }
@@ -147,8 +179,6 @@ export default function TikTokPage() {
       </DashboardLayout>
     )
   }
-
-  const profile = tiktokConnection?.profile_data
 
   return (
     <DashboardLayout>
@@ -275,93 +305,53 @@ export default function TikTokPage() {
 
           {/* Stats Cards */}
           <div className="md:col-span-2 grid gap-4 sm:grid-cols-2">
-            <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-blue-200 dark:hover:border-blue-800 group">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-blue-200 dark:group-hover:shadow-blue-900 transition-shadow">
-                    <User className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Seguidores</p>
-                    <p className="text-3xl font-bold tracking-tight text-foreground">
-                      {formatNumber(profile?.follower_count || 0)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(profile?.follower_count || 0).toLocaleString('pt-BR')} pessoas
-                    </p>
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full font-medium">
-                  Audiência
-                </div>
+            {statsLoading && !displayStats ? (
+              <div className="col-span-2 flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            </div>
-
-            <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 dark:hover:border-red-800 group">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-red-200 dark:group-hover:shadow-red-900 transition-shadow">
-                    <Heart className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Curtidas Totais</p>
-                    <p className="text-3xl font-bold tracking-tight text-foreground">
-                      {formatNumber(profile?.likes_count || 0)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(profile?.likes_count || 0).toLocaleString('pt-BR')} reações
-                    </p>
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 px-3 py-1 rounded-full font-medium">
-                  Engajamento
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-purple-200 dark:hover:border-purple-800 group">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-purple-200 dark:group-hover:shadow-purple-900 transition-shadow">
-                    <Play className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Vídeos Publicados</p>
-                    <p className="text-3xl font-bold tracking-tight text-foreground">
-                      {formatNumber(profile?.video_count || 0)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(profile?.video_count || 0).toLocaleString('pt-BR')} conteúdos
-                    </p>
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full font-medium">
-                  Conteúdo
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-emerald-200 dark:hover:border-emerald-800 group">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-emerald-200 dark:group-hover:shadow-emerald-900 transition-shadow">
-                    <Eye className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Seguindo</p>
-                    <p className="text-3xl font-bold tracking-tight text-foreground">
-                      {formatNumber(profile?.following_count || 0)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(profile?.following_count || 0).toLocaleString('pt-BR')} contas
-                    </p>
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full font-medium">
-                  Rede
-                </div>
-              </div>
-            </div>
+            ) : displayStats ? (
+              <>
+                <TikTokStatCard
+                  icon={<User className="w-6 h-6 text-white" />}
+                  title="Seguidores"
+                  value={displayStats.follower_count}
+                  previousValue={storedStats?.follower_count}
+                  change={comparison?.changes.follower_count}
+                  difference={comparison?.differences.follower_count}
+                  colorClass="hover:border-blue-200 dark:hover:border-blue-800"
+                />
+                
+                <TikTokStatCard
+                  icon={<Heart className="w-6 h-6 text-white" />}
+                  title="Curtidas Totais"
+                  value={displayStats.likes_count}
+                  previousValue={storedStats?.likes_count}
+                  change={comparison?.changes.likes_count}
+                  difference={comparison?.differences.likes_count}
+                  colorClass="hover:border-red-200 dark:hover:border-red-800"
+                />
+                
+                <TikTokStatCard
+                  icon={<Play className="w-6 h-6 text-white" />}
+                  title="Vídeos Publicados"
+                  value={displayStats.video_count}
+                  previousValue={storedStats?.video_count}
+                  change={comparison?.changes.video_count}
+                  difference={comparison?.differences.video_count}
+                  colorClass="hover:border-purple-200 dark:hover:border-purple-800"
+                />
+                
+                <TikTokStatCard
+                  icon={<Eye className="w-6 h-6 text-white" />}
+                  title="Seguindo"
+                  value={displayStats.following_count}
+                  previousValue={storedStats?.following_count}
+                  change={comparison?.changes.following_count}
+                  difference={comparison?.differences.following_count}
+                  colorClass="hover:border-emerald-200 dark:hover:border-emerald-800"
+                />
+              </>
+            ) : null}
           </div>
         </div>
 

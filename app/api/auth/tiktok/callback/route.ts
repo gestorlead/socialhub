@@ -140,18 +140,13 @@ export async function GET(request: NextRequest) {
     console.log('Final scope calculado:', finalScope)
     console.log('Usando scope de:', scopes ? 'callback' : tokenData.scope ? 'token response' : 'fallback')
 
-    // Fetch user profile - TikTok might not require fetching profile separately
-    // as token response might include user info
+    // Fetch user profile - Always fetch from API v2 to get complete data
     let userInfo = null
     
-    // Check if token response already includes user info
-    if (tokenData.open_id || tokenData.user || tokenData.data?.user) {
-      console.log('User info found in token response:', tokenData)
-      userInfo = tokenData.data?.user || tokenData.user || tokenData
-    } else {
-      // Try to fetch user profile using API v2
-      const profileUrl = new URL('https://open.tiktokapis.com/v2/user/info/')
-      profileUrl.searchParams.append('fields', [
+    // Always fetch complete user profile using API v2
+    console.log('Fetching complete user profile from TikTok API...')
+    const profileUrl = new URL('https://open.tiktokapis.com/v2/user/info/')
+    profileUrl.searchParams.append('fields', [
         'open_id',
         'union_id',
         'avatar_url',
@@ -167,44 +162,71 @@ export async function GET(request: NextRequest) {
         'likes_count',
         'video_count'
       ].join(','))
-      
-      const profileResponse = await fetch(profileUrl.toString(), {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${access_token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+    
+    const profileResponse = await fetch(profileUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${access_token}`,
+        'Content-Type': 'application/json'
+      }
+    })
 
-      if (!profileResponse.ok) {
-        const errorText = await profileResponse.text()
-        console.error('Failed to fetch TikTok user profile:', profileResponse.status, errorText)
-        // Continue without profile data - use a placeholder ID
+    if (!profileResponse.ok) {
+      const errorText = await profileResponse.text()
+      console.error('Failed to fetch TikTok user profile:', profileResponse.status, errorText)
+      // Continue without profile data - use a placeholder ID
+      userInfo = {
+        open_id: `tiktok_${Date.now()}`,
+        display_name: 'TikTok User'
+      }
+    } else {
+      const profileData = await profileResponse.json()
+      console.log('Profile response:', JSON.stringify(profileData, null, 2))
+      
+      // API v2 response structure - data comes in data.user
+      if (profileData.data?.user) {
+        userInfo = profileData.data.user
+        console.log('Extracted user info:', JSON.stringify(userInfo, null, 2))
+      } else if (profileData.error && profileData.error.code !== 'ok') {
+        console.error('TikTok API error:', profileData.error)
         userInfo = {
-          open_id: `tiktok_${Date.now()}`,
+          open_id: tokenData.open_id || `tiktok_${Date.now()}`,
           display_name: 'TikTok User'
         }
       } else {
-        const profileData = await profileResponse.json()
-        console.log('Profile response:', JSON.stringify(profileData, null, 2))
-        
-        // API v2 response structure
-        if (profileData.data?.user) {
-          userInfo = profileData.data.user
-        } else if (profileData.error) {
-          console.error('TikTok API error:', profileData.error)
-          userInfo = {
-            open_id: `tiktok_${Date.now()}`,
-            display_name: 'TikTok User'
-          }
-        } else {
-          userInfo = profileData
-        }
+        userInfo = profileData
       }
+    }
+
+    // Ensure we have a valid open_id
+    if (!userInfo || !userInfo.open_id) {
+      console.error('No valid user info obtained')
+      return NextResponse.redirect(`${process.env.FRONTEND_URL}/?error=no_user_info`)
     }
 
     // Store connection in database
     const expiresAt = new Date(Date.now() + expires_in * 1000).toISOString()
+    
+    console.log('=== SAVING TO DATABASE ===')
+    console.log('User Info to save:', JSON.stringify(userInfo, null, 2))
+    
+    const profileDataToSave = {
+      open_id: userInfo.open_id,
+      union_id: userInfo.union_id,
+      avatar_url: userInfo.avatar_url,
+      avatar_url_100: userInfo.avatar_url_100,
+      avatar_large_url: userInfo.avatar_large_url,
+      display_name: userInfo.display_name,
+      username: userInfo.username,
+      bio_description: userInfo.bio_description,
+      is_verified: userInfo.is_verified,
+      follower_count: userInfo.follower_count || 0,
+      following_count: userInfo.following_count || 0,
+      likes_count: userInfo.likes_count || 0,
+      video_count: userInfo.video_count || 0
+    }
+    
+    console.log('Profile data being saved:', JSON.stringify(profileDataToSave, null, 2))
     
     const { error: connectionError } = await supabase
       .from('social_connections')
@@ -216,21 +238,7 @@ export async function GET(request: NextRequest) {
         refresh_token: refresh_token,
         expires_at: expiresAt,
         scope: scopeToSave,
-        profile_data: {
-          open_id: userInfo.open_id,
-          union_id: userInfo.union_id,
-          avatar_url: userInfo.avatar_url,
-          avatar_url_100: userInfo.avatar_url_100,
-          avatar_large_url: userInfo.avatar_large_url,
-          display_name: userInfo.display_name,
-          username: userInfo.username,
-          bio_description: userInfo.bio_description,
-          is_verified: userInfo.is_verified,
-          follower_count: userInfo.follower_count || 0,
-          following_count: userInfo.following_count || 0,
-          likes_count: userInfo.likes_count || 0,
-          video_count: userInfo.video_count || 0
-        },
+        profile_data: profileDataToSave,
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id,platform'

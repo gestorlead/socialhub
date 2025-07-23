@@ -45,6 +45,9 @@ export function useSocialConnections() {
         return
       }
 
+      console.log('=== FETCHED SOCIAL CONNECTIONS ===')
+      console.log('Raw data from Supabase:', JSON.stringify(data, null, 2))
+      
       setConnections(data || [])
     } catch (error) {
       console.error('Error fetching social connections:', error)

@@ -59,18 +59,21 @@ export async function POST(request: NextRequest) {
     const profileData = await profileResponse.json()
     console.log('TikTok API response:', JSON.stringify(profileData, null, 2))
     
-    // Handle API v2 response structure
+    // Handle API v2 response structure - the data comes in data.user
     let userInfo = {}
     if (profileData.data?.user) {
       userInfo = profileData.data.user
-    } else if (profileData.error) {
+      console.log('Extracted user info from data.user:', JSON.stringify(userInfo, null, 2))
+    } else if (profileData.error && profileData.error.code !== 'ok') {
       console.error('TikTok API error:', profileData.error)
       return NextResponse.json({ 
         error: 'Failed to fetch profile from TikTok', 
         tiktok_error: profileData.error 
       }, { status: 500 })
     } else {
+      // Fallback if structure is different
       userInfo = profileData
+      console.log('Using profileData directly as userInfo')
     }
 
     // Update the profile data
@@ -105,6 +108,9 @@ export async function POST(request: NextRequest) {
       console.error('Error updating profile:', updateError)
       return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
     }
+    
+    console.log('=== PROFILE UPDATED SUCCESSFULLY ===')
+    console.log('Updated profile data:', JSON.stringify(updatedProfileData, null, 2))
 
     return NextResponse.json({ 
       success: true,

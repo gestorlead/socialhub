@@ -4,7 +4,9 @@ import {
   Users, 
   Settings, 
   Cog,
-  UserCog
+  UserCog,
+  BarChart3,
+  Edit3
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -62,6 +64,29 @@ export const redesGroup: MenuGroup = {
       id: 'threads',
       label: 'Threads',
       href: '/redes/threads',
+      requiredRole: UserRole.USER
+    }
+  ]
+}
+
+// Grupo Conteúdo - Todos os usuários
+export const conteudoGroup: MenuGroup = {
+  id: 'conteudo',
+  label: 'Conteúdo',
+  requiredRole: UserRole.USER,
+  items: [
+    {
+      id: 'publicar',
+      label: 'Publicar',
+      href: '/publicar',
+      icon: Edit3,
+      requiredRole: UserRole.USER
+    },
+    {
+      id: 'analise',
+      label: 'Análise',
+      href: '/analise',
+      icon: BarChart3,
       requiredRole: UserRole.USER
     }
   ]
@@ -128,6 +153,7 @@ export const dashboardItem: MenuItem = {
 
 export const menuGroups: MenuGroup[] = [
   redesGroup,
+  conteudoGroup,
   settingsGroup,
   integracoesGroup
 ]

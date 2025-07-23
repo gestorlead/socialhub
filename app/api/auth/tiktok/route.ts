@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     // NÃO usar URLSearchParams para evitar encoding da vírgula nos scopes
     const params = [
       `client_key=${process.env.TIKTOK_CLIENT_KEY!}`,
-      `scope=user.info.basic,video.publish`, // Vírgula SEM encoding
+      `scope=user.info.basic,user.info.profile,user.info.stats,video.publish,video.list`, // Vírgula SEM encoding
       `response_type=code`,
       `redirect_uri=${encodeURIComponent(redirectUri)}`,
       `state=${state}`
