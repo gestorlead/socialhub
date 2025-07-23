@@ -82,7 +82,6 @@ export function TikTokIntegrationForm() {
       const { data: { session } } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
       return session?.access_token || ''
     } catch (error) {
-      console.error('Error getting auth token:', error)
       return ''
     }
   }
@@ -105,7 +104,6 @@ export function TikTokIntegrationForm() {
         setErrorMessage(error.error || 'Failed to load settings')
       }
     } catch (error) {
-      console.error('Error loading settings:', error)
       setErrorMessage('Failed to load settings')
     } finally {
       setLoading(false)
@@ -135,11 +133,9 @@ export function TikTokIntegrationForm() {
         await loadSettings() // Reload to get updated data
       } else {
         const error = await response.json()
-        console.error('Save settings error:', error)
         setErrorMessage(error.details ? `${error.error}: ${error.details}` : error.error || 'Failed to save settings')
       }
     } catch (error) {
-      console.error('Error saving settings:', error)
       setErrorMessage('Failed to save settings')
     } finally {
       setSaving(false)
@@ -163,7 +159,6 @@ export function TikTokIntegrationForm() {
       setTestResults(data)
       
     } catch (error) {
-      console.error('Error testing connection:', error)
       setTestResults({
         success: false,
         error: 'Failed to run connectivity test'

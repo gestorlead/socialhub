@@ -62,7 +62,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       setDiagnostics(data)
       setShowDiagnostics(true)
     } catch (error) {
-      console.error('Diagnostics failed:', error)
       setDiagnostics({ error: 'Failed to run diagnostics' })
       setShowDiagnostics(true)
     }
@@ -149,7 +148,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
           }))
         }
       } catch (error) {
-        console.error(`Error publishing to ${network}:`, error)
         setPublishStatus(prev => ({ ...prev, [network]: 'error' }))
         setPublishErrors(prev => ({ 
           ...prev, 
@@ -164,7 +162,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
 
     try {
       // Step 1: Upload file to our server
-      console.log('Step 1: Uploading file to server...')
       setPublishStatus(prev => ({ ...prev, [network]: 'uploading' }))
       setUploadProgress(prev => ({ ...prev, [network]: 'Enviando arquivo para servidor...' }))
       
@@ -183,10 +180,8 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       }
       
       const uploadResult = await uploadResponse.json()
-      console.log('File uploaded successfully:', uploadResult.data.url)
       
       // Step 2: Submit to TikTok using PULL_FROM_URL
-      console.log('Step 2: Submitting to TikTok...')
       setUploadProgress(prev => ({ ...prev, [network]: 'Enviando para o TikTok...' }))
       
       const publishPayload = {
@@ -218,7 +213,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       
       // Step 3: Start checking status
       if (publishResult.data?.publish_id) {
-        console.log('Step 3: Checking publish status...')
         setUploadProgress(prev => ({ ...prev, [network]: 'Processando no TikTok...' }))
         const publishId = publishResult.data.publish_id
         
@@ -241,7 +235,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
           const statusResult = await statusResponse.json()
           
           if (statusResult.data?.status === 'PUBLISH_COMPLETE') {
-            console.log('✓ Video published successfully!')
             setPublishStatus(prev => ({ ...prev, [network]: 'success' }))
             return true
           } else if (statusResult.data?.status === 'FAILED') {
@@ -263,12 +256,10 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
               if (done || attempts >= maxAttempts) {
                 clearInterval(interval)
                 if (!done && attempts >= maxAttempts) {
-                  console.log('⚠️ Status check timed out - check TikTok manually')
                 }
               }
             } catch (error) {
               clearInterval(interval)
-              console.error('Status check error:', error)
             }
           }, 3000)
         }
@@ -277,7 +268,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       setPublishStatus(prev => ({ ...prev, [network]: 'success' }))
       
     } catch (error) {
-      console.error('TikTok publish error:', error)
       throw error
     }
   }

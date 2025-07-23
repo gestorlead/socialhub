@@ -50,7 +50,6 @@ export default function TikTokPage() {
         await refresh()
       }
     } catch (error) {
-      console.error('Error refreshing:', error)
     } finally {
       setRefreshing(false)
     }
@@ -65,12 +64,10 @@ export default function TikTokPage() {
       setCopiedToken(true)
       setTimeout(() => setCopiedToken(false), 2000)
     } catch (error) {
-      console.error('Failed to copy token:', error)
     }
   }
 
   const hasVideoPublishScope = () => {
-    console.log('TikTok connection scope:', tiktokConnection?.scope)
     if (!tiktokConnection?.scope) return false
     
     // Normalize scope string and check for video.publish
@@ -92,7 +89,6 @@ export default function TikTokPage() {
         await refresh()
       }
     } catch (error) {
-      console.error('Error refreshing token:', error)
     } finally {
       setRefreshingToken(false)
     }
@@ -261,7 +257,6 @@ export default function TikTokPage() {
                         // Redirect to dashboard after disconnect
                         window.location.href = '/'
                       } catch (error) {
-                        console.error('Error disconnecting:', error)
                         alert('Erro ao desconectar conta. Tente novamente.')
                       } finally {
                         setDisconnecting(false)

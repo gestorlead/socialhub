@@ -38,7 +38,6 @@ export default function Home() {
   useEffect(() => {
     const tiktokConnection = getConnection('tiktok')
     if (tiktokConnection) {
-      console.log('TikTok connection data:', tiktokConnection)
     }
   }, [getConnection])
   
@@ -52,17 +51,14 @@ export default function Home() {
       })
       if (response.ok) {
         const data = await response.json()
-        console.log('Profile refresh response:', data)
         await refresh() // Refresh connections to show updated data
         setConnectionStatus('Perfil atualizado com sucesso!')
         setTimeout(() => setConnectionStatus(null), 3000)
       } else {
         const error = await response.json()
-        console.error('Failed to refresh profile:', error)
         setConnectionStatus('Erro ao atualizar perfil')
       }
     } catch (error) {
-      console.error('Error refreshing profile:', error)
       setConnectionStatus('Erro ao atualizar perfil')
     } finally {
       setUpdatingStats(false)

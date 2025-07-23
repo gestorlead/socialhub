@@ -242,7 +242,6 @@ export default function PublishPage() {
                 publishState={publishState}
                 onPublish={() => {
                   // Handle publish logic
-                  console.log('Publishing...', publishState)
                 }}
                 getEffectiveCaption={getEffectiveCaption}
               />
