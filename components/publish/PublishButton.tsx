@@ -417,27 +417,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         </div>
       )}
       
-      {/* Sandbox Mode Warning */}
-      {publishState.selectedNetworks.includes('tiktok') && typeof window !== 'undefined' && (
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">Modo Sandbox TikTok</h4>
-          </div>
-          <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-            <p><strong>Requisitos para sandbox:</strong></p>
-            <p>• Sua conta TikTok deve estar configurada como PRIVADA</p>
-            <p>• Videos serão publicados como "Apenas você" (SELF_ONLY)</p>
-            <p>• Para publicação pública, é necessário app auditado pelo TikTok</p>
-            <button
-              onClick={() => setShowSandboxGuide(true)}
-              className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              📋 Ver guia completo de configuração →
-            </button>
-          </div>
-        </div>
-      )}
       
       {/* Publish Summary */}
       {canPublish && publishState.selectedNetworks.length > 0 && (

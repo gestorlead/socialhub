@@ -122,20 +122,6 @@ export function PublishSettings({
               Privacidade do Conteúdo
             </label>
             
-            {/* Sandbox Mode Notice */}
-            {typeof window !== 'undefined' && (
-              <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded text-xs">
-                <p className="text-amber-700 dark:text-amber-300 font-semibold mb-2">
-                  ⚠️ Modo Sandbox TikTok - Configuração Necessária:
-                </p>
-                <div className="text-amber-700 dark:text-amber-300 space-y-1">
-                  <p>1. <strong>Conta TikTok deve estar PRIVADA:</strong></p>
-                  <p className="ml-4">• Abra o TikTok → Perfil → ⚙️ Configurações</p>
-                  <p className="ml-4">• Privacidade → Conta privada: <strong>ATIVAR</strong></p>
-                  <p>2. Publicações serão feitas como "Apenas você" (SELF_ONLY)</p>
-                </div>
-              </div>
-            )}
             <div className="space-y-2">
               {PRIVACY_OPTIONS.map((option) => {
                 const IconComponent = option.icon
