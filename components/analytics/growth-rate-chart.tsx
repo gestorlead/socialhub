@@ -1,6 +1,6 @@
 "use client"
 
-import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, ReferenceLine } from 'recharts'
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, ReferenceLine } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { GrowthData } from '@/hooks/use-analytics-data'
 
@@ -58,7 +58,7 @@ export function GrowthRateChart({ data, loading }: GrowthRateChartProps) {
 
   return (
     <ChartContainer config={chartConfig} className="h-[300px]">
-      <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
         <XAxis 
           dataKey="date" 
           tick={{ fontSize: 12 }}
@@ -90,25 +90,31 @@ export function GrowthRateChart({ data, loading }: GrowthRateChartProps) {
             />
           }
         />
-        <Bar
+        <Line
+          type="monotone"
           dataKey="followers"
-          fill="var(--color-follower_growth_percent)"
-          radius={[2, 2, 0, 0]}
-          maxBarSize={20}
+          stroke="var(--color-follower_growth_percent)"
+          strokeWidth={2}
+          dot={{ fill: "var(--color-follower_growth_percent)", strokeWidth: 2, r: 3 }}
+          activeDot={{ r: 5 }}
         />
-        <Bar
+        <Line
+          type="monotone"
           dataKey="likes"
-          fill="var(--color-likes_growth_percent)"
-          radius={[2, 2, 0, 0]}
-          maxBarSize={20}
+          stroke="var(--color-likes_growth_percent)"
+          strokeWidth={2}
+          dot={{ fill: "var(--color-likes_growth_percent)", strokeWidth: 2, r: 3 }}
+          activeDot={{ r: 5 }}
         />
-        <Bar
+        <Line
+          type="monotone"
           dataKey="videos"
-          fill="var(--color-video_growth_percent)"
-          radius={[2, 2, 0, 0]}
-          maxBarSize={20}
+          stroke="var(--color-video_growth_percent)"
+          strokeWidth={2}
+          dot={{ fill: "var(--color-video_growth_percent)", strokeWidth: 2, r: 3 }}
+          activeDot={{ r: 5 }}
         />
-      </BarChart>
+      </LineChart>
     </ChartContainer>
   )
 }

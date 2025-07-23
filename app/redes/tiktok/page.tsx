@@ -8,8 +8,9 @@ import { useTikTokLiveStats } from "@/hooks/use-tiktok-live-stats"
 import { TokenStatusIndicator } from "@/components/token-status-indicator"
 import { TikTokStatCard } from "@/components/tiktok-stat-card"
 import { useEffect, useState } from "react"
-import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Play, Heart, Clock, AlertTriangle, Unlink, Key, Copy, Eye, EyeOff } from "lucide-react"
+import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Play, Heart, Clock, AlertTriangle, Unlink, Key, Copy, Eye, EyeOff, Edit3, TrendingUp } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function TikTokPage() {
   const { user, loading } = useAuth()
@@ -37,16 +38,6 @@ export default function TikTokPage() {
   // Use live stats if available, otherwise fall back to stored stats
   const displayStats = liveStats || storedStats
   
-  // Debug logs
-  useEffect(() => {
-    if (tiktokConnection) {
-      console.log('=== TIKTOK CONNECTION DATA ===')
-      console.log('Full connection:', JSON.stringify(tiktokConnection, null, 2))
-      console.log('Profile data:', JSON.stringify(tiktokConnection.profile_data, null, 2))
-      console.log('Live stats:', liveStats)
-      console.log('Comparison:', comparison)
-    }
-  }, [tiktokConnection, liveStats, comparison])
 
   // Function to format large numbers elegantly
   const formatNumber = (num: number): string => {
@@ -355,91 +346,7 @@ export default function TikTokPage() {
           </div>
         </div>
 
-        {/* Developer Token Section */}
-        <div className="bg-card border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Key className="w-5 h-5" />
-              Token para Publicação de Conteúdo
-            </h3>
-            <div className="flex items-center gap-2 text-sm">
-              {hasVideoPublishScope() ? (
-                <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Habilitado para publicar
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  Sem permissão para publicar
-                </span>
-              )}
-            </div>
-          </div>
 
-          {hasVideoPublishScope() ? (
-            <div className="space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Key className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                      Access Token para API
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-white dark:bg-gray-800 border rounded px-3 py-2 text-sm font-mono break-all">
-                          {showToken 
-                            ? tiktokConnection?.access_token 
-                            : '•'.repeat(tiktokConnection?.access_token?.length || 0)
-                          }
-                        </code>
-                        <button
-                          onClick={() => setShowToken(!showToken)}
-                          className="p-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                          title={showToken ? 'Ocultar token' : 'Mostrar token'}
-                        >
-                          {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                        <button
-                          onClick={copyToken}
-                          className="p-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                          title="Copiar token"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                      </div>
-                      {copiedToken && (
-                        <p className="text-sm text-green-600 dark:text-green-400">
-                          Token copiado para a área de transferência!
-                        </p>
-                      )}
-                    </div>
-                    <div className="mt-3 text-sm text-blue-700 dark:text-blue-300">
-                      <p><strong>Open ID:</strong> {tiktokConnection?.profile_data?.open_id}</p>
-                      <p className="mt-1">
-                        <strong>Uso:</strong> Use este token para fazer requisições à Content Posting API do TikTok
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          ) : (
-            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                <div className="text-sm text-red-800 dark:text-red-200">
-                  <p className="font-medium">Escopo video.publish não encontrado</p>
-                  <p>Reconecte sua conta para obter permissões de publicação</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* Account Info */}
         <div className="bg-card border rounded-lg p-6">
@@ -528,29 +435,141 @@ export default function TikTokPage() {
           </div>
         </div>
 
-        {/* Coming Soon Features */}
+        {/* Available Actions */}
         <div className="bg-card border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Em breve</h3>
+          <h3 className="text-lg font-semibold mb-4">Ações Disponíveis</h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="p-4 border rounded-lg opacity-50">
-              <h4 className="font-medium mb-2">Publicar Vídeos</h4>
+            <Link
+              href="/publicar"
+              className="group p-4 border rounded-lg hover:border-green-200 dark:hover:border-green-800 hover:bg-green-50 dark:hover:bg-green-950 transition-all duration-200"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors">
+                  <Edit3 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                </div>
+                <h4 className="font-medium">Publicar Vídeos</h4>
+              </div>
               <p className="text-sm text-muted-foreground">
-                Publique vídeos diretamente no TikTok
+                Publique vídeos diretamente no TikTok com legendas personalizadas
               </p>
-            </div>
+            </Link>
+            
+            <Link
+              href="/analise/tiktok"
+              className="group p-4 border rounded-lg hover:border-blue-200 dark:hover:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all duration-200"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                  <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h4 className="font-medium">Análise de Performance</h4>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Veja métricas detalhadas, gráficos e histórico de crescimento
+              </p>
+            </Link>
+            
             <div className="p-4 border rounded-lg opacity-50">
-              <h4 className="font-medium mb-2">Agendar Posts</h4>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                </div>
+                <h4 className="font-medium">Agendar Posts</h4>
+              </div>
               <p className="text-sm text-muted-foreground">
                 Programe seus vídeos para publicação automática
               </p>
-            </div>
-            <div className="p-4 border rounded-lg opacity-50">
-              <h4 className="font-medium mb-2">Análise de Performance</h4>
-              <p className="text-sm text-muted-foreground">
-                Veja métricas detalhadas dos seus vídeos
-              </p>
+              <span className="inline-block mt-2 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">
+                Em breve
+              </span>
             </div>
           </div>
+        </div>
+
+        {/* Developer Token Section */}
+        <div className="bg-card border rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Key className="w-5 h-5" />
+              Token para Publicação de Conteúdo
+            </h3>
+            <div className="flex items-center gap-2 text-sm">
+              {hasVideoPublishScope() ? (
+                <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Habilitado para publicar
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  Sem permissão para publicar
+                </span>
+              )}
+            </div>
+          </div>
+
+          {hasVideoPublishScope() ? (
+            <div className="space-y-4">
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Key className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                      Access Token para API
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 bg-white dark:bg-gray-800 border rounded px-3 py-2 text-sm font-mono break-all">
+                          {showToken 
+                            ? tiktokConnection?.access_token 
+                            : '•'.repeat(tiktokConnection?.access_token?.length || 0)
+                          }
+                        </code>
+                        <button
+                          onClick={() => setShowToken(!showToken)}
+                          className="p-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                          title={showToken ? 'Ocultar token' : 'Mostrar token'}
+                        >
+                          {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                        <button
+                          onClick={copyToken}
+                          className="p-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                          title="Copiar token"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {copiedToken && (
+                        <p className="text-sm text-green-600 dark:text-green-400">
+                          Token copiado para a área de transferência!
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-3 text-sm text-blue-700 dark:text-blue-300">
+                      <p><strong>Open ID:</strong> {tiktokConnection?.profile_data?.open_id}</p>
+                      <p className="mt-1">
+                        <strong>Uso:</strong> Use este token para fazer requisições à Content Posting API do TikTok
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          ) : (
+            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <div className="text-sm text-red-800 dark:text-red-200">
+                  <p className="font-medium">Escopo video.publish não encontrado</p>
+                  <p>Reconecte sua conta para obter permissões de publicação</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

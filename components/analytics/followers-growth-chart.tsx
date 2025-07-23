@@ -1,6 +1,6 @@
 "use client"
 
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { DailyStats } from '@/hooks/use-analytics-data'
 import { formatNumber } from '@/lib/utils'
@@ -50,7 +50,13 @@ export function FollowersGrowthChart({ data, period, loading }: FollowersGrowthC
 
   return (
     <ChartContainer config={chartConfig} className="h-[300px]">
-      <LineChart data={chartData}>
+      <AreaChart data={chartData}>
+        <defs>
+          <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-follower_count)" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="var(--color-follower_count)" stopOpacity={0.1}/>
+          </linearGradient>
+        </defs>
         <XAxis 
           dataKey="date" 
           tick={{ fontSize: 12 }}
@@ -74,23 +80,15 @@ export function FollowersGrowthChart({ data, period, loading }: FollowersGrowthC
             />
           }
         />
-        <Line
+        <Area
           type="monotone"
           dataKey="followers"
           stroke="var(--color-follower_count)"
+          fillOpacity={1}
+          fill="url(#colorFollowers)"
           strokeWidth={2}
-          dot={{
-            fill: "var(--color-follower_count)",
-            strokeWidth: 2,
-            r: 4,
-          }}
-          activeDot={{
-            r: 6,
-            stroke: "var(--color-follower_count)",
-            strokeWidth: 2,
-          }}
         />
-      </LineChart>
+      </AreaChart>
     </ChartContainer>
   )
 }

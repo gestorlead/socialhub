@@ -33,7 +33,8 @@
       "Bash(curl:*)",
       "mcp__supabase__get_logs",
       "Bash(npx shadcn@latest list)",
-      "Bash(npx shadcn@latest --help)"
+      "Bash(npx shadcn@latest --help)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

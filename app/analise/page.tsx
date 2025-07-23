@@ -3,144 +3,32 @@
 import { useAuth } from "@/lib/supabase-auth-helpers"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
-import { useAnalyticsData } from "@/hooks/use-analytics-data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  Heart, 
-  Play, 
-  Eye,
-  Download,
   BarChart3,
-  LineChart as LineChartIcon,
-  PieChart
+  TrendingUp,
+  Users,
+  Play,
+  Calendar,
+  ExternalLink,
+  ArrowRight
 } from "lucide-react"
-import { FollowersGrowthChart } from "@/components/analytics/followers-growth-chart"
-import { EngagementOverviewChart } from "@/components/analytics/engagement-overview-chart"
-import { GrowthRateChart } from "@/components/analytics/growth-rate-chart"
-import { MultiMetricChart } from "@/components/analytics/multi-metric-chart"
-import { PerformanceRadarChart } from "@/components/analytics/performance-radar-chart"
-import { formatNumber } from "@/lib/utils"
-
-type Period = '7d' | '30d' | '60d' | '90d'
-
-interface MetricCardProps {
-  title: string
-  value: number
-  change: number
-  changePercent: number
-  icon: React.ReactNode
-  color: string
-}
-
-function MetricCard({ title, value, change, changePercent, icon, color }: MetricCardProps) {
-  const isPositive = change >= 0
-  
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <div className={`p-2 rounded-lg ${color}`}>
-          {icon}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{formatNumber(value)}</div>
-        <div className="flex items-center text-xs text-muted-foreground">
-          {isPositive ? (
-            <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
-          ) : (
-            <TrendingDown className="w-4 h-4 mr-1 text-red-500" />
-          )}
-          <span className={isPositive ? "text-green-500" : "text-red-500"}>
-            {isPositive ? "+" : ""}{change} ({changePercent.toFixed(1)}%)
-          </span>
-          <span className="ml-1">vs período anterior</span>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
+import Link from "next/link"
+import Image from "next/image"
 
 export default function AnalyticsPage() {
   const { user, loading } = useAuth()
-  const { getConnection } = useSocialConnections()
-  const [selectedPeriod, setSelectedPeriod] = useState<Period>('30d')
-  
+  const { getConnection, isConnected } = useSocialConnections()
+
   const tiktokConnection = getConnection('tiktok')
-  const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalyticsData(
-    tiktokConnection?.profile_data?.open_id,
-    selectedPeriod
-  )
-
-  const metrics = useMemo(() => {
-    if (!analyticsData?.current || !analyticsData?.previous) return null
-
-    const current = analyticsData.current
-    const previous = analyticsData.previous
-
-    return {
-      followers: {
-        current: current.follower_count,
-        change: current.follower_count - previous.follower_count,
-        changePercent: previous.follower_count > 0 
-          ? ((current.follower_count - previous.follower_count) / previous.follower_count) * 100 
-          : 0
-      },
-      likes: {
-        current: current.likes_count,
-        change: current.likes_count - previous.likes_count,
-        changePercent: previous.likes_count > 0 
-          ? ((current.likes_count - previous.likes_count) / previous.likes_count) * 100 
-          : 0
-      },
-      videos: {
-        current: current.video_count,
-        change: current.video_count - previous.video_count,
-        changePercent: previous.video_count > 0 
-          ? ((current.video_count - previous.video_count) / previous.video_count) * 100 
-          : 0
-      },
-      following: {
-        current: current.following_count,
-        change: current.following_count - previous.following_count,
-        changePercent: previous.following_count > 0 
-          ? ((current.following_count - previous.following_count) / previous.following_count) * 100 
-          : 0
-      }
-    }
-  }, [analyticsData])
 
   if (loading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
-    )
-  }
-
-  if (!tiktokConnection) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="text-center py-12">
-            <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-bold mb-4">TikTok Analytics</h2>
-            <p className="text-muted-foreground mb-6">
-              Conecte sua conta do TikTok para visualizar suas análises de performance
-            </p>
-            <Button asChild>
-              <a href="/redes/tiktok">Conectar TikTok</a>
-            </Button>
-          </div>
         </div>
       </DashboardLayout>
     )
@@ -154,214 +42,275 @@ export default function AnalyticsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Análise de Performance</h1>
             <p className="text-muted-foreground">
-              Acompanhe o crescimento e performance da sua conta no TikTok
+              Acompanhe o desempenho de todas as suas redes sociais em um só lugar
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <Select
-              value={selectedPeriod}
-              onValueChange={(value: Period) => setSelectedPeriod(value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Selecionar período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                <SelectItem value="60d">Últimos 60 dias</SelectItem>
-                <SelectItem value="90d">Últimos 90 dias</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
+              <Calendar className="w-4 h-4 mr-2" />
+              Relatório Mensal
             </Button>
           </div>
         </div>
 
-        {/* Error Display */}
-        {analyticsError && (
-          <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-              <span className="font-medium">Erro ao carregar dados:</span>
-              <span>{analyticsError}</span>
-            </div>
-          </div>
-        )}
-
-
-        {/* Metrics Overview */}
-        {metrics && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              title="Seguidores"
-              value={metrics.followers.current}
-              change={metrics.followers.change}
-              changePercent={metrics.followers.changePercent}
-              icon={<Users className="w-4 h-4 text-white" />}
-              color="bg-blue-500"
-            />
-            <MetricCard
-              title="Curtidas Totais"
-              value={metrics.likes.current}
-              change={metrics.likes.change}
-              changePercent={metrics.likes.changePercent}
-              icon={<Heart className="w-4 h-4 text-white" />}
-              color="bg-red-500"
-            />
-            <MetricCard
-              title="Vídeos Publicados"
-              value={metrics.videos.current}
-              change={metrics.videos.change}
-              changePercent={metrics.videos.changePercent}
-              icon={<Play className="w-4 h-4 text-white" />}
-              color="bg-purple-500"
-            />
-            <MetricCard
-              title="Seguindo"
-              value={metrics.following.current}
-              change={metrics.following.change}
-              changePercent={metrics.following.changePercent}
-              icon={<Eye className="w-4 h-4 text-white" />}
-              color="bg-green-500"
-            />
-          </div>
-        )}
-
-        {/* Main Dashboard */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Followers Growth */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LineChartIcon className="w-5 h-5" />
-                Crescimento de Seguidores
-              </CardTitle>
-              <CardDescription>
-                Evolução do número de seguidores ao longo do tempo
-              </CardDescription>
+        {/* Overview Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Redes Conectadas</CardTitle>
+              <Users className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <FollowersGrowthChart 
-                data={analyticsData?.timeSeries || []} 
-                period={selectedPeriod}
-                loading={analyticsLoading}
-              />
+              <div className="text-2xl font-bold">
+                {[isConnected('tiktok')].filter(Boolean).length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                de 6 redes disponíveis
+              </p>
             </CardContent>
           </Card>
 
-          {/* Engagement Overview */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="w-5 h-5" />
-                Visão Geral
-              </CardTitle>
-              <CardDescription>
-                Resumo das principais métricas
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Seguidores Totais</CardTitle>
+              <TrendingUp className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <EngagementOverviewChart 
-                data={metrics}
-                loading={analyticsLoading}
-              />
+              <div className="text-2xl font-bold">
+                {tiktokConnection?.profile_data?.follower_count?.toLocaleString('pt-BR') || '0'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                across all platforms
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Conteúdos Publicados</CardTitle>
+              <Play className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {tiktokConnection?.profile_data?.video_count || '0'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                este mês
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Engajamento Médio</CardTitle>
+              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {tiktokConnection?.profile_data?.follower_count > 0 
+                  ? ((tiktokConnection.profile_data.likes_count / tiktokConnection.profile_data.follower_count) * 100).toFixed(1)
+                  : '0'
+                }%
+              </div>
+              <p className="text-xs text-muted-foreground">
+                taxa de engajamento
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Detailed Analytics Tabs */}
-        <Tabs defaultValue="growth" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="growth">Crescimento</TabsTrigger>
-            <TabsTrigger value="engagement">Engajamento</TabsTrigger>
-            <TabsTrigger value="content">Conteúdo</TabsTrigger>
-            <TabsTrigger value="comparison">Comparativo</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="growth" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Taxa de Crescimento</CardTitle>
-                  <CardDescription>
-                    Crescimento percentual por período
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <GrowthRateChart 
-                    data={analyticsData?.growth || []}
-                    loading={analyticsLoading}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance Radar</CardTitle>
-                  <CardDescription>
-                    Análise comparativa de todas as métricas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <PerformanceRadarChart 
-                    data={metrics}
-                    loading={analyticsLoading}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="engagement" className="space-y-6">
-            <Card>
+        {/* Social Media Analytics Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* TikTok Analytics */}
+          {isConnected('tiktok') ? (
+            <Card className="group hover:shadow-md transition-all duration-200">
               <CardHeader>
-                <CardTitle>Métricas de Engajamento</CardTitle>
-                <CardDescription>
-                  Análise detalhada de interações e engajamento
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MultiMetricChart 
-                  data={analyticsData?.timeSeries || []}
-                  loading={analyticsLoading}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="content" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance de Conteúdo</CardTitle>
-                <CardDescription>
-                  Análise da performance dos vídeos publicados
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Análise de conteúdo em desenvolvimento
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+                      <Image 
+                        src="/images/social-icons/tiktok.png" 
+                        alt="TikTok" 
+                        width={24} 
+                        height={24}
+                        className="brightness-0 invert"
+                      />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">TikTok</CardTitle>
+                      <CardDescription>
+                        @{tiktokConnection?.profile_data?.username || 'username'}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Link
+                    href="/analise/tiktok"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Button variant="ghost" size="sm">
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  </Link>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="comparison" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Comparação de Períodos</CardTitle>
-                <CardDescription>
-                  Compare performance entre diferentes períodos
-                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Comparação de períodos em desenvolvimento
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Seguidores</span>
+                    <span className="font-medium">
+                      {tiktokConnection?.profile_data?.follower_count?.toLocaleString('pt-BR') || '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Curtidas</span>
+                    <span className="font-medium">
+                      {tiktokConnection?.profile_data?.likes_count?.toLocaleString('pt-BR') || '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Vídeos</span>
+                    <span className="font-medium">
+                      {tiktokConnection?.profile_data?.video_count || '0'}
+                    </span>
+                  </div>
                 </div>
+                <Link href="/analise/tiktok" className="block mt-4">
+                  <Button className="w-full" variant="outline">
+                    Ver Análise Completa
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          ) : (
+            <Card className="border-dashed">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                    <Image 
+                      src="/images/social-icons/tiktok.png" 
+                      alt="TikTok" 
+                      width={24} 
+                      height={24}
+                      className="opacity-50"
+                    />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg text-muted-foreground">TikTok</CardTitle>
+                    <CardDescription>Não conectado</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Conecte sua conta do TikTok para ver análises detalhadas
+                </p>
+                <Link href="/redes/tiktok">
+                  <Button className="w-full" variant="outline">
+                    Conectar TikTok
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Instagram - Coming Soon */}
+          <Card className="border-dashed opacity-60">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">IG</span>
+                </div>
+                <div>
+                  <CardTitle className="text-lg text-muted-foreground">Instagram</CardTitle>
+                  <CardDescription>Em breve</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Análises do Instagram estarão disponíveis em breve
+              </p>
+              <Button className="w-full" variant="outline" disabled>
+                Em Desenvolvimento
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Facebook - Coming Soon */}
+          <Card className="border-dashed opacity-60">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">FB</span>
+                </div>
+                <div>
+                  <CardTitle className="text-lg text-muted-foreground">Facebook</CardTitle>
+                  <CardDescription>Em breve</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Análises do Facebook estarão disponíveis em breve
+              </p>
+              <Button className="w-full" variant="outline" disabled>
+                Em Desenvolvimento
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Insights */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Insights Rápidos</CardTitle>
+            <CardDescription>
+              Resumo das principais métricas das suas redes sociais
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isConnected('tiktok') ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                      <Image 
+                        src="/images/social-icons/tiktok.png" 
+                        alt="TikTok" 
+                        width={16} 
+                        height={16}
+                        className="brightness-0 invert"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium">TikTok Performance</p>
+                      <p className="text-sm text-muted-foreground">
+                        {tiktokConnection?.profile_data?.follower_count > 0 
+                          ? `${((tiktokConnection.profile_data.likes_count / tiktokConnection.profile_data.follower_count) * 100).toFixed(1)}% de engajamento`
+                          : 'Sem dados de engajamento'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/analise/tiktok">
+                    <Button variant="ghost" size="sm">
+                      Ver Detalhes
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Conecte suas redes sociais para ver insights personalizados
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )
