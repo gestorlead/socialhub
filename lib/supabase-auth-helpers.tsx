@@ -1,0 +1,186 @@
+'use client'
+
+import { createContext, useContext, useEffect, useState } from 'react'
+import { Session, User } from '@supabase/supabase-js'
+import { supabase } from './supabase'
+import { Profile, UserRole, hasPermission } from './types/auth'
+
+interface AuthContextType {
+  user: User | null
+  profile: Profile | null
+  session: Session | null
+  loading: boolean
+  userRole: UserRole
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signInWithOAuth: (provider: 'google' | 'facebook' | 'github') => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>
+  signOut: () => Promise<void>
+  hasRole: (minLevel: UserRole) => boolean
+  isAdmin: () => boolean
+  isSuperAdmin: () => boolean
+  refreshProfile: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          roles (
+            id,
+            name,
+            level,
+            description,
+            permissions
+          )
+        `)
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        console.error('Error fetching profile:', error)
+        return null
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error in fetchProfile:', error)
+      return null
+    }
+  }
+
+  const refreshProfile = async () => {
+    if (user) {
+      const profileData = await fetchProfile(user.id)
+      setProfile(profileData)
+    }
+  }
+
+  useEffect(() => {
+    const setData = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error) throw error
+      
+      setSession(session)
+      setUser(session?.user ?? null)
+      
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id)
+        setProfile(profileData)
+      } else {
+        setProfile(null)
+      }
+      
+      setLoading(false)
+    }
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Auth state change:', _event, session?.user?.email, window.location.pathname)
+      
+      setSession(session)
+      setUser(session?.user ?? null)
+      
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id)
+        setProfile(profileData)
+      } else {
+        setProfile(null)
+      }
+      
+      setLoading(false)
+      
+      // Let middleware handle redirects - removing client-side redirect to avoid conflicts
+      // This prevents race conditions between server and client-side navigation
+    })
+
+    setData()
+
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
+  }, [])
+
+  const userRole = (profile?.roles?.level || UserRole.USER) as UserRole
+
+  const value = {
+    session,
+    user,
+    profile,
+    loading,
+    userRole,
+    hasRole: (minLevel: UserRole) => hasPermission(userRole, minLevel),
+    isAdmin: () => userRole >= UserRole.ADMIN,
+    isSuperAdmin: () => userRole >= UserRole.SUPER_ADMIN,
+    refreshProfile,
+    signIn: async (email: string, password: string) => {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      return { error }
+    },
+    signInWithOAuth: async (provider: 'google' | 'facebook' | 'github') => {
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : process.env.NEXT_PUBLIC_SUPABASE_URL_CALLBACK || 'https://socialhub.gestorlead.com.br/auth/callback'
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: redirectTo
+        }
+      })
+      return { error }
+    },
+    signUp: async (email: string, password: string) => {
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_SUPABASE_URL_CALLBACK || `${window.location.origin}/auth/callback`
+        }
+      })
+      return { error }
+    },
+    signOut: async () => {
+      try {
+        const { error } = await supabase.auth.signOut()
+        if (error) {
+          console.error('Supabase signOut error:', error)
+        }
+        
+        // Clear local state regardless of error
+        setUser(null)
+        setProfile(null)
+        setSession(null)
+        
+        return { error }
+      } catch (error) {
+        console.error('SignOut error:', error)
+        
+        // Clear local state even if there's an error
+        setUser(null)
+        setProfile(null)
+        setSession(null)
+        
+        return { error }
+      }
+    },
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}

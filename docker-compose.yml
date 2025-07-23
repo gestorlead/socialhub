@@ -1,0 +1,29 @@
+version: '3.3'
+
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: socialhub-new-app
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=https://socialhub.gestorlead.com.br
+    networks:
+      - network_public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=network_public"
+      - "traefik.http.routers.socialhub.rule=Host(`socialhub.gestorlead.com.br`)"
+      - "traefik.http.routers.socialhub.entrypoints=websecure"
+      - "traefik.http.routers.socialhub.tls.certresolver=letsencrypt"
+      - "traefik.http.services.socialhub.loadbalancer.server.port=3000"
+      - "traefik.http.routers.socialhub.service=socialhub"
+
+networks:
+  network_public:
+    external: true

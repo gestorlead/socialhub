@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose:*)",
+      "Bash(find:*)",
+      "Bash(docker service:*)",
+      "Bash(docker inspect:*)",
+      "Bash(docker:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm add:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__get_anon_key",
+      "Bash(pnpm dev:*)",
+      "Bash(echo $DISPLAY)",
+      "Bash(xhost:*)",
+      "Bash(echo:*)",
+      "mcp__browsermcp__browser_navigate",
+      "mcp__browsermcp__browser_screenshot",
+      "mcp__browsermcp__browser_snapshot",
+      "mcp__browsermcp__browser_type",
+      "mcp__browsermcp__browser_click",
+      "mcp__browsermcp__browser_wait",
+      "Bash(npm run dev:*)",
+      "mcp__supabase__execute_sql",
+      "Bash(npx shadcn@latest add:*)",
+      "mcp__browsermcp__browser_get_console_logs",
+      "WebFetch(domain:developers.tiktok.com)",
+      "Bash(mkdir:*)",
+      "mcp__supabase__apply_migration",
+      "Bash(grep:*)",
+      "Bash(npm run build:*)",
+      "Bash(curl:*)",
+      "mcp__supabase__get_logs"
+    ],
+    "deny": []
+  }
+}
