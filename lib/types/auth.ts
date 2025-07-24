@@ -16,11 +16,11 @@ export interface Role {
 
 export interface Profile {
   id: string
-  role_id: string
-  full_name?: string
-  avatar_url?: string
-  created_at: string
-  updated_at: string
+  role_id: string | null
+  full_name?: string | null
+  avatar_url?: string | null
+  created_at?: string
+  updated_at?: string
   roles?: Role
 }
 

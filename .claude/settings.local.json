@@ -34,7 +34,16 @@
       "mcp__supabase__get_logs",
       "Bash(npx shadcn@latest list)",
       "Bash(npx shadcn@latest --help)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(cat:*)",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__generate_typescript_types",
+      "Bash(pkill:*)",
+      "mcp__github__search_repositories",
+      "mcp__github__get_me",
+      "mcp__github__create_repository",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

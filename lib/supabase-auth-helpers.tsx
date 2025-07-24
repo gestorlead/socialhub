@@ -31,6 +31,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
+      console.log('[Auth] Fetching profile for user:', userId)
+      
+      // First try without roles to see if basic profile exists
+      const { data: basicProfile, error: basicError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (basicError) {
+        console.error('[Auth] Error fetching basic profile:', basicError)
+        
+        // If profile doesn't exist, create one
+        if (basicError.code === 'PGRST116') {
+          console.log('[Auth] Profile not found, creating new profile')
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              full_name: null,
+              avatar_url: null,
+              role_id: null
+            })
+            .select()
+            .single()
+
+          if (createError) {
+            console.error('[Auth] Error creating profile:', createError)
+            return null
+          }
+          
+          console.log('[Auth] Profile created successfully')
+          return newProfile as Profile
+        }
+        
+        return null
+      }
+
+      // Now try to get the full profile with roles
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -47,13 +86,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
-        console.error('Error fetching profile:', error)
-        return null
+        console.error('[Auth] Error fetching profile with roles:', error)
+        // Return basic profile if roles query fails
+        return basicProfile as Profile
       }
 
+      console.log('[Auth] Profile fetched successfully')
       return data
     } catch (error) {
-      console.error('Error in fetchProfile:', error)
+      console.error('[Auth] Unexpected error in fetchProfile:', error)
       return null
     }
   }
