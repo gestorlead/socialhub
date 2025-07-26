@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Plataforma completa para análise e gestão de redes sociais com insights em tempo real",
   icons: {
     icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 
