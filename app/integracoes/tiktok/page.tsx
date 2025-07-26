@@ -3,7 +3,7 @@
 import { DashboardLayout } from '@/components/dashboard-layout'
 import { SuperAdminGuard } from '@/components/role-guard'
 import { TikTokIntegrationForm } from '@/components/admin/TikTokIntegrationForm'
-import { Settings, AlertTriangle } from 'lucide-react'
+import { Settings } from 'lucide-react'
 
 export default function TikTokIntegrationPage() {
   return (
@@ -24,21 +24,6 @@ export default function TikTokIntegrationPage() {
           </div>
 
 
-          {/* Environment Notice */}
-          <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                  Sobre os Modos de Ambiente
-                </h3>
-                <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                  <p><strong>Sandbox:</strong> Para desenvolvimento e testes. Requer contas TikTok privadas.</p>
-                  <p><strong>Produção:</strong> Para uso real. Requer app auditado pelo TikTok.</p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Main Configuration Form */}
           <div className="rounded-lg border bg-card">

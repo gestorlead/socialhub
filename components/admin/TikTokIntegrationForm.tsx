@@ -78,10 +78,14 @@ export function TikTokIntegrationForm() {
 
   const getAuthToken = async () => {
     try {
+      console.log('Getting auth token...')
       // Get token from Supabase client
       const { data: { session } } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
+      console.log('Session exists:', !!session)
+      console.log('Access token exists:', !!session?.access_token)
       return session?.access_token || ''
     } catch (error) {
+      console.error('Error getting auth token:', error)
       return ''
     }
   }
@@ -112,11 +116,25 @@ export function TikTokIntegrationForm() {
 
   const saveSettings = async () => {
     try {
+      console.log('Starting save operation...')
       setSaving(true)
       setErrorMessage('')
       setSuccessMessage('')
       
+      // Validate required fields
+      if (!settings.app_id || !settings.client_key || !settings.client_secret) {
+        setErrorMessage('App ID, Client Key e Client Secret são obrigatórios')
+        setSaving(false)
+        return
+      }
+      
       const token = await getAuthToken()
+      console.log('Token obtained:', !!token)
+      console.log('Settings to save:', {
+        ...settings,
+        client_secret: settings.client_secret ? '***' : undefined
+      })
+      
       const response = await fetch('/api/admin/integrations/tiktok', {
         method: 'PUT',
         headers: {
@@ -126,18 +144,25 @@ export function TikTokIntegrationForm() {
         body: JSON.stringify(settings)
       })
       
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('Success response:', data)
         setSuccessMessage('Configurações salvas com sucesso!')
         setTimeout(() => setSuccessMessage(''), 5000)
         await loadSettings() // Reload to get updated data
       } else {
         const error = await response.json()
+        console.error('Error response:', error)
         setErrorMessage(error.details ? `${error.error}: ${error.details}` : error.error || 'Failed to save settings')
       }
     } catch (error) {
-      setErrorMessage('Failed to save settings')
+      console.error('Save error:', error)
+      setErrorMessage(`Erro ao salvar: ${error.message || error}`)
     } finally {
+      console.log('Save operation completed')
       setSaving(false)
     }
   }
@@ -232,23 +257,14 @@ export function TikTokIntegrationForm() {
             <label className="block text-sm font-medium mb-2">
               App ID
             </label>
-            <div className="relative">
-              <input
-                type={showSecrets.app_id ? 'text' : 'password'}
-                value={settings.app_id || ''}
-                onChange={(e) => handleInputChange('app_id', e.target.value)}
-                className="w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Digite o App ID do TikTok"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => toggleSecretVisibility('app_id')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showSecrets.app_id ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+            <input
+              type="text"
+              value={settings.app_id || ''}
+              onChange={(e) => handleInputChange('app_id', e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Digite o App ID do TikTok"
+              required
+            />
           </div>
 
           {/* Client Key */}

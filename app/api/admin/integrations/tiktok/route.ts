@@ -125,10 +125,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Mask sensitive data for response
+    // Mask sensitive data for response (except app_id which doesn't need to be hidden)
     const responseSettings = {
       ...settings,
-      app_id: settings.app_id ? maskSecret(settings.app_id) : undefined,
+      app_id: settings.app_id,
       client_key: settings.client_key ? maskSecret(settings.client_key) : undefined,
       client_secret: settings.client_secret ? maskSecret(settings.client_secret) : undefined,
     }
