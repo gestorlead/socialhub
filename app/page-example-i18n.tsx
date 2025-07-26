@@ -245,13 +245,11 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center mb-3 p-4">
-                    <Image 
+                  <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                    <img 
                       src="/images/social-icons/tiktok.png" 
                       alt="TikTok" 
-                      width={40} 
-                      height={40}
-                      className="brightness-0 invert"
+                      className="w-10 h-10 object-contain"
                     />
                   </div>
                   <h4 className="font-medium mb-1">TikTok</h4>
@@ -266,8 +264,12 @@ export default function Home() {
 
               {/* Other social networks with translations */}
               <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold text-xl">IG</span>
+                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                  <img 
+                    src="/images/social-icons/instagram.png" 
+                    alt="Instagram" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <h4 className="font-medium mb-1">Instagram</h4>
                 <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">

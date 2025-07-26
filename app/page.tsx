@@ -178,20 +178,18 @@ export default function Home() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {/* TikTok */}
               {isConnected('tiktok') ? (
-                <div className="relative overflow-hidden rounded-lg border bg-gradient-to-br from-gray-900 to-black p-4 text-white">
+                <Link href="/redes/tiktok" className="relative overflow-hidden rounded-lg border bg-gradient-to-br from-gray-900 to-black p-4 text-white hover:shadow-lg transition-shadow cursor-pointer group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center p-2">
-                        <Image 
+                      <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center p-2 group-hover:bg-white/30 transition-colors">
+                        <img 
                           src="/images/social-icons/tiktok.png" 
                           alt="TikTok" 
-                          width={24} 
-                          height={24}
-                          className="brightness-0 invert"
+                          className="w-6 h-6 object-contain"
                         />
                       </div>
                       <div>
-                        <h4 className="font-medium flex items-center gap-1">
+                        <h4 className="font-medium flex items-center gap-1 group-hover:text-white/90 transition-colors">
                           @{getConnection('tiktok')?.profile_data?.username || getConnection('tiktok')?.profile_data?.display_name || 'TikTok User'}
                         </h4>
                         {getConnection('tiktok')?.profile_data?.display_name && (
@@ -202,9 +200,13 @@ export default function Home() {
                       </div>
                     </div>
                     <button 
-                      onClick={updateTikTokStats}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        updateTikTokStats()
+                      }}
                       disabled={updatingStats}
-                      className="text-white/80 hover:text-white disabled:opacity-50 transition-colors"
+                      className="text-white/80 hover:text-white disabled:opacity-50 transition-colors z-10"
                       title="Atualizar estatísticas"
                     >
                       <RefreshCw className={`w-5 h-5 ${updatingStats ? 'animate-spin' : ''}`} />
@@ -234,16 +236,14 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </Link>
               ) : (
                 <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center mb-3 p-4">
-                    <Image 
+                  <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                    <img 
                       src="/images/social-icons/tiktok.png" 
                       alt="TikTok" 
-                      width={40} 
-                      height={40}
-                      className="brightness-0 invert"
+                      className="w-10 h-10 object-contain"
                     />
                   </div>
                   <h4 className="font-medium mb-1">TikTok</h4>
@@ -258,8 +258,12 @@ export default function Home() {
 
               {/* Instagram */}
               <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold text-xl">IG</span>
+                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                  <img 
+                    src="/images/social-icons/instagram.png" 
+                    alt="Instagram" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <h4 className="font-medium mb-1">Instagram</h4>
                 <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
@@ -269,8 +273,12 @@ export default function Home() {
 
               {/* Facebook */}
               <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold text-xl">FB</span>
+                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                  <img 
+                    src="/images/social-icons/facebook.png" 
+                    alt="Facebook" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <h4 className="font-medium mb-1">Facebook</h4>
                 <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
@@ -280,8 +288,12 @@ export default function Home() {
 
               {/* LinkedIn */}
               <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-blue-700 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold text-xl">IN</span>
+                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                  <img 
+                    src="/images/social-icons/linkedin.png" 
+                    alt="LinkedIn" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <h4 className="font-medium mb-1">LinkedIn</h4>
                 <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
@@ -291,8 +303,12 @@ export default function Home() {
 
               {/* YouTube */}
               <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold text-xl">YT</span>
+                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                  <img 
+                    src="/images/social-icons/youtube.png" 
+                    alt="YouTube" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <h4 className="font-medium mb-1">YouTube</h4>
                 <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
@@ -302,8 +318,12 @@ export default function Home() {
 
               {/* Threads */}
               <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center mb-3">
-                  <span className="text-white font-bold text-xl">@</span>
+                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                  <img 
+                    src="/images/social-icons/threads.png" 
+                    alt="Threads" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <h4 className="font-medium mb-1">Threads</h4>
                 <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">

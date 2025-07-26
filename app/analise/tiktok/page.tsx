@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useState, useMemo } from "react"
 import { 
   TrendingUp, 
@@ -45,10 +46,17 @@ function MetricCard({ title, value, change, changePercent, icon, color }: Metric
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <div className={`p-2 rounded-lg ${color}`}>
-          {icon}
-        </div>
+        <div></div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={`p-2 rounded-lg ${color} cursor-help`}>
+              {icon}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{title}</p>
+          </TooltipContent>
+        </Tooltip>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatNumber(value)}</div>
@@ -74,6 +82,8 @@ export default function AnalyticsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('30d')
   
   const tiktokConnection = getConnection('tiktok')
+  
+  
   const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalyticsData(
     tiktokConnection?.profile_data?.open_id,
     selectedPeriod
@@ -209,7 +219,7 @@ export default function AnalyticsPage() {
               change={metrics.followers.change}
               changePercent={metrics.followers.changePercent}
               icon={<Users className="w-4 h-4 text-white" />}
-              color="bg-blue-500"
+              color="bg-primary"
             />
             <MetricCard
               title="Curtidas Totais"
@@ -217,7 +227,7 @@ export default function AnalyticsPage() {
               change={metrics.likes.change}
               changePercent={metrics.likes.changePercent}
               icon={<Heart className="w-4 h-4 text-white" />}
-              color="bg-red-500"
+              color="bg-destructive"
             />
             <MetricCard
               title="Vídeos Publicados"
@@ -225,7 +235,7 @@ export default function AnalyticsPage() {
               change={metrics.videos.change}
               changePercent={metrics.videos.changePercent}
               icon={<Play className="w-4 h-4 text-white" />}
-              color="bg-purple-500"
+              color="bg-secondary"
             />
             <MetricCard
               title="Seguindo"
@@ -233,7 +243,7 @@ export default function AnalyticsPage() {
               change={metrics.following.change}
               changePercent={metrics.following.changePercent}
               icon={<Eye className="w-4 h-4 text-white" />}
-              color="bg-green-500"
+              color="bg-accent"
             />
           </div>
         )}

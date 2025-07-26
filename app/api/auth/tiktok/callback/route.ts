@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { IntegrationConfigManager } from '@/lib/integration-config-manager'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,19 +52,23 @@ export async function GET(request: NextRequest) {
     // IMPORTANTE: usar EXATAMENTE o mesmo redirect_uri da autorização
     const redirectUri = `${process.env.FRONTEND_URL}/api/auth/tiktok/callback`
     
+    // Get TikTok configuration (database first, env fallback)
+    const tikTokConfig = await IntegrationConfigManager.getTikTokConfig()
+    console.log('[TikTok Callback] Using configuration from:', tikTokConfig.source)
+
     // Debug detalhado ANTES da requisição
     console.log('=== TOKEN EXCHANGE DEBUG ===')
     console.log('Code recebido:', code?.substring(0, 20) + '...')
     console.log('State validado:', state)
     console.log('Redirect URI:', redirectUri)
-    console.log('Client Key:', process.env.TIKTOK_CLIENT_KEY)
-    console.log('Client Secret existe?', !!process.env.TIKTOK_CLIENT_SECRET)
+    console.log('Client Key:', tikTokConfig.client_key)
+    console.log('Client Secret existe?', !!tikTokConfig.client_secret)
     console.log('FRONTEND_URL:', process.env.FRONTEND_URL)
 
     // Construir body e logar
     const bodyParams = new URLSearchParams({
-      client_key: process.env.TIKTOK_CLIENT_KEY!,
-      client_secret: process.env.TIKTOK_CLIENT_SECRET!,
+      client_key: tikTokConfig.client_key,
+      client_secret: tikTokConfig.client_secret,
       code: code,
       grant_type: 'authorization_code',
       redirect_uri: redirectUri

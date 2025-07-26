@@ -61,17 +61,17 @@ export function GrowthRateChart({ data, loading }: GrowthRateChartProps) {
       <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
         <XAxis 
           dataKey="date" 
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis 
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(value) => `${value}%`}
         />
-        <ReferenceLine y={0} stroke="var(--border)" strokeDasharray="3 3" />
+        <ReferenceLine y={0} stroke="hsl(var(--border))" strokeDasharray="3 3" />
         <ChartTooltip
           content={
             <ChartTooltipContent
@@ -93,25 +93,25 @@ export function GrowthRateChart({ data, loading }: GrowthRateChartProps) {
         <Line
           type="monotone"
           dataKey="followers"
-          stroke="var(--color-follower_growth_percent)"
+          stroke="hsl(var(--chart-1))"
           strokeWidth={2}
-          dot={{ fill: "var(--color-follower_growth_percent)", strokeWidth: 2, r: 3 }}
+          dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }}
           activeDot={{ r: 5 }}
         />
         <Line
           type="monotone"
           dataKey="likes"
-          stroke="var(--color-likes_growth_percent)"
+          stroke="hsl(var(--chart-2))"
           strokeWidth={2}
-          dot={{ fill: "var(--color-likes_growth_percent)", strokeWidth: 2, r: 3 }}
+          dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 3 }}
           activeDot={{ r: 5 }}
         />
         <Line
           type="monotone"
           dataKey="videos"
-          stroke="var(--color-video_growth_percent)"
+          stroke="hsl(var(--chart-3))"
           strokeWidth={2}
-          dot={{ fill: "var(--color-video_growth_percent)", strokeWidth: 2, r: 3 }}
+          dot={{ fill: "hsl(var(--chart-3))", strokeWidth: 2, r: 3 }}
           activeDot={{ r: 5 }}
         />
       </LineChart>

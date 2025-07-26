@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
     const token = authHeader.replace('Bearer ', '')
     console.log('[TikTok Videos API] Token extracted, creating Supabase client')
     
-    // Create Supabase client with user token
-    const supabase = createClient<Database>(
+    // Create Supabase client with user token for auth verification
+    const supabaseAuth = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -34,10 +34,16 @@ export async function GET(request: NextRequest) {
       }
     )
     
+    // Create service role client for database operations (bypasses RLS)
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    
     console.log('[TikTok Videos API] Supabase client created successfully')
 
     // Verify the user token
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
     
     if (authError || !user) {
       console.log('[TikTok Videos API] Invalid or expired token:', authError?.message)

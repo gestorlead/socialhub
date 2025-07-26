@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { TikTokVideo } from '@/types/tiktok'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ExternalLink, Eye, Heart, MessageCircle, Share2, Play, Clock, Calendar } from 'lucide-react'
 import Image from 'next/image'
 
@@ -80,7 +81,20 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
           {/* Video Preview */}
           <div>
             <div className="relative aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden">
-              {video.cover_image_url ? (
+              {video.embed_html ? (
+                <div 
+                  className="w-full h-full"
+                  dangerouslySetInnerHTML={{ __html: video.embed_html }}
+                />
+              ) : video.embed_link ? (
+                <iframe
+                  src={video.embed_link}
+                  className="w-full h-full border-0"
+                  allow="encrypted-media; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title={video.title || video.video_description || 'TikTok video'}
+                />
+              ) : video.cover_image_url ? (
                 <Image
                   src={video.cover_image_url}
                   alt={video.title || video.video_description || 'TikTok video'}
@@ -110,11 +124,11 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
           <div className="space-y-6">
             {/* Title and Description */}
             <div>
-              <h3 className="font-semibold text-lg mb-2">
+              <h3 className="font-semibold text-lg mb-2 text-foreground">
                 {video.title || 'Sem título'}
               </h3>
               {video.video_description && (
-                <p className="text-sm text-gray-600 line-clamp-3">
+                <p className="text-sm text-muted-foreground line-clamp-3">
                   {video.video_description}
                 </p>
               )}
@@ -123,13 +137,13 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
             {/* Metadata */}
             <div className="space-y-2 text-sm">
               {video.duration && (
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-4 w-4" />
                   <span>Duração: {formatDuration(video.duration)}</span>
                 </div>
               )}
               {video.create_time && (
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>
                     Publicado {formatRelativeTime(video.create_time)}
@@ -141,33 +155,39 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
               {stats.map((stat) => (
-                <div key={stat.label} className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-gray-600 mb-1">
-                    <stat.icon className="h-4 w-4" />
-                    <span className="text-sm">{stat.label}</span>
+                <div key={stat.label} className="bg-muted/50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <stat.icon className="h-5 w-5 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{stat.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                  <p className="text-2xl font-semibold">{stat.value}</p>
+                  <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Engagement Rate */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-1">
+            <div className="bg-primary/10 dark:bg-primary/20 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-primary mb-1">
                 Taxa de Engajamento
               </h4>
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-3xl font-bold text-primary">
                 {engagementRate}%
               </p>
-              <p className="text-xs text-blue-700 mt-1">
+              <p className="text-xs text-primary/80 mt-1">
                 (Curtidas + Comentários + Compartilhamentos) / Visualizações
               </p>
             </div>
 
             {/* Additional Info */}
             {(video.view_count || 0) > 10000 && (
-              <div className="bg-green-50 rounded-lg p-3">
-                <p className="text-sm font-medium text-green-800">
+              <div className="bg-green-500/10 dark:bg-green-500/20 rounded-lg p-3">
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">
                   🔥 Vídeo com alta performance (&gt;10K visualizações)!
                 </p>
               </div>

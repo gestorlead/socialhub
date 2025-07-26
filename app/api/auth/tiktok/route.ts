@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { nanoid } from 'nanoid'
+import { IntegrationConfigManager } from '@/lib/integration-config-manager'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +15,19 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
+    }
+
+    // Get TikTok configuration (database first, env fallback)
+    const tikTokConfig = await IntegrationConfigManager.getTikTokConfig()
+    console.log('[TikTok Auth] Using configuration from:', tikTokConfig.source)
+
+    // Check if TikTok is properly configured
+    if (!tikTokConfig.client_key || !tikTokConfig.app_id) {
+      console.error('[TikTok Auth] Missing configuration - client_key or app_id not found')
+      return NextResponse.json({ 
+        error: 'TikTok integration not configured properly',
+        details: 'Missing client_key or app_id'
+      }, { status: 500 })
     }
 
     // Generate CSRF state token
@@ -34,21 +48,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to initialize OAuth' }, { status: 500 })
     }
 
-    // TikTok OAuth parameters - construir manualmente para evitar encoding da vírgula
-    // IMPORTANTE: usar o mesmo redirect_uri configurado no TikTok
-    const redirectUri = `${process.env.FRONTEND_URL}/api/auth/tiktok/callback`
+    // Get OAuth URLs
+    const { authUrl: baseAuthUrl } = await IntegrationConfigManager.getTikTokOAuthUrls()
     
-    // NÃO usar URLSearchParams para evitar encoding da vírgula nos scopes
+    // Use callback_url from config or build from FRONTEND_URL
+    const redirectUri = tikTokConfig.callback_url || `${process.env.FRONTEND_URL}/api/auth/tiktok/callback`
+    
+    // Build OAuth parameters manually to avoid encoding issues
     const params = [
-      `client_key=${process.env.TIKTOK_CLIENT_KEY!}`,
+      `client_key=${tikTokConfig.client_key}`,
       `scope=user.info.basic,user.info.profile,user.info.stats,video.publish,video.list`, // Vírgula SEM encoding
       `response_type=code`,
       `redirect_uri=${encodeURIComponent(redirectUri)}`,
       `state=${state}`
     ].join('&')
 
-    const authUrl = `https://www.tiktok.com/v2/auth/authorize/?${params}`
+    const authUrl = `${baseAuthUrl}?${params}`
 
+    console.log('[TikTok Auth] Redirecting to:', authUrl)
     return NextResponse.redirect(authUrl)
   } catch (error) {
     console.error('TikTok OAuth initialization error:', error)

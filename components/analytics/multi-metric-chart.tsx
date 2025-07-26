@@ -75,13 +75,13 @@ export function MultiMetricChart({ data, loading }: MultiMetricChartProps) {
       <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
         <XAxis 
           dataKey="date" 
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis 
           yAxisId="left"
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(value) => formatNumber(value)}
@@ -89,7 +89,7 @@ export function MultiMetricChart({ data, loading }: MultiMetricChartProps) {
         <YAxis 
           yAxisId="right"
           orientation="right"
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(value) => `${value}%`}
@@ -121,21 +121,21 @@ export function MultiMetricChart({ data, loading }: MultiMetricChartProps) {
         <Bar
           yAxisId="left"
           dataKey="followers"
-          fill="var(--color-follower_count)"
+          fill="hsl(var(--chart-1))"
           radius={[2, 2, 0, 0]}
           maxBarSize={15}
         />
         <Bar
           yAxisId="left"
           dataKey="likes_scaled"
-          fill="var(--color-likes_count)"
+          fill="hsl(var(--chart-2))"
           radius={[2, 2, 0, 0]}
           maxBarSize={15}
         />
         <Bar
           yAxisId="left"
           dataKey="videos_scaled"
-          fill="var(--color-video_count)"
+          fill="hsl(var(--chart-3))"
           radius={[2, 2, 0, 0]}
           maxBarSize={15}
         />
@@ -145,16 +145,16 @@ export function MultiMetricChart({ data, loading }: MultiMetricChartProps) {
           yAxisId="right"
           type="monotone"
           dataKey="engagement_rate"
-          stroke="var(--color-engagement_rate)"
+          stroke="hsl(var(--chart-4))"
           strokeWidth={3}
           dot={{
-            fill: "var(--color-engagement_rate)",
+            fill: "hsl(var(--chart-4))",
             strokeWidth: 2,
             r: 4,
           }}
           activeDot={{
             r: 6,
-            stroke: "var(--color-engagement_rate)",
+            stroke: "hsl(var(--chart-4))",
             strokeWidth: 2,
           }}
         />

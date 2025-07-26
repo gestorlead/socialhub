@@ -152,7 +152,7 @@ export function TikTokSandboxGuide({ onClose }: TikTokSandboxGuideProps) {
             {allStepsCompleted && (
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Pronto para testar!
               </button>

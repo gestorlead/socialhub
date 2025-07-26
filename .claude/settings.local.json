@@ -43,7 +43,10 @@
       "mcp__github__get_me",
       "mcp__github__create_repository",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(ls:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__supabase__list_tables"
     ],
     "deny": []
   }

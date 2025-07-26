@@ -143,13 +143,11 @@ export default function TikTokPage() {
 
           <div className="flex items-center justify-center h-96">
             <div className="text-center space-y-6 max-w-md">
-              <div className="w-24 h-24 bg-black rounded-full mx-auto flex items-center justify-center p-6">
-                <Image 
+              <div className="w-24 h-24 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mx-auto">
+                <img 
                   src="/images/social-icons/tiktok.png" 
                   alt="TikTok" 
-                  width={48} 
-                  height={48}
-                  className="brightness-0 invert"
+                  className="w-16 h-16 object-contain"
                 />
               </div>
               <div>
@@ -158,8 +156,11 @@ export default function TikTokPage() {
                   Para começar a gerenciar seu conteúdo, você precisa conectar sua conta do TikTok.
                 </p>
                 <button 
-                  onClick={connectTikTok}
-                  className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                  onClick={() => {
+                    console.log('TikTok connect button clicked', { connectTikTok, user, isConnected: isConnected('tiktok') })
+                    connectTikTok()
+                  }}
+                  className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
                 >
                   Conectar TikTok
                 </button>
