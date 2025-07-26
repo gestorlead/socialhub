@@ -1,0 +1,57 @@
+{
+  "title": "Análise de Performance",
+  "subtitle": "Acompanhe o crescimento e performance da sua conta",
+  "period": {
+    "label": "Período",
+    "7d": "Últimos 7 dias",
+    "30d": "Últimos 30 dias",
+    "60d": "Últimos 60 dias",
+    "90d": "Últimos 90 dias",
+    "custom": "Personalizado"
+  },
+  "metrics": {
+    "followers": "Seguidores",
+    "likes": "Curtidas Totais",
+    "videos": "Vídeos Publicados",
+    "following": "Seguindo",
+    "engagement": "Taxa de Engajamento",
+    "reach": "Alcance Total",
+    "avgViews": "Média de Visualizações",
+    "avgLikes": "Média de Curtidas"
+  },
+  "growth": {
+    "title": "Crescimento",
+    "followers": "Crescimento de Seguidores",
+    "engagement": "Crescimento de Engajamento",
+    "daily": "Crescimento Diário",
+    "weekly": "Crescimento Semanal",
+    "monthly": "Crescimento Mensal"
+  },
+  "charts": {
+    "growth": "Crescimento de Seguidores",
+    "engagement": "Métricas de Engajamento",
+    "performance": "Performance Geral",
+    "comparison": "Comparação de Métricas",
+    "distribution": "Distribuição de Conteúdo",
+    "trend": "Tendências"
+  },
+  "bestPerforming": {
+    "title": "Melhor Performance",
+    "videos": "Vídeos mais populares",
+    "timeToPost": "Melhores horários",
+    "hashtags": "Hashtags mais efetivas"
+  },
+  "insights": {
+    "title": "Insights",
+    "growthRate": "Taxa de crescimento",
+    "engagementRate": "Taxa de engajamento",
+    "averageReach": "Alcance médio",
+    "peakHours": "Horários de pico"
+  },
+  "export": {
+    "title": "Exportar Relatório",
+    "pdf": "Exportar como PDF",
+    "excel": "Exportar como Excel",
+    "csv": "Exportar como CSV"
+  }
+}

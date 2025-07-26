@@ -1,0 +1,22 @@
+{
+  "required": "此字段为必填项",
+  "email": "请输入有效的邮箱地址",
+  "minLength": "至少需要{min}个字符",
+  "maxLength": "最多{max}个字符",
+  "minValue": "最小值：{min}",
+  "maxValue": "最大值：{max}",
+  "pattern": "格式无效",
+  "passwordMatch": "密码不匹配",
+  "passwordStrength": "密码过于简单",
+  "fileSize": "文件过大。最大：{size}",
+  "fileType": "不支持的文件类型",
+  "url": "请输入有效的URL",
+  "phone": "请输入有效的手机号码",
+  "date": "请输入有效的日期",
+  "futureDate": "日期必须是未来时间",
+  "pastDate": "日期必须是过去时间",
+  "unique": "此值已被使用",
+  "alphanumeric": "只能使用字母和数字",
+  "numeric": "只能输入数字",
+  "alphabetic": "只能输入字母"
+}

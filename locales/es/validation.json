@@ -1,0 +1,22 @@
+{
+  "required": "Este campo es obligatorio",
+  "email": "Ingresa un correo válido",
+  "minLength": "Mínimo {min} caracteres",
+  "maxLength": "Máximo {max} caracteres",
+  "minValue": "Valor mínimo: {min}",
+  "maxValue": "Valor máximo: {max}",
+  "pattern": "Formato inválido",
+  "passwordMatch": "Las contraseñas no coinciden",
+  "passwordStrength": "Contraseña muy débil",
+  "fileSize": "Archivo demasiado grande. Máximo: {size}",
+  "fileType": "Tipo de archivo no soportado",
+  "url": "URL inválida",
+  "phone": "Número de teléfono inválido",
+  "date": "Fecha inválida",
+  "futureDate": "La fecha debe ser futura",
+  "pastDate": "La fecha debe ser pasada",
+  "unique": "Este valor ya está en uso",
+  "alphanumeric": "Usa solo letras y números",
+  "numeric": "Usa solo números",
+  "alphabetic": "Usa solo letras"
+}

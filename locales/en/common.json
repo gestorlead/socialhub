@@ -1,0 +1,68 @@
+{
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ko": "한국어"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "download": "Download",
+    "upload": "Upload"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "publish": "Publish",
+    "calendar": "Calendar",
+    "networks": "Social Networks",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "help": "Help"
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "lastWeek": "Last week",
+    "lastMonth": "Last month",
+    "lastYear": "Last year",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "thisYear": "This year"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "scheduled": "Scheduled",
+    "draft": "Draft",
+    "published": "Published"
+  }
+}

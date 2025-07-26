@@ -1,0 +1,22 @@
+{
+  "required": "This field is required",
+  "email": "Enter a valid email",
+  "minLength": "Minimum {min} characters",
+  "maxLength": "Maximum {max} characters",
+  "minValue": "Minimum value: {min}",
+  "maxValue": "Maximum value: {max}",
+  "pattern": "Invalid format",
+  "passwordMatch": "Passwords don't match",
+  "passwordStrength": "Password too weak",
+  "fileSize": "File too large. Maximum: {size}",
+  "fileType": "File type not supported",
+  "url": "Invalid URL",
+  "phone": "Invalid phone number",
+  "date": "Invalid date",
+  "futureDate": "Date must be in the future",
+  "pastDate": "Date must be in the past",
+  "unique": "This value is already in use",
+  "alphanumeric": "Use only letters and numbers",
+  "numeric": "Use only numbers",
+  "alphabetic": "Use only letters"
+}

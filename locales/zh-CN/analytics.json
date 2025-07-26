@@ -1,0 +1,74 @@
+{
+  "title": "分析",
+  "subtitle": "详细分析您的表现指标",
+  "overview": {
+    "title": "概览",
+    "totalFollowers": "总粉丝数",
+    "totalPosts": "总帖子数",
+    "totalEngagement": "总互动数",
+    "engagementRate": "互动率",
+    "averageReach": "平均触达",
+    "topPerforming": "最佳表现"
+  },
+  "charts": {
+    "engagement": "互动趋势",
+    "followers": "粉丝增长",
+    "reach": "触达趋势",
+    "impressions": "展示趋势",
+    "clicks": "点击趋势"
+  },
+  "platforms": {
+    "title": "平台分析",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "twitter": "Twitter",
+    "facebook": "Facebook",
+    "youtube": "YouTube",
+    "linkedin": "LinkedIn"
+  },
+  "periods": {
+    "last7days": "过去7天",
+    "last30days": "过去30天",
+    "last90days": "过去90天",
+    "lastYear": "过去一年",
+    "custom": "自定义时间"
+  },
+  "metrics": {
+    "views": "观看次数",
+    "likes": "点赞",
+    "comments": "评论",
+    "shares": "分享",
+    "saves": "收藏",
+    "clicks": "点击",
+    "impressions": "展示",
+    "reach": "触达",
+    "engagement": "互动",
+    "ctr": "点击率",
+    "cpm": "千次展示费用",
+    "cpc": "单次点击费用"
+  },
+  "demographics": {
+    "title": "受众分析",
+    "age": "年龄",
+    "gender": "性别",
+    "location": "地区",
+    "interests": "兴趣",
+    "devices": "设备",
+    "timezones": "时区"
+  },
+  "export": {
+    "title": "导出",
+    "description": "导出分析数据",
+    "formats": {
+      "pdf": "PDF报告",
+      "csv": "CSV数据",
+      "excel": "Excel文件"
+    },
+    "dateRange": "选择日期范围",
+    "includeCharts": "包含图表",
+    "downloadReport": "下载报告"
+  },
+  "noData": "此时间段无数据",
+  "loading": "正在加载数据...",
+  "error": "数据加载失败"
+}

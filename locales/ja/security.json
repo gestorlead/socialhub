@@ -1,0 +1,210 @@
+{
+  "events": {
+    "login_failed": "ログイン試行の失敗",
+    "token_expired": "期限切れトークンの検出",
+    "rate_limit_exceeded": "レート制限の超過",
+    "suspicious_activity": "疑わしい活動の検出",
+    "data_breach_attempt": "データ侵害の試行",
+    "unauthorized_access": "不正アクセス"
+  },
+  "middleware": {
+    "rateLimitExceeded": "試行回数が多すぎます。{seconds}秒後に再試行してください。",
+    "accessDenied": "セキュリティポリシーによりアクセスが拒否されました。",
+    "requestTooLarge": "リクエストサイズが許可された制限を超えています。",
+    "suspiciousActivity": "疑わしい活動が検出されました。アクセスが一時的にブロックされています。",
+    "invalidRequest": "無効または不正な形式のリクエストです。",
+    "ipBlocked": "セキュリティ違反により、あなたのIPアドレスがブロックされました。",
+    "botDetected": "自動アクセスが検出されました。Webインターフェースをご利用ください。"
+  },
+  "apiKey": {
+    "management": {
+      "title": "APIキー管理",
+      "description": "ソーシャルプラットフォームとの安全な統合のためのAPIキーを管理します。",
+      "createNew": "新しいキーを作成",
+      "noKeys": "APIキーはまだ作成されていません。",
+      "loadingKeys": "キーを読み込み中...",
+      "keyCreated": "APIキーが正常に作成されました！",
+      "keyDeleted": "APIキーが削除されました。",
+      "keyRegenerated": "APIキーが正常に再生成されました。",
+      "copyKey": "キーをコピー",
+      "keyCopied": "キーがクリップボードにコピーされました！",
+      "regenerateKey": "キーを再生成",
+      "deleteKey": "キーを削除",
+      "confirmDelete": "このキーを削除してもよろしいですか？この操作は元に戻せません。",
+      "confirmRegenerate": "キーを再生成すると現在のキーが無効になります。続行しますか？"
+    },
+    "form": {
+      "name": "キー名",
+      "namePlaceholder": "例：モバイルアプリ",
+      "nameHelp": "このAPIキーの識別名",
+      "description": "説明",
+      "descriptionPlaceholder": "このキーの用途を記述してください...",
+      "descriptionHelp": "このキーの目的の任意の説明",
+      "platforms": "プラットフォーム",
+      "platformsHelp": "このキーがアクセスできるプラットフォームを選択",
+      "scopes": "権限",
+      "scopesHelp": "このキーの許可される操作を定義",
+      "expiryDays": "有効期限（日数）",
+      "expiryHelp": "キーが期限切れになるまでの日数（1-365）",
+      "rateLimitHour": "1時間あたりの制限",
+      "rateLimitHelp": "1時間あたりの最大リクエスト数",
+      "allowedIPs": "許可されたIP",
+      "allowedIPsHelp": "任意のIPを許可する場合は空にしてください",
+      "ipPlaceholder": "例：192.168.1.1",
+      "addIP": "IPを追加"
+    },
+    "scopes": {
+      "read": "読み取り",
+      "readDesc": "プロフィールと基本データの表示",
+      "publish": "投稿",
+      "publishDesc": "ソーシャルメディアへのコンテンツ投稿",
+      "analytics": "分析",
+      "analyticsDesc": "メトリクスとレポートへのアクセス",
+      "manage": "管理",
+      "manageDesc": "アカウント設定の管理"
+    },
+    "platforms": {
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "youtube": "YouTube"
+    },
+    "status": {
+      "active": "アクティブ",
+      "expired": "期限切れ",
+      "inactive": "非アクティブ",
+      "suspended": "停止中"
+    },
+    "details": {
+      "created": "作成日",
+      "lastUsed": "最終使用",
+      "never": "未使用",
+      "usageCount": "使用回数",
+      "expiresAt": "有効期限",
+      "rateLimitRemaining": "残り制限"
+    }
+  },
+  "dashboard": {
+    "title": "セキュリティダッシュボード",
+    "overview": "概要",
+    "recentEvents": "最近のイベント",
+    "securityAlerts": "セキュリティアラート",
+    "apiKeyUsage": "APIキー使用状況",
+    "rateLimits": "レート制限",
+    "suspiciousActivity": "疑わしい活動",
+    "blockedIPs": "ブロックされたIP",
+    "loginAttempts": "ログイン試行",
+    "dataExports": "データエクスポート",
+    "complianceStatus": "コンプライアンス状況",
+    "securityScore": "セキュリティスコア",
+    "lastSecurityScan": "最後のセキュリティスキャン",
+    "vulnerabilities": "脆弱性",
+    "recommendations": "推奨事項"
+  },
+  "logs": {
+    "title": "セキュリティログ",
+    "filters": "フィルター",
+    "level": "レベル",
+    "category": "カテゴリ",
+    "dateRange": "日付範囲",
+    "search": "検索",
+    "export": "エクスポート",
+    "noLogs": "ログが見つかりません。",
+    "loading": "ログを読み込み中...",
+    "levels": {
+      "DEBUG": "デバッグ",
+      "INFO": "情報",
+      "WARN": "警告",
+      "ERROR": "エラー",
+      "CRITICAL": "重要"
+    },
+    "categories": {
+      "AUTH": "認証",
+      "API": "API",
+      "SECURITY": "セキュリティ",
+      "INTEGRATION": "統合",
+      "SYSTEM": "システム",
+      "USER_ACTION": "ユーザーアクション"
+    }
+  },
+  "compliance": {
+    "title": "コンプライアンスとプライバシー",
+    "lgpd": {
+      "title": "LGPD - ブラジル一般データ保護法",
+      "status": "コンプライアンス状況",
+      "compliant": "準拠",
+      "nonCompliant": "非準拠",
+      "dataMapping": "データマッピング",
+      "dataRetention": "データ保持",
+      "userRights": "ユーザー権利",
+      "consentManagement": "同意管理",
+      "dataProcessing": "データ処理",
+      "securityMeasures": "セキュリティ対策"
+    },
+    "gdpr": {
+      "title": "GDPR - 一般データ保護規則",
+      "status": "コンプライアンス状況",
+      "rightToAccess": "アクセス権",
+      "rightToRectification": "修正権",
+      "rightToErasure": "削除権",
+      "rightToPortability": "データポータビリティ権",
+      "dataBreachNotification": "データ侵害通知"
+    },
+    "dataExport": {
+      "title": "マイデータのエクスポート",
+      "description": "すべての個人データのコピーをダウンロードします。",
+      "request": "エクスポートをリクエスト",
+      "processing": "リクエストを処理中...",
+      "ready": "エクスポートのダウンロード準備完了",
+      "download": "データをダウンロード",
+      "includeData": "含めるデータ：",
+      "profile": "プロフィールデータ",
+      "connections": "ソーシャル接続",
+      "apiKeys": "APIキー",
+      "logs": "活動ログ",
+      "analytics": "分析データ"
+    },
+    "dataRetention": {
+      "title": "保持ポリシー",
+      "description": "データの保存方法と期間について。",
+      "profileData": "プロフィールデータ：アカウント削除まで",
+      "activityLogs": "活動ログ：12ヶ月",
+      "analyticsData": "分析データ：24ヶ月",
+      "securityLogs": "セキュリティログ：36ヶ月",
+      "backups": "バックアップ：削除後90日"
+    }
+  },
+  "alerts": {
+    "types": {
+      "securityBreach": "セキュリティ侵害",
+      "suspiciousLogin": "疑わしいログイン",
+      "rateLimitExceeded": "レート制限超過",
+      "unauthorizedAccess": "不正アクセス",
+      "dataExportRequest": "データエクスポート要求",
+      "apiKeyCompromised": "APIキーの漏洩"
+    },
+    "severity": {
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高",
+      "CRITICAL": "重要"
+    },
+    "actions": {
+      "acknowledge": "確認",
+      "resolve": "解決",
+      "investigate": "調査",
+      "escalate": "エスカレート"
+    }
+  },
+  "recommendations": {
+    "title": "セキュリティ推奨事項",
+    "enable2fa": "二要素認証を有効にする",
+    "updatePassword": "定期的にパスワードを更新する",
+    "reviewApiKeys": "定期的にAPIキーをレビューする",
+    "monitorActivity": "疑わしい活動を監視する",
+    "enableAuditLogs": "監査ログを有効にする",
+    "restrictIpAccess": "可能な場合はIPアクセスを制限する",
+    "regularSecurityScans": "定期的なセキュリティスキャンを実行する",
+    "keepSystemUpdated": "システムを最新の状態に保つ"
+  }
+}

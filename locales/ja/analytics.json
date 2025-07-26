@@ -1,0 +1,74 @@
+{
+  "title": "分析",
+  "subtitle": "パフォーマンス指標を詳細に分析",
+  "overview": {
+    "title": "概要",
+    "totalFollowers": "総フォロワー数",
+    "totalPosts": "総投稿数",
+    "totalEngagement": "総エンゲージメント",
+    "engagementRate": "エンゲージメント率",
+    "averageReach": "平均リーチ",
+    "topPerforming": "最高パフォーマンス"
+  },
+  "charts": {
+    "engagement": "エンゲージメント推移",
+    "followers": "フォロワー推移",
+    "reach": "リーチ推移",
+    "impressions": "インプレッション推移",
+    "clicks": "クリック推移"
+  },
+  "platforms": {
+    "title": "プラットフォーム別",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "twitter": "Twitter",
+    "facebook": "Facebook",
+    "youtube": "YouTube",
+    "linkedin": "LinkedIn"
+  },
+  "periods": {
+    "last7days": "過去7日間",
+    "last30days": "過去30日間",
+    "last90days": "過去90日間",
+    "lastYear": "過去1年間",
+    "custom": "カスタム期間"
+  },
+  "metrics": {
+    "views": "再生回数",
+    "likes": "いいね",
+    "comments": "コメント",
+    "shares": "シェア",
+    "saves": "保存",
+    "clicks": "クリック",
+    "impressions": "インプレッション",
+    "reach": "リーチ",
+    "engagement": "エンゲージメント",
+    "ctr": "クリック率",
+    "cpm": "CPM",
+    "cpc": "CPC"
+  },
+  "demographics": {
+    "title": "オーディエンス層",
+    "age": "年齢",
+    "gender": "性別",
+    "location": "地域",
+    "interests": "興味・関心",
+    "devices": "デバイス",
+    "timezones": "タイムゾーン"
+  },
+  "export": {
+    "title": "エクスポート",
+    "description": "分析データをエクスポート",
+    "formats": {
+      "pdf": "PDFレポート",
+      "csv": "CSVデータ",
+      "excel": "Excelファイル"
+    },
+    "dateRange": "期間を選択",
+    "includeCharts": "グラフを含める",
+    "downloadReport": "レポートをダウンロード"
+  },
+  "noData": "この期間のデータがありません",
+  "loading": "データを読み込み中...",
+  "error": "データの読み込みに失敗しました"
+}

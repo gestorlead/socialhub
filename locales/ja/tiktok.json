@@ -1,0 +1,92 @@
+{
+  "title": "TikTok分析",
+  "subtitle": "TikTokアカウントの詳細な分析",
+  "connection": {
+    "title": "TikTok接続",
+    "connect": "TikTokに接続",
+    "disconnect": "接続を解除",
+    "reconnect": "再接続",
+    "status": "接続状態",
+    "connected": "接続済み",
+    "disconnected": "未接続",
+    "error": "接続エラー"
+  },
+  "profile": {
+    "title": "プロフィール情報",
+    "username": "ユーザー名",
+    "displayName": "表示名",
+    "bio": "プロフィール",
+    "followerCount": "フォロワー数",
+    "followingCount": "フォロー中",
+    "likesCount": "いいね数",
+    "videoCount": "動画数",
+    "verified": "認証済み"
+  },
+  "videos": {
+    "title": "動画分析",
+    "recentVideos": "最新動画",
+    "topVideos": "人気動画",
+    "videoTitle": "動画タイトル",
+    "views": "再生回数",
+    "likes": "いいね",
+    "comments": "コメント",
+    "shares": "シェア",
+    "duration": "再生時間",
+    "publishedAt": "投稿日時",
+    "engagement": "エンゲージメント",
+    "engagementRate": "エンゲージメント率"
+  },
+  "metrics": {
+    "title": "パフォーマンス指標",
+    "totalViews": "総再生回数",
+    "totalLikes": "総いいね数",
+    "totalComments": "総コメント数",
+    "totalShares": "総シェア数",
+    "averageViews": "平均再生回数",
+    "averageLikes": "平均いいね数",
+    "averageComments": "平均コメント数",
+    "viewsGrowth": "再生回数成長率",
+    "likesGrowth": "いいね成長率",
+    "followersGrowth": "フォロワー成長率"
+  },
+  "analytics": {
+    "title": "詳細分析",
+    "engagement": "エンゲージメント分析",
+    "audience": "オーディエンス層",
+    "content": "コンテンツ分析",
+    "trends": "トレンド分析",
+    "hashtags": "ハッシュタグ分析",
+    "bestTimes": "最適投稿時間",
+    "demographics": "デモグラフィック",
+    "geography": "地理的分布"
+  },
+  "insights": {
+    "title": "インサイト",
+    "recommendations": "おすすめ",
+    "opportunities": "改善点",
+    "warnings": "注意事項",
+    "trends": "トレンド",
+    "bestPractices": "ベストプラクティス"
+  },
+  "export": {
+    "title": "データエクスポート",
+    "exportAll": "全データをエクスポート",
+    "exportSelected": "選択データをエクスポート",
+    "dateRange": "期間選択",
+    "format": "形式",
+    "download": "ダウンロード"
+  },
+  "errors": {
+    "connectionFailed": "TikTokへの接続に失敗しました",
+    "dataLoadFailed": "データの読み込みに失敗しました",
+    "apiLimitReached": "API制限に達しました",
+    "unauthorized": "認証が必要です",
+    "videoNotFound": "動画が見つかりません"
+  },
+  "loading": {
+    "connecting": "TikTokに接続中...",
+    "loadingProfile": "プロフィールを読み込み中...",
+    "loadingVideos": "動画を読み込み中...",
+    "loadingAnalytics": "分析データを読み込み中..."
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ko": "한국어"
+  },
+  "actions": {
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "편집",
+    "view": "보기",
+    "connect": "연결",
+    "disconnect": "연결 해제",
+    "refresh": "새로고침",
+    "loading": "로딩 중...",
+    "retry": "다시 시도",
+    "back": "뒤로",
+    "next": "다음",
+    "previous": "이전",
+    "submit": "제출",
+    "confirm": "확인",
+    "close": "닫기",
+    "search": "검색",
+    "filter": "필터",
+    "export": "내보내기",
+    "import": "가져오기",
+    "download": "다운로드",
+    "upload": "업로드"
+  },
+  "navigation": {
+    "dashboard": "대시보드",
+    "analytics": "분석",
+    "publish": "게시",
+    "calendar": "캘린더",
+    "networks": "소셜 네트워크",
+    "settings": "설정",
+    "profile": "프로필",
+    "logout": "로그아웃",
+    "help": "도움말"
+  },
+  "time": {
+    "today": "오늘",
+    "yesterday": "어제",
+    "tomorrow": "내일",
+    "lastWeek": "지난주",
+    "lastMonth": "지난달",
+    "lastYear": "작년",
+    "thisWeek": "이번 주",
+    "thisMonth": "이번 달",
+    "thisYear": "올해"
+  },
+  "status": {
+    "active": "활성",
+    "inactive": "비활성",
+    "pending": "대기 중",
+    "completed": "완료",
+    "failed": "실패",
+    "cancelled": "취소됨",
+    "scheduled": "예약됨",
+    "draft": "초안",
+    "published": "게시됨"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "title": "Performance Analytics",
+  "subtitle": "Track your account growth and performance",
+  "period": {
+    "label": "Period",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "60d": "Last 60 days",
+    "90d": "Last 90 days",
+    "custom": "Custom"
+  },
+  "metrics": {
+    "followers": "Followers",
+    "likes": "Total Likes",
+    "videos": "Published Videos",
+    "following": "Following",
+    "engagement": "Engagement Rate",
+    "reach": "Total Reach",
+    "avgViews": "Average Views",
+    "avgLikes": "Average Likes"
+  },
+  "growth": {
+    "title": "Growth",
+    "followers": "Follower Growth",
+    "engagement": "Engagement Growth",
+    "daily": "Daily Growth",
+    "weekly": "Weekly Growth",
+    "monthly": "Monthly Growth"
+  },
+  "charts": {
+    "growth": "Follower Growth",
+    "engagement": "Engagement Metrics",
+    "performance": "Overall Performance",
+    "comparison": "Metrics Comparison",
+    "distribution": "Content Distribution",
+    "trend": "Trends"
+  },
+  "bestPerforming": {
+    "title": "Best Performance",
+    "videos": "Most popular videos",
+    "timeToPost": "Best posting times",
+    "hashtags": "Most effective hashtags"
+  },
+  "insights": {
+    "title": "Insights",
+    "growthRate": "Growth rate",
+    "engagementRate": "Engagement rate",
+    "averageReach": "Average reach",
+    "peakHours": "Peak hours"
+  },
+  "export": {
+    "title": "Export Report",
+    "pdf": "Export as PDF",
+    "excel": "Export as Excel",
+    "csv": "Export as CSV"
+  }
+}

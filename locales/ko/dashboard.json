@@ -1,0 +1,53 @@
+{
+  "welcome": {
+    "title": "SocialHub에 오신 것을 환영합니다",
+    "subtitle": "모든 소셜 네트워크를 한 곳에서 관리하세요"
+  },
+  "stats": {
+    "followers": "팔로워",
+    "following": "팔로잉",
+    "likes": "좋아요",
+    "videos": "동영상",
+    "engagement": "참여도",
+    "reach": "도달",
+    "impressions": "노출",
+    "views": "조회수",
+    "shares": "공유",
+    "comments": "댓글"
+  },
+  "cards": {
+    "schedule": {
+      "title": "게시 예약",
+      "description": "새 예약 생성"
+    },
+    "calendar": {
+      "title": "캘린더",
+      "description": "모든 일정 보기"
+    },
+    "analytics": {
+      "title": "분석",
+      "description": "상세한 성능 분석 보기"
+    },
+    "connections": {
+      "title": "연결",
+      "description": "소셜 네트워크 관리"
+    }
+  },
+  "quickActions": {
+    "title": "빠른 작업",
+    "newPost": "새 게시물",
+    "viewAnalytics": "분석 보기",
+    "manageTeam": "팀 관리",
+    "settings": "설정"
+  },
+  "recentActivity": {
+    "title": "최근 활동",
+    "noActivity": "최근 활동이 없습니다",
+    "viewAll": "모두 보기"
+  },
+  "notifications": {
+    "title": "알림",
+    "noNotifications": "알림이 없습니다",
+    "markAllRead": "모두 읽음으로 표시"
+  }
+}

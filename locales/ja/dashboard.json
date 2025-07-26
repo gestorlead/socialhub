@@ -1,0 +1,53 @@
+{
+  "welcome": {
+    "title": "SocialHubへようこそ",
+    "subtitle": "すべてのソーシャルネットワークを一箇所で管理"
+  },
+  "stats": {
+    "followers": "フォロワー",
+    "following": "フォロー中",
+    "likes": "いいね",
+    "videos": "動画",
+    "engagement": "エンゲージメント",
+    "reach": "リーチ",
+    "impressions": "インプレッション",
+    "views": "再生回数",
+    "shares": "シェア",
+    "comments": "コメント"
+  },
+  "cards": {
+    "schedule": {
+      "title": "投稿予約",
+      "description": "新しい予約を作成"
+    },
+    "calendar": {
+      "title": "カレンダー",
+      "description": "全スケジュールを表示"
+    },
+    "analytics": {
+      "title": "分析",
+      "description": "詳細なパフォーマンスを表示"
+    },
+    "connections": {
+      "title": "接続",
+      "description": "ソーシャルネットワークを管理"
+    }
+  },
+  "quickActions": {
+    "title": "クイックアクション",
+    "newPost": "新しい投稿",
+    "viewAnalytics": "分析を表示",
+    "manageTeam": "チーム管理",
+    "settings": "設定"
+  },
+  "recentActivity": {
+    "title": "最近のアクティビティ",
+    "noActivity": "最近のアクティビティはありません",
+    "viewAll": "すべて表示"
+  },
+  "notifications": {
+    "title": "通知",
+    "noNotifications": "通知はありません",
+    "markAllRead": "すべて既読にする"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ko": "한국어"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "refresh": "Actualizar",
+    "loading": "Cargando...",
+    "retry": "Reintentar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "download": "Descargar",
+    "upload": "Subir"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "analytics": "Análisis",
+    "publish": "Publicar",
+    "calendar": "Calendario",
+    "networks": "Redes Sociales",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "help": "Ayuda"
+  },
+  "time": {
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "tomorrow": "Mañana",
+    "lastWeek": "Semana pasada",
+    "lastMonth": "Mes pasado",
+    "lastYear": "Año pasado",
+    "thisWeek": "Esta semana",
+    "thisMonth": "Este mes",
+    "thisYear": "Este año"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "completed": "Completado",
+    "failed": "Falló",
+    "cancelled": "Cancelado",
+    "scheduled": "Programado",
+    "draft": "Borrador",
+    "published": "Publicado"
+  }
+}

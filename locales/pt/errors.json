@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "invalidCredentials": "Credenciais inválidas",
+    "tokenExpired": "Token expirado. Faça login novamente",
+    "unauthorized": "Acesso negado",
+    "forbidden": "Você não tem permissão para esta ação",
+    "accountLocked": "Conta bloqueada temporariamente",
+    "emailNotVerified": "Por favor, verifique seu email",
+    "userNotFound": "Usuário não encontrado",
+    "passwordTooWeak": "Senha muito fraca"
+  },
+  "network": {
+    "offline": "Sem conexão com a internet",
+    "timeout": "Tempo de resposta excedido",
+    "serverError": "Erro no servidor",
+    "connectionFailed": "Falha na conexão"
+  },
+  "api": {
+    "notFound": "Recurso não encontrado",
+    "badRequest": "Requisição inválida",
+    "conflict": "Conflito de dados",
+    "tooManyRequests": "Muitas requisições. Tente novamente mais tarde",
+    "maintenance": "Sistema em manutenção"
+  },
+  "validation": {
+    "invalidData": "Dados inválidos",
+    "missingRequired": "Campos obrigatórios não preenchidos"
+  },
+  "generic": "Algo deu errado. Tente novamente",
+  "upload": {
+    "failed": "Falha ao enviar arquivo",
+    "tooLarge": "Arquivo muito grande",
+    "invalidType": "Tipo de arquivo não permitido",
+    "quotaExceeded": "Cota de armazenamento excedida"
+  },
+  "social": {
+    "connectionFailed": "Falha ao conectar com {platform}",
+    "postFailed": "Falha ao publicar",
+    "syncFailed": "Falha ao sincronizar dados",
+    "permissionDenied": "Permissão negada pela plataforma"
+  }
+}

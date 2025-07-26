@@ -1,0 +1,162 @@
+{
+  "events": {
+    "login_failed": "登入嘗試失敗",
+    "token_expired": "偵測到過期令牌",
+    "rate_limit_exceeded": "超過頻率限制",
+    "suspicious_activity": "偵測到可疑活動",
+    "data_breach_attempt": "資料外洩嘗試",
+    "unauthorized_access": "未授權存取"
+  },
+  "middleware": {
+    "rateLimitExceeded": "嘗試次數過多。請在{seconds}秒後重試。",
+    "accessDenied": "安全政策拒絕存取。",
+    "requestTooLarge": "請求大小超過允許限制。",
+    "suspiciousActivity": "偵測到可疑活動。存取已被暫時封鎖。",
+    "invalidRequest": "無效或格式錯誤的請求。",
+    "ipBlocked": "由於安全違規，您的IP位址已被封鎖。",
+    "botDetected": "偵測到自動存取。請使用網頁介面。"
+  },
+  "apiKey": {
+    "management": {
+      "title": "API金鑰管理",
+      "description": "管理您的API金鑰以與社交平台安全整合。",
+      "createNew": "建立新金鑰",
+      "noKeys": "尚未建立API金鑰。",
+      "loadingKeys": "正在載入金鑰...",
+      "keyCreated": "API金鑰建立成功！",
+      "keyDeleted": "API金鑰已刪除。",
+      "keyRegenerated": "API金鑰重新產生成功。",
+      "copyKey": "複製金鑰",
+      "keyCopied": "金鑰已複製到剪貼簿！",
+      "regenerateKey": "重新產生金鑰",
+      "deleteKey": "刪除金鑰",
+      "confirmDelete": "確定要刪除此金鑰嗎？此操作無法復原。",
+      "confirmRegenerate": "重新產生金鑰將使目前金鑰無效。繼續嗎？"
+    },
+    "form": {
+      "name": "金鑰名稱",
+      "namePlaceholder": "例如：行動應用程式",
+      "nameHelp": "此API金鑰的識別名稱",
+      "description": "描述",
+      "descriptionPlaceholder": "描述此金鑰的用途...",
+      "descriptionHelp": "此金鑰用途的選擇性描述",
+      "platforms": "平台",
+      "platformsHelp": "選擇此金鑰可以存取的平台",
+      "scopes": "權限",
+      "scopesHelp": "定義此金鑰允許的操作",
+      "expiryDays": "到期時間（天）",
+      "expiryHelp": "金鑰到期的天數（1-365）",
+      "rateLimitHour": "每小時限制",
+      "rateLimitHelp": "每小時最大請求數",
+      "allowedIPs": "允許的IP",
+      "allowedIPsHelp": "留空以允許任何IP",
+      "ipPlaceholder": "例如：192.168.1.1",
+      "addIP": "新增IP"
+    },
+    "scopes": {
+      "read": "讀取",
+      "readDesc": "檢視個人檔案和基本資料",
+      "publish": "發佈",
+      "publishDesc": "發佈內容到社交媒體",
+      "analytics": "分析",
+      "analyticsDesc": "存取指標和報告",
+      "manage": "管理",
+      "manageDesc": "管理帳戶設定"
+    },
+    "platforms": {
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "youtube": "YouTube"
+    },
+    "status": {
+      "active": "活躍",
+      "expired": "已過期",
+      "inactive": "不活躍",
+      "suspended": "已暫停"
+    },
+    "details": {
+      "created": "建立時間",
+      "lastUsed": "最後使用",
+      "never": "從未",
+      "usageCount": "使用次數",
+      "expiresAt": "到期時間",
+      "rateLimitRemaining": "剩餘限制"
+    }
+  },
+  "dashboard": {
+    "title": "安全儀表板",
+    "overview": "概覽",
+    "recentEvents": "最近事件",
+    "securityAlerts": "安全警報",
+    "apiKeyUsage": "API金鑰使用情況",
+    "rateLimits": "頻率限制",
+    "suspiciousActivity": "可疑活動",
+    "blockedIPs": "被封鎖的IP",
+    "loginAttempts": "登入嘗試",
+    "dataExports": "資料匯出",
+    "complianceStatus": "合規狀態",
+    "securityScore": "安全得分",
+    "lastSecurityScan": "最後安全掃描",
+    "vulnerabilities": "漏洞",
+    "recommendations": "建議"
+  },
+  "logs": {
+    "title": "安全記錄",
+    "filters": "篩選器",
+    "level": "級別",
+    "category": "類別",
+    "dateRange": "日期範圍",
+    "search": "搜尋",
+    "export": "匯出",
+    "noLogs": "未找到記錄。",
+    "loading": "正在載入記錄...",
+    "levels": {
+      "DEBUG": "除錯",
+      "INFO": "資訊",
+      "WARN": "警告",
+      "ERROR": "錯誤",
+      "CRITICAL": "嚴重"
+    },
+    "categories": {
+      "AUTH": "身份驗證",
+      "API": "API",
+      "SECURITY": "安全",
+      "INTEGRATION": "整合",
+      "SYSTEM": "系統",
+      "USER_ACTION": "使用者操作"
+    }
+  },
+  "compliance": {
+    "title": "合規性和隱私",
+    "dataExport": {
+      "title": "匯出我的資料",
+      "description": "下載所有個人資料的副本。",
+      "request": "請求匯出",
+      "processing": "正在處理請求...",
+      "ready": "匯出已準備好下載",
+      "download": "下載資料"
+    }
+  },
+  "alerts": {
+    "types": {
+      "securityBreach": "安全漏洞",
+      "suspiciousLogin": "可疑登入",
+      "rateLimitExceeded": "超過頻率限制",
+      "unauthorizedAccess": "未授權存取"
+    },
+    "severity": {
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高",
+      "CRITICAL": "嚴重"
+    }
+  },
+  "recommendations": {
+    "title": "安全建議",
+    "enable2fa": "啟用雙因素身份驗證",
+    "updatePassword": "定期更新密碼",
+    "reviewApiKeys": "定期檢查API金鑰",
+    "monitorActivity": "監控可疑活動"
+  }
+}

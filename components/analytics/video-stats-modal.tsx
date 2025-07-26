@@ -22,8 +22,11 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
     return new Intl.NumberFormat('pt-BR').format(num)
   }
 
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString)
+  const formatRelativeTime = (timestamp: number | string) => {
+    // Handle both Unix timestamp (seconds) and ISO string
+    const date = typeof timestamp === 'number' 
+      ? new Date(timestamp * 1000)  // Convert Unix timestamp to milliseconds
+      : new Date(timestamp)
     const now = new Date()
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
     
@@ -56,15 +59,14 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
   }
 
   const stats = [
-    { icon: Eye, label: 'Visualizações', value: formatNumber(video.view_count) },
-    { icon: Heart, label: 'Curtidas', value: formatNumber(video.like_count) },
-    { icon: MessageCircle, label: 'Comentários', value: formatNumber(video.comment_count) },
-    { icon: Share2, label: 'Compartilhamentos', value: formatNumber(video.share_count) },
-    { icon: Play, label: 'Reproduções', value: formatNumber(video.play_count) },
+    { icon: Eye, label: 'Visualizações', value: formatNumber(video.view_count || 0) },
+    { icon: Heart, label: 'Curtidas', value: formatNumber(video.like_count || 0) },
+    { icon: MessageCircle, label: 'Comentários', value: formatNumber(video.comment_count || 0) },
+    { icon: Share2, label: 'Compartilhamentos', value: formatNumber(video.share_count || 0) },
   ]
 
-  const engagementRate = video.view_count > 0 
-    ? ((video.like_count + video.comment_count + video.share_count) / video.view_count * 100).toFixed(2)
+  const engagementRate = (video.view_count || 0) > 0 
+    ? (((video.like_count || 0) + (video.comment_count || 0) + (video.share_count || 0)) / (video.view_count || 1) * 100).toFixed(2)
     : '0'
 
   return (
@@ -81,9 +83,10 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
               {video.cover_image_url ? (
                 <Image
                   src={video.cover_image_url}
-                  alt={video.title || 'TikTok video'}
+                  alt={video.title || video.video_description || 'TikTok video'}
                   fill
                   className="object-cover"
+                  unoptimized // TikTok CDN images have 6-hour TTL
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400">
@@ -110,9 +113,9 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
               <h3 className="font-semibold text-lg mb-2">
                 {video.title || 'Sem título'}
               </h3>
-              {video.description && (
+              {video.video_description && (
                 <p className="text-sm text-gray-600 line-clamp-3">
-                  {video.description}
+                  {video.video_description}
                 </p>
               )}
             </div>
@@ -162,10 +165,10 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
             </div>
 
             {/* Additional Info */}
-            {video.is_top_video && (
+            {(video.view_count || 0) > 10000 && (
               <div className="bg-green-50 rounded-lg p-3">
                 <p className="text-sm font-medium text-green-800">
-                  🏆 Este é um dos seus vídeos mais populares!
+                  🔥 Vídeo com alta performance (&gt;10K visualizações)!
                 </p>
               </div>
             )}

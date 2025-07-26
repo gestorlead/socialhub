@@ -1,0 +1,68 @@
+{
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ko": "한국어"
+  },
+  "actions": {
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除",
+    "edit": "編輯",
+    "view": "檢視",
+    "connect": "連接",
+    "disconnect": "中斷連接",
+    "refresh": "重新整理",
+    "loading": "載入中...",
+    "retry": "重試",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "confirm": "確認",
+    "close": "關閉",
+    "search": "搜尋",
+    "filter": "篩選",
+    "export": "匯出",
+    "import": "匯入",
+    "download": "下載",
+    "upload": "上傳"
+  },
+  "navigation": {
+    "dashboard": "儀表板",
+    "analytics": "分析",
+    "publish": "發佈",
+    "calendar": "行事曆",
+    "networks": "社群網路",
+    "settings": "設定",
+    "profile": "個人檔案",
+    "logout": "登出",
+    "help": "說明"
+  },
+  "time": {
+    "today": "今天",
+    "yesterday": "昨天",
+    "tomorrow": "明天",
+    "lastWeek": "上週",
+    "lastMonth": "上個月",
+    "lastYear": "去年",
+    "thisWeek": "本週",
+    "thisMonth": "本月",
+    "thisYear": "今年"
+  },
+  "status": {
+    "active": "活躍",
+    "inactive": "非活躍",
+    "pending": "待處理",
+    "completed": "已完成",
+    "failed": "失敗",
+    "cancelled": "已取消",
+    "scheduled": "已排程",
+    "draft": "草稿",
+    "published": "已發佈"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "invalidCredentials": "認証情報が正しくありません",
+    "tokenExpired": "トークンが期限切れです。再度ログインしてください",
+    "unauthorized": "アクセスが拒否されました",
+    "forbidden": "この操作を実行する権限がありません",
+    "accountLocked": "アカウントが一時的にロックされています",
+    "emailNotVerified": "メールアドレスを認証してください",
+    "userNotFound": "ユーザーが見つかりません",
+    "passwordTooWeak": "パスワードが弱すぎます"
+  },
+  "network": {
+    "offline": "インターネット接続がありません",
+    "timeout": "リクエストタイムアウト",
+    "serverError": "サーバーエラー",
+    "connectionFailed": "接続に失敗しました"
+  },
+  "api": {
+    "notFound": "リソースが見つかりません",
+    "badRequest": "無効なリクエストです",
+    "conflict": "データの競合が発生しました",
+    "tooManyRequests": "リクエストが多すぎます。しばらくお待ちください",
+    "maintenance": "システムメンテナンス中です"
+  },
+  "validation": {
+    "invalidData": "無効なデータです",
+    "missingRequired": "必須フィールドが入力されていません"
+  },
+  "generic": "問題が発生しました。もう一度お試しください",
+  "upload": {
+    "failed": "ファイルのアップロードに失敗しました",
+    "tooLarge": "ファイルサイズが大きすぎます",
+    "invalidType": "許可されていないファイル形式です",
+    "quotaExceeded": "ストレージ容量を超過しました"
+  },
+  "social": {
+    "connectionFailed": "{platform}への接続に失敗しました",
+    "postFailed": "投稿に失敗しました",
+    "syncFailed": "データの同期に失敗しました",
+    "permissionDenied": "プラットフォームによってアクセスが拒否されました"
+  }
+}

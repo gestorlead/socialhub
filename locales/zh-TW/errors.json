@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "invalidCredentials": "登入資訊無效",
+    "tokenExpired": "令牌已過期，請重新登入",
+    "unauthorized": "存取被拒絕",
+    "forbidden": "您沒有執行此操作的權限",
+    "accountLocked": "帳戶已被暫時鎖定",
+    "emailNotVerified": "請驗證您的電子郵件",
+    "userNotFound": "使用者未找到",
+    "passwordTooWeak": "密碼過於简单"
+  },
+  "network": {
+    "offline": "無網路連接",
+    "timeout": "請求逾時",
+    "serverError": "伺服器錯誤",
+    "connectionFailed": "連接失敗"
+  },
+  "api": {
+    "notFound": "資源未找到",
+    "badRequest": "請求無效",
+    "conflict": "資料衝突",
+    "tooManyRequests": "請求過多，請稍後再試",
+    "maintenance": "系統維護中"
+  },
+  "validation": {
+    "invalidData": "資料無效",
+    "missingRequired": "缺少必填欄位"
+  },
+  "generic": "出現了問題，請重試",
+  "upload": {
+    "failed": "檔案上傳失敗",
+    "tooLarge": "檔案過大",
+    "invalidType": "不允許的檔案類型",
+    "quotaExceeded": "儲存配額已超出"
+  },
+  "social": {
+    "connectionFailed": "連接{platform}失敗",
+    "postFailed": "發佈失敗",
+    "syncFailed": "資料同步失敗",
+    "permissionDenied": "平台拒絕存取"
+  }
+}

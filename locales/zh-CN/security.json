@@ -1,0 +1,162 @@
+{
+  "events": {
+    "login_failed": "登录尝试失败",
+    "token_expired": "检测到过期令牌",
+    "rate_limit_exceeded": "超过频率限制",
+    "suspicious_activity": "检测到可疑活动",
+    "data_breach_attempt": "数据泄露尝试",
+    "unauthorized_access": "未授权访问"
+  },
+  "middleware": {
+    "rateLimitExceeded": "尝试次数过多。请在{seconds}秒后重试。",
+    "accessDenied": "安全策略拒绝访问。",
+    "requestTooLarge": "请求大小超过允许限制。",
+    "suspiciousActivity": "检测到可疑活动。访问已被临时阻止。",
+    "invalidRequest": "无效或格式错误的请求。",
+    "ipBlocked": "由于安全违规，您的IP地址已被阻止。",
+    "botDetected": "检测到自动访问。请使用网页界面。"
+  },
+  "apiKey": {
+    "management": {
+      "title": "API密钥管理",
+      "description": "管理您的API密钥以与社交平台安全集成。",
+      "createNew": "创建新密钥",
+      "noKeys": "尚未创建API密钥。",
+      "loadingKeys": "正在加载密钥...",
+      "keyCreated": "API密钥创建成功！",
+      "keyDeleted": "API密钥已删除。",
+      "keyRegenerated": "API密钥重新生成成功。",
+      "copyKey": "复制密钥",
+      "keyCopied": "密钥已复制到剪贴板！",
+      "regenerateKey": "重新生成密钥",
+      "deleteKey": "删除密钥",
+      "confirmDelete": "确定要删除此密钥吗？此操作无法撤销。",
+      "confirmRegenerate": "重新生成密钥将使当前密钥无效。继续吗？"
+    },
+    "form": {
+      "name": "密钥名称",
+      "namePlaceholder": "例如：移动应用",
+      "nameHelp": "此API密钥的标识名称",
+      "description": "描述",
+      "descriptionPlaceholder": "描述此密钥的用途...",
+      "descriptionHelp": "此密钥用途的可选描述",
+      "platforms": "平台",
+      "platformsHelp": "选择此密钥可以访问的平台",
+      "scopes": "权限",
+      "scopesHelp": "定义此密钥允许的操作",
+      "expiryDays": "到期时间（天）",
+      "expiryHelp": "密钥到期的天数（1-365）",
+      "rateLimitHour": "每小时限制",
+      "rateLimitHelp": "每小时最大请求数",
+      "allowedIPs": "允许的IP",
+      "allowedIPsHelp": "留空以允许任何IP",
+      "ipPlaceholder": "例如：192.168.1.1",
+      "addIP": "添加IP"
+    },
+    "scopes": {
+      "read": "读取",
+      "readDesc": "查看个人资料和基本数据",
+      "publish": "发布",
+      "publishDesc": "发布内容到社交媒体",
+      "analytics": "分析",
+      "analyticsDesc": "访问指标和报告",
+      "manage": "管理",
+      "manageDesc": "管理账户设置"
+    },
+    "platforms": {
+      "tiktok": "抖音",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "youtube": "YouTube"
+    },
+    "status": {
+      "active": "活跃",
+      "expired": "已过期",
+      "inactive": "不活跃",
+      "suspended": "已暂停"
+    },
+    "details": {
+      "created": "创建时间",
+      "lastUsed": "最后使用",
+      "never": "从未",
+      "usageCount": "使用次数",
+      "expiresAt": "到期时间",
+      "rateLimitRemaining": "剩余限制"
+    }
+  },
+  "dashboard": {
+    "title": "安全仪表板",
+    "overview": "概览",
+    "recentEvents": "最近事件",
+    "securityAlerts": "安全警报",
+    "apiKeyUsage": "API密钥使用情况",
+    "rateLimits": "频率限制",
+    "suspiciousActivity": "可疑活动",
+    "blockedIPs": "被阻止的IP",
+    "loginAttempts": "登录尝试",
+    "dataExports": "数据导出",
+    "complianceStatus": "合规状态",
+    "securityScore": "安全得分",
+    "lastSecurityScan": "最后安全扫描",
+    "vulnerabilities": "漏洞",
+    "recommendations": "建议"
+  },
+  "logs": {
+    "title": "安全日志",
+    "filters": "过滤器",
+    "level": "级别",
+    "category": "类别",
+    "dateRange": "日期范围",
+    "search": "搜索",
+    "export": "导出",
+    "noLogs": "未找到日志。",
+    "loading": "正在加载日志...",
+    "levels": {
+      "DEBUG": "调试",
+      "INFO": "信息",
+      "WARN": "警告",
+      "ERROR": "错误",
+      "CRITICAL": "严重"
+    },
+    "categories": {
+      "AUTH": "身份验证",
+      "API": "API",
+      "SECURITY": "安全",
+      "INTEGRATION": "集成",
+      "SYSTEM": "系统",
+      "USER_ACTION": "用户操作"
+    }
+  },
+  "compliance": {
+    "title": "合规性和隐私",
+    "dataExport": {
+      "title": "导出我的数据",
+      "description": "下载所有个人数据的副本。",
+      "request": "请求导出",
+      "processing": "正在处理请求...",
+      "ready": "导出已准备好下载",
+      "download": "下载数据"
+    }
+  },
+  "alerts": {
+    "types": {
+      "securityBreach": "安全漏洞",
+      "suspiciousLogin": "可疑登录",
+      "rateLimitExceeded": "超过频率限制",
+      "unauthorizedAccess": "未授权访问"
+    },
+    "severity": {
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高",
+      "CRITICAL": "严重"
+    }
+  },
+  "recommendations": {
+    "title": "安全建议",
+    "enable2fa": "启用双因素身份验证",
+    "updatePassword": "定期更新密码",
+    "reviewApiKeys": "定期检查API密钥",
+    "monitorActivity": "监控可疑活动"
+  }
+}

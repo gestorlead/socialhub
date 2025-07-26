@@ -1,0 +1,162 @@
+{
+  "events": {
+    "login_failed": "로그인 시도 실패",
+    "token_expired": "만료된 토큰 감지",
+    "rate_limit_exceeded": "속도 제한 초과",
+    "suspicious_activity": "의심스러운 활동 감지",
+    "data_breach_attempt": "데이터 침해 시도",
+    "unauthorized_access": "무단 접근"
+  },
+  "middleware": {
+    "rateLimitExceeded": "시도 횟수가 너무 많습니다. {seconds}초 후에 다시 시도하세요.",
+    "accessDenied": "보안 정책에 의해 접근이 거부되었습니다.",
+    "requestTooLarge": "요청 크기가 허용된 제한을 초과합니다.",
+    "suspiciousActivity": "의심스러운 활동이 감지되었습니다. 접근이 일시적으로 차단되었습니다.",
+    "invalidRequest": "유효하지 않거나 잘못된 형식의 요청입니다.",
+    "ipBlocked": "보안 위반으로 인해 IP 주소가 차단되었습니다.",
+    "botDetected": "자동화된 접근이 감지되었습니다. 웹 인터페이스를 사용하세요."
+  },
+  "apiKey": {
+    "management": {
+      "title": "API 키 관리",
+      "description": "소셜 플랫폼과 안전한 통합을 위한 API 키를 관리합니다.",
+      "createNew": "새 키 생성",
+      "noKeys": "아직 생성된 API 키가 없습니다.",
+      "loadingKeys": "키를 불러오는 중...",
+      "keyCreated": "API 키가 성공적으로 생성되었습니다!",
+      "keyDeleted": "API 키가 삭제되었습니다.",
+      "keyRegenerated": "API 키가 성공적으로 재생성되었습니다.",
+      "copyKey": "키 복사",
+      "keyCopied": "키가 클립보드에 복사되었습니다!",
+      "regenerateKey": "키 재생성",
+      "deleteKey": "키 삭제",
+      "confirmDelete": "이 키를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      "confirmRegenerate": "키를 재생성하면 현재 키가 무효화됩니다. 계속하시겠습니까?"
+    },
+    "form": {
+      "name": "키 이름",
+      "namePlaceholder": "예: 모바일 앱",
+      "nameHelp": "이 API 키의 식별 이름",
+      "description": "설명",
+      "descriptionPlaceholder": "이 키의 용도를 설명하세요...",
+      "descriptionHelp": "이 키의 목적에 대한 선택적 설명",
+      "platforms": "플랫폼",
+      "platformsHelp": "이 키가 접근할 수 있는 플랫폼을 선택하세요",
+      "scopes": "권한",
+      "scopesHelp": "이 키에 허용된 작업을 정의하세요",
+      "expiryDays": "만료 기간 (일)",
+      "expiryHelp": "키가 만료될 때까지의 일수 (1-365)",
+      "rateLimitHour": "시간당 제한",
+      "rateLimitHelp": "시간당 최대 요청 수",
+      "allowedIPs": "허용된 IP",
+      "allowedIPsHelp": "모든 IP를 허용하려면 비워두세요",
+      "ipPlaceholder": "예: 192.168.1.1",
+      "addIP": "IP 추가"
+    },
+    "scopes": {
+      "read": "읽기",
+      "readDesc": "프로필 및 기본 데이터 보기",
+      "publish": "게시",
+      "publishDesc": "소셜 미디어에 콘텐츠 게시",
+      "analytics": "분석",
+      "analyticsDesc": "지표 및 보고서 접근",
+      "manage": "관리",
+      "manageDesc": "계정 설정 관리"
+    },
+    "platforms": {
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "youtube": "YouTube"
+    },
+    "status": {
+      "active": "활성",
+      "expired": "만료됨",
+      "inactive": "비활성",
+      "suspended": "일시중지됨"
+    },
+    "details": {
+      "created": "생성일",
+      "lastUsed": "마지막 사용",
+      "never": "사용 안 함",
+      "usageCount": "사용 횟수",
+      "expiresAt": "만료일",
+      "rateLimitRemaining": "남은 제한"
+    }
+  },
+  "dashboard": {
+    "title": "보안 대시보드",
+    "overview": "개요",
+    "recentEvents": "최근 이벤트",
+    "securityAlerts": "보안 경고",
+    "apiKeyUsage": "API 키 사용량",
+    "rateLimits": "속도 제한",
+    "suspiciousActivity": "의심스러운 활동",
+    "blockedIPs": "차단된 IP",
+    "loginAttempts": "로그인 시도",
+    "dataExports": "데이터 내보내기",
+    "complianceStatus": "컴플라이언스 상태",
+    "securityScore": "보안 점수",
+    "lastSecurityScan": "마지막 보안 스캔",
+    "vulnerabilities": "취약점",
+    "recommendations": "권장사항"
+  },
+  "logs": {
+    "title": "보안 로그",
+    "filters": "필터",
+    "level": "레벨",
+    "category": "카테고리",
+    "dateRange": "날짜 범위",
+    "search": "검색",
+    "export": "내보내기",
+    "noLogs": "로그를 찾을 수 없습니다.",
+    "loading": "로그를 불러오는 중...",
+    "levels": {
+      "DEBUG": "디버그",
+      "INFO": "정보",
+      "WARN": "경고",
+      "ERROR": "오류",
+      "CRITICAL": "중요"
+    },
+    "categories": {
+      "AUTH": "인증",
+      "API": "API",
+      "SECURITY": "보안",
+      "INTEGRATION": "통합",
+      "SYSTEM": "시스템",
+      "USER_ACTION": "사용자 작업"
+    }
+  },
+  "compliance": {
+    "title": "컴플라이언스 및 개인정보보호",
+    "dataExport": {
+      "title": "내 데이터 내보내기",
+      "description": "모든 개인 데이터의 사본을 다운로드합니다.",
+      "request": "내보내기 요청",
+      "processing": "요청을 처리 중...",
+      "ready": "내보내기 다운로드 준비 완료",
+      "download": "데이터 다운로드"
+    }
+  },
+  "alerts": {
+    "types": {
+      "securityBreach": "보안 침해",
+      "suspiciousLogin": "의심스러운 로그인",
+      "rateLimitExceeded": "속도 제한 초과",
+      "unauthorizedAccess": "무단 접근"
+    },
+    "severity": {
+      "LOW": "낮음",
+      "MEDIUM": "보통",
+      "HIGH": "높음",
+      "CRITICAL": "심각"
+    }
+  },
+  "recommendations": {
+    "title": "보안 권장사항",
+    "enable2fa": "2단계 인증 활성화",
+    "updatePassword": "정기적으로 비밀번호 업데이트",
+    "reviewApiKeys": "정기적으로 API 키 검토",
+    "monitorActivity": "의심스러운 활동 모니터링"
+  }
+}

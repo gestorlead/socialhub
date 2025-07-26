@@ -5,7 +5,10 @@ import { TikTokTokenManager } from '@/lib/tiktok-token-manager'
 import { TikTokVideoListResponse } from '@/types/tiktok'
 
 export async function GET(request: NextRequest) {
-  console.log('[TikTok Videos API] ===== NEW VERSION LOADED =====')
+  console.log('[TikTok Videos API] ===== REQUEST RECEIVED =====')
+  console.log('[TikTok Videos API] Request URL:', request.url)
+  console.log('[TikTok Videos API] Request method:', request.method)
+  console.log('[TikTok Videos API] Request headers:', Object.fromEntries(request.headers.entries()))
   try {
     // Get authorization token from request headers
     const authHeader = request.headers.get('authorization')
@@ -118,26 +121,48 @@ export async function GET(request: NextRequest) {
     })
 
     console.log(`[TikTok Videos API] Response status: ${response.status}`)
+    console.log(`[TikTok Videos API] Response headers:`, Object.fromEntries(response.headers.entries()))
 
     if (!response.ok) {
-      const errorData = await response.json()
-      console.error('[TikTok Videos API] TikTok API error:', errorData)
+      let errorData
+      try {
+        const errorText = await response.text()
+        console.log('[TikTok Videos API] Error response text:', errorText)
+        errorData = errorText ? JSON.parse(errorText) : { error: 'Empty error response' }
+      } catch (parseError) {
+        console.error('[TikTok Videos API] Failed to parse TikTok error response:', parseError)
+        errorData = { 
+          error: `TikTok API error: ${response.status} ${response.statusText}`,
+          status: response.status,
+          statusText: response.statusText
+        }
+      }
+      console.error('[TikTok Videos API] TikTok API error details:', errorData)
       return NextResponse.json(
-        { error: 'Failed to fetch videos from TikTok', details: errorData },
+        { 
+          error: errorData.error || 'Failed to fetch videos from TikTok', 
+          details: errorData,
+          status: response.status,
+          statusText: response.statusText
+        },
         { status: response.status }
       )
     }
 
     const data: TikTokVideoListResponse = await response.json()
     console.log(`[TikTok Videos API] Success! Received ${data.data?.videos?.length || 0} videos`)
+    console.log(`[TikTok Videos API] TikTok error object:`, data.error)
 
-    if (data.error) {
-      console.error('[TikTok Videos API] TikTok API returned error:', data.error)
+    // TikTok API always returns an error object, but code "ok" means success
+    if (data.error && data.error.code !== 'ok') {
+      console.error('[TikTok Videos API] TikTok API returned actual error:', data.error)
       return NextResponse.json(
-        { error: data.error.message, details: data.error },
+        { error: data.error.message || 'TikTok API error', details: data.error },
         { status: 400 }
       )
     }
+
+    console.log(`[TikTok Videos API] ✅ TikTok API success - error.code: ${data.error?.code}`)
 
     // Store videos in database
     if (data.data?.videos?.length > 0) {
@@ -199,15 +224,22 @@ export async function GET(request: NextRequest) {
 
     console.log(`[TikTok Videos API] Returning ${dbVideos?.length || 0} videos from database`)
     return NextResponse.json({
-      videos: dbVideos || [],
-      has_more: data.has_more || false,
-      cursor: data.cursor,
+      data: {
+        videos: dbVideos || [],
+        has_more: data.has_more || false,
+        cursor: data.cursor
+      },
       total_count: dbVideos?.length || 0
     })
   } catch (error) {
     console.error('[TikTok Videos API] Unexpected error:', error)
+    console.error('[TikTok Videos API] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        type: error instanceof Error ? error.constructor.name : typeof error
+      },
       { status: 500 }
     )
   }

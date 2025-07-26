@@ -1,0 +1,68 @@
+{
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ko": "한국어"
+  },
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "view": "Visualizar",
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "refresh": "Atualizar",
+    "loading": "Carregando...",
+    "retry": "Tentar novamente",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "download": "Baixar",
+    "upload": "Enviar"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "analytics": "Análise",
+    "publish": "Publicar",
+    "calendar": "Calendário",
+    "networks": "Redes Sociais",
+    "settings": "Configurações",
+    "profile": "Perfil",
+    "logout": "Sair",
+    "help": "Ajuda"
+  },
+  "time": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "tomorrow": "Amanhã",
+    "lastWeek": "Última semana",
+    "lastMonth": "Último mês",
+    "lastYear": "Último ano",
+    "thisWeek": "Esta semana",
+    "thisMonth": "Este mês",
+    "thisYear": "Este ano"
+  },
+  "status": {
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "pending": "Pendente",
+    "completed": "Concluído",
+    "failed": "Falhou",
+    "cancelled": "Cancelado",
+    "scheduled": "Agendado",
+    "draft": "Rascunho",
+    "published": "Publicado"
+  }
+}

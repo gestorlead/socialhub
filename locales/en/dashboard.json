@@ -1,0 +1,53 @@
+{
+  "welcome": {
+    "title": "Welcome to SocialHub",
+    "subtitle": "Manage all your social networks in one place"
+  },
+  "stats": {
+    "followers": "Followers",
+    "following": "Following",
+    "likes": "Likes",
+    "videos": "Videos",
+    "engagement": "Engagement",
+    "reach": "Reach",
+    "impressions": "Impressions",
+    "views": "Views",
+    "shares": "Shares",
+    "comments": "Comments"
+  },
+  "cards": {
+    "schedule": {
+      "title": "Schedule post",
+      "description": "Create new schedule"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "View full schedule"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "View detailed performance"
+    },
+    "connections": {
+      "title": "Connections",
+      "description": "Manage social networks"
+    }
+  },
+  "quickActions": {
+    "title": "Quick actions",
+    "newPost": "New post",
+    "viewAnalytics": "View analytics",
+    "manageTeam": "Manage team",
+    "settings": "Settings"
+  },
+  "recentActivity": {
+    "title": "Recent activity",
+    "noActivity": "No recent activity",
+    "viewAll": "View all"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "No notifications",
+    "markAllRead": "Mark all as read"
+  }
+}

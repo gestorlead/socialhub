@@ -1,0 +1,210 @@
+{
+  "events": {
+    "login_failed": "Intento de inicio de sesión fallido",
+    "token_expired": "Token expirado detectado",
+    "rate_limit_exceeded": "Límite de velocidad excedido",
+    "suspicious_activity": "Actividad sospechosa detectada",
+    "data_breach_attempt": "Intento de violación de datos",
+    "unauthorized_access": "Acceso no autorizado"
+  },
+  "middleware": {
+    "rateLimitExceeded": "Demasiados intentos. Inténtalo de nuevo en {seconds} segundos.",
+    "accessDenied": "Acceso denegado por política de seguridad.",
+    "requestTooLarge": "El tamaño de la solicitud excede el límite permitido.",
+    "suspiciousActivity": "Actividad sospechosa detectada. Acceso temporalmente bloqueado.",
+    "invalidRequest": "Solicitud inválida o mal formada.",
+    "ipBlocked": "Tu dirección IP ha sido bloqueada por violaciones de seguridad.",
+    "botDetected": "Acceso automatizado detectado. Usa la interfaz web."
+  },
+  "apiKey": {
+    "management": {
+      "title": "Gestión de Claves API",
+      "description": "Gestiona tus claves API para integración segura con plataformas sociales.",
+      "createNew": "Crear Nueva Clave",
+      "noKeys": "No se han creado claves API aún.",
+      "loadingKeys": "Cargando claves...",
+      "keyCreated": "¡Clave API creada exitosamente!",
+      "keyDeleted": "Clave API eliminada.",
+      "keyRegenerated": "Clave API regenerada exitosamente.",
+      "copyKey": "Copiar Clave",
+      "keyCopied": "¡Clave copiada al portapapeles!",
+      "regenerateKey": "Regenerar Clave",
+      "deleteKey": "Eliminar Clave",
+      "confirmDelete": "¿Estás seguro de que quieres eliminar esta clave? Esta acción no se puede deshacer.",
+      "confirmRegenerate": "Regenerar la clave invalidará la clave actual. ¿Continuar?"
+    },
+    "form": {
+      "name": "Nombre de la Clave",
+      "namePlaceholder": "ej. App Móvil",
+      "nameHelp": "Nombre identificador para esta clave API",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describe el uso de esta clave...",
+      "descriptionHelp": "Descripción opcional del propósito de esta clave",
+      "platforms": "Plataformas",
+      "platformsHelp": "Selecciona las plataformas que esta clave puede acceder",
+      "scopes": "Permisos",
+      "scopesHelp": "Define las operaciones permitidas para esta clave",
+      "expiryDays": "Expiración (días)",
+      "expiryHelp": "Número de días hasta que expire la clave (1-365)",
+      "rateLimitHour": "Límite por Hora",
+      "rateLimitHelp": "Número máximo de solicitudes por hora",
+      "allowedIPs": "IPs Permitidas",
+      "allowedIPsHelp": "Deja vacío para permitir cualquier IP",
+      "ipPlaceholder": "ej. 192.168.1.1",
+      "addIP": "Agregar IP"
+    },
+    "scopes": {
+      "read": "Lectura",
+      "readDesc": "Ver perfiles y datos básicos",
+      "publish": "Publicación",
+      "publishDesc": "Publicar contenido en redes sociales",
+      "analytics": "Analytics",
+      "analyticsDesc": "Acceder a métricas e informes",
+      "manage": "Gestionar",
+      "manageDesc": "Gestionar configuraciones de cuenta"
+    },
+    "platforms": {
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "youtube": "YouTube"
+    },
+    "status": {
+      "active": "Activa",
+      "expired": "Expirada",
+      "inactive": "Inactiva",
+      "suspended": "Suspendida"
+    },
+    "details": {
+      "created": "Creada",
+      "lastUsed": "Último uso",
+      "never": "Nunca",
+      "usageCount": "Usos",
+      "expiresAt": "Expira",
+      "rateLimitRemaining": "Límite restante"
+    }
+  },
+  "dashboard": {
+    "title": "Panel de Seguridad",
+    "overview": "Resumen",
+    "recentEvents": "Eventos Recientes",
+    "securityAlerts": "Alertas de Seguridad",
+    "apiKeyUsage": "Uso de Claves API",
+    "rateLimits": "Límites de Velocidad",
+    "suspiciousActivity": "Actividad Sospechosa",
+    "blockedIPs": "IPs Bloqueadas",
+    "loginAttempts": "Intentos de Inicio de Sesión",
+    "dataExports": "Exportaciones de Datos",
+    "complianceStatus": "Estado de Cumplimiento",
+    "securityScore": "Puntuación de Seguridad",
+    "lastSecurityScan": "Último Escaneo de Seguridad",
+    "vulnerabilities": "Vulnerabilidades",
+    "recommendations": "Recomendaciones"
+  },
+  "logs": {
+    "title": "Registros de Seguridad",
+    "filters": "Filtros",
+    "level": "Nivel",
+    "category": "Categoría",
+    "dateRange": "Rango de Fechas",
+    "search": "Buscar",
+    "export": "Exportar",
+    "noLogs": "No se encontraron registros.",
+    "loading": "Cargando registros...",
+    "levels": {
+      "DEBUG": "Debug",
+      "INFO": "Info",
+      "WARN": "Advertencia",
+      "ERROR": "Error",
+      "CRITICAL": "Crítico"
+    },
+    "categories": {
+      "AUTH": "Autenticación",
+      "API": "API",
+      "SECURITY": "Seguridad",
+      "INTEGRATION": "Integración",
+      "SYSTEM": "Sistema",
+      "USER_ACTION": "Acción del Usuario"
+    }
+  },
+  "compliance": {
+    "title": "Cumplimiento y Privacidad",
+    "lgpd": {
+      "title": "LGPD - Ley General de Protección de Datos",
+      "status": "Estado de Cumplimiento",
+      "compliant": "En cumplimiento",
+      "nonCompliant": "No conforme",
+      "dataMapping": "Mapeo de Datos",
+      "dataRetention": "Retención de Datos",
+      "userRights": "Derechos del Usuario",
+      "consentManagement": "Gestión de Consentimiento",
+      "dataProcessing": "Procesamiento de Datos",
+      "securityMeasures": "Medidas de Seguridad"
+    },
+    "gdpr": {
+      "title": "GDPR - Reglamento General de Protección de Datos",
+      "status": "Estado de Cumplimiento",
+      "rightToAccess": "Derecho de Acceso",
+      "rightToRectification": "Derecho de Rectificación",
+      "rightToErasure": "Derecho al Olvido",
+      "rightToPortability": "Derecho a la Portabilidad",
+      "dataBreachNotification": "Notificación de Violación de Datos"
+    },
+    "dataExport": {
+      "title": "Exportar Mis Datos",
+      "description": "Descarga una copia de todos tus datos personales.",
+      "request": "Solicitar Exportación",
+      "processing": "Procesando solicitud...",
+      "ready": "Exportación lista para descarga",
+      "download": "Descargar Datos",
+      "includeData": "Datos a incluir:",
+      "profile": "Datos del perfil",
+      "connections": "Conexiones sociales",
+      "apiKeys": "Claves API",
+      "logs": "Registros de actividad",
+      "analytics": "Datos de analytics"
+    },
+    "dataRetention": {
+      "title": "Política de Retención",
+      "description": "Cómo se almacenan tus datos y por cuánto tiempo.",
+      "profileData": "Datos del perfil: Hasta eliminación de cuenta",
+      "activityLogs": "Registros de actividad: 12 meses",
+      "analyticsData": "Datos de analytics: 24 meses",
+      "securityLogs": "Registros de seguridad: 36 meses",
+      "backups": "Respaldos: 90 días después de eliminación"
+    }
+  },
+  "alerts": {
+    "types": {
+      "securityBreach": "Violación de Seguridad",
+      "suspiciousLogin": "Inicio de Sesión Sospechoso",
+      "rateLimitExceeded": "Límite Excedido",
+      "unauthorizedAccess": "Acceso No Autorizado",
+      "dataExportRequest": "Solicitud de Exportación",
+      "apiKeyCompromised": "Clave API Comprometida"
+    },
+    "severity": {
+      "LOW": "Baja",
+      "MEDIUM": "Media",
+      "HIGH": "Alta",
+      "CRITICAL": "Crítica"
+    },
+    "actions": {
+      "acknowledge": "Reconocer",
+      "resolve": "Resolver",
+      "investigate": "Investigar",
+      "escalate": "Escalar"
+    }
+  },
+  "recommendations": {
+    "title": "Recomendaciones de Seguridad",
+    "enable2fa": "Habilita la autenticación de dos factores",
+    "updatePassword": "Actualiza tu contraseña regularmente",
+    "reviewApiKeys": "Revisa tus claves API periódicamente",
+    "monitorActivity": "Monitorea actividad sospechosa",
+    "enableAuditLogs": "Habilita registros de auditoría",
+    "restrictIpAccess": "Restringe acceso por IP cuando sea posible",
+    "regularSecurityScans": "Ejecuta escaneos de seguridad regulares",
+    "keepSystemUpdated": "Mantén el sistema actualizado"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "required": "此欄位為必填項目",
+  "email": "請輸入有效的電子郵件地址",
+  "minLength": "至少需要{min}個字元",
+  "maxLength": "最多{max}個字元",
+  "minValue": "最小值：{min}",
+  "maxValue": "最大值：{max}",
+  "pattern": "格式無效",
+  "passwordMatch": "密碼不符合",
+  "passwordStrength": "密碼過於簡單",
+  "fileSize": "檔案過大。最大：{size}",
+  "fileType": "不支援的檔案類型",
+  "url": "請輸入有效的URL",
+  "phone": "請輸入有效的手機號碼",
+  "date": "請輸入有效的日期",
+  "futureDate": "日期必須是未來時間",
+  "pastDate": "日期必須是過去時間",
+  "unique": "此值已被使用",
+  "alphanumeric": "只能使用字母和數字",
+  "numeric": "只能輸入數字",
+  "alphabetic": "只能輸入字母"
+}

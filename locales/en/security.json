@@ -1,0 +1,210 @@
+{
+  "events": {
+    "login_failed": "Failed login attempt",
+    "token_expired": "Expired token detected",
+    "rate_limit_exceeded": "Rate limit exceeded",
+    "suspicious_activity": "Suspicious activity detected",
+    "data_breach_attempt": "Data breach attempt",
+    "unauthorized_access": "Unauthorized access"
+  },
+  "middleware": {
+    "rateLimitExceeded": "Too many attempts. Try again in {seconds} seconds.",
+    "accessDenied": "Access denied by security policy.",
+    "requestTooLarge": "Request size exceeds allowed limit.",
+    "suspiciousActivity": "Suspicious activity detected. Access temporarily blocked.",
+    "invalidRequest": "Invalid or malformed request.",
+    "ipBlocked": "Your IP address has been blocked for security violations.",
+    "botDetected": "Automated access detected. Please use the web interface."
+  },
+  "apiKey": {
+    "management": {
+      "title": "API Key Management",
+      "description": "Manage your API keys for secure integration with social platforms.",
+      "createNew": "Create New Key",
+      "noKeys": "No API keys created yet.",
+      "loadingKeys": "Loading keys...",
+      "keyCreated": "API key created successfully!",
+      "keyDeleted": "API key deleted.",
+      "keyRegenerated": "API key regenerated successfully.",
+      "copyKey": "Copy Key",
+      "keyCopied": "Key copied to clipboard!",
+      "regenerateKey": "Regenerate Key",
+      "deleteKey": "Delete Key",
+      "confirmDelete": "Are you sure you want to delete this key? This action cannot be undone.",
+      "confirmRegenerate": "Regenerating the key will invalidate the current key. Continue?"
+    },
+    "form": {
+      "name": "Key Name",
+      "namePlaceholder": "e.g. Mobile App",
+      "nameHelp": "Identifier name for this API key",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the use of this key...",
+      "descriptionHelp": "Optional description of this key's purpose",
+      "platforms": "Platforms",
+      "platformsHelp": "Select platforms this key can access",
+      "scopes": "Permissions",
+      "scopesHelp": "Define allowed operations for this key",
+      "expiryDays": "Expiry (days)",
+      "expiryHelp": "Number of days until key expires (1-365)",
+      "rateLimitHour": "Hourly Limit",
+      "rateLimitHelp": "Maximum requests per hour",
+      "allowedIPs": "Allowed IPs",
+      "allowedIPsHelp": "Leave empty to allow any IP",
+      "ipPlaceholder": "e.g. 192.168.1.1",
+      "addIP": "Add IP"
+    },
+    "scopes": {
+      "read": "Read",
+      "readDesc": "View profiles and basic data",
+      "publish": "Publish",
+      "publishDesc": "Post content to social media",
+      "analytics": "Analytics",
+      "analyticsDesc": "Access metrics and reports",
+      "manage": "Manage",
+      "manageDesc": "Manage account settings"
+    },
+    "platforms": {
+      "tiktok": "TikTok",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "youtube": "YouTube"
+    },
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
+    "details": {
+      "created": "Created",
+      "lastUsed": "Last used",
+      "never": "Never",
+      "usageCount": "Uses",
+      "expiresAt": "Expires",
+      "rateLimitRemaining": "Limit remaining"
+    }
+  },
+  "dashboard": {
+    "title": "Security Dashboard",
+    "overview": "Overview",
+    "recentEvents": "Recent Events",
+    "securityAlerts": "Security Alerts",
+    "apiKeyUsage": "API Key Usage",
+    "rateLimits": "Rate Limits",
+    "suspiciousActivity": "Suspicious Activity",
+    "blockedIPs": "Blocked IPs",
+    "loginAttempts": "Login Attempts",
+    "dataExports": "Data Exports",
+    "complianceStatus": "Compliance Status",
+    "securityScore": "Security Score",
+    "lastSecurityScan": "Last Security Scan",
+    "vulnerabilities": "Vulnerabilities",
+    "recommendations": "Recommendations"
+  },
+  "logs": {
+    "title": "Security Logs",
+    "filters": "Filters",
+    "level": "Level",
+    "category": "Category",
+    "dateRange": "Date Range",
+    "search": "Search",
+    "export": "Export",
+    "noLogs": "No logs found.",
+    "loading": "Loading logs...",
+    "levels": {
+      "DEBUG": "Debug",
+      "INFO": "Info",
+      "WARN": "Warning",
+      "ERROR": "Error",
+      "CRITICAL": "Critical"
+    },
+    "categories": {
+      "AUTH": "Authentication",
+      "API": "API",
+      "SECURITY": "Security",
+      "INTEGRATION": "Integration",
+      "SYSTEM": "System",
+      "USER_ACTION": "User Action"
+    }
+  },
+  "compliance": {
+    "title": "Compliance & Privacy",
+    "lgpd": {
+      "title": "LGPD - Brazilian General Data Protection Law",
+      "status": "Compliance Status",
+      "compliant": "Compliant",
+      "nonCompliant": "Non-compliant",
+      "dataMapping": "Data Mapping",
+      "dataRetention": "Data Retention",
+      "userRights": "User Rights",
+      "consentManagement": "Consent Management",
+      "dataProcessing": "Data Processing",
+      "securityMeasures": "Security Measures"
+    },
+    "gdpr": {
+      "title": "GDPR - General Data Protection Regulation",
+      "status": "Compliance Status",
+      "rightToAccess": "Right to Access",
+      "rightToRectification": "Right to Rectification",
+      "rightToErasure": "Right to Erasure",
+      "rightToPortability": "Right to Portability",
+      "dataBreachNotification": "Data Breach Notification"
+    },
+    "dataExport": {
+      "title": "Export My Data",
+      "description": "Download a copy of all your personal data.",
+      "request": "Request Export",
+      "processing": "Processing request...",
+      "ready": "Export ready for download",
+      "download": "Download Data",
+      "includeData": "Data to include:",
+      "profile": "Profile data",
+      "connections": "Social connections",
+      "apiKeys": "API keys",
+      "logs": "Activity logs",
+      "analytics": "Analytics data"
+    },
+    "dataRetention": {
+      "title": "Retention Policy",
+      "description": "How your data is stored and for how long.",
+      "profileData": "Profile data: Until account deletion",
+      "activityLogs": "Activity logs: 12 months",
+      "analyticsData": "Analytics data: 24 months",
+      "securityLogs": "Security logs: 36 months",
+      "backups": "Backups: 90 days after deletion"
+    }
+  },
+  "alerts": {
+    "types": {
+      "securityBreach": "Security Breach",
+      "suspiciousLogin": "Suspicious Login",
+      "rateLimitExceeded": "Rate Limit Exceeded",
+      "unauthorizedAccess": "Unauthorized Access",
+      "dataExportRequest": "Data Export Request",
+      "apiKeyCompromised": "API Key Compromised"
+    },
+    "severity": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "actions": {
+      "acknowledge": "Acknowledge",
+      "resolve": "Resolve",
+      "investigate": "Investigate",
+      "escalate": "Escalate"
+    }
+  },
+  "recommendations": {
+    "title": "Security Recommendations",
+    "enable2fa": "Enable two-factor authentication",
+    "updatePassword": "Update your password regularly",
+    "reviewApiKeys": "Review your API keys periodically",
+    "monitorActivity": "Monitor suspicious activity",
+    "enableAuditLogs": "Enable audit logs",
+    "restrictIpAccess": "Restrict IP access when possible",
+    "regularSecurityScans": "Run regular security scans",
+    "keepSystemUpdated": "Keep system updated"
+  }
+}

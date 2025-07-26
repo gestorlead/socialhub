@@ -1,0 +1,53 @@
+{
+  "welcome": {
+    "title": "歡迎使用SocialHub",
+    "subtitle": "在一個地方管理您的所有社群網路"
+  },
+  "stats": {
+    "followers": "追蹤者",
+    "following": "追蹤中",
+    "likes": "按讚",
+    "videos": "影片",
+    "engagement": "互動",
+    "reach": "觸及",
+    "impressions": "曝光",
+    "views": "觀看",
+    "shares": "分享",
+    "comments": "留言"
+  },
+  "cards": {
+    "schedule": {
+      "title": "排程發佈",
+      "description": "建立新的發佈排程"
+    },
+    "calendar": {
+      "title": "行事曆",
+      "description": "檢視所有排程"
+    },
+    "analytics": {
+      "title": "分析",
+      "description": "檢視詳細的效能分析"
+    },
+    "connections": {
+      "title": "連接",
+      "description": "管理社群網路"
+    }
+  },
+  "quickActions": {
+    "title": "快速操作",
+    "newPost": "新貼文",
+    "viewAnalytics": "檢視分析",
+    "manageTeam": "團隊管理",
+    "settings": "設定"
+  },
+  "recentActivity": {
+    "title": "最近活動",
+    "noActivity": "暫無最近活動",
+    "viewAll": "檢視全部"
+  },
+  "notifications": {
+    "title": "通知",
+    "noNotifications": "暫無通知",
+    "markAllRead": "全部標記為已讀"
+  }
+}

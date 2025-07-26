@@ -1,0 +1,74 @@
+{
+  "title": "分析",
+  "subtitle": "詳細分析您的表現指標",
+  "overview": {
+    "title": "概覽",
+    "totalFollowers": "總追蹤者數",
+    "totalPosts": "總貼文數",
+    "totalEngagement": "總互動數",
+    "engagementRate": "互動率",
+    "averageReach": "平均觸及",
+    "topPerforming": "最佳表現"
+  },
+  "charts": {
+    "engagement": "互動趨勢",
+    "followers": "追蹤者成長",
+    "reach": "觸及趨勢",
+    "impressions": "曝光趨勢",
+    "clicks": "點擊趨勢"
+  },
+  "platforms": {
+    "title": "平台分析",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "twitter": "Twitter",
+    "facebook": "Facebook",
+    "youtube": "YouTube",
+    "linkedin": "LinkedIn"
+  },
+  "periods": {
+    "last7days": "過去7天",
+    "last30days": "過去30天",
+    "last90days": "過去90天",
+    "lastYear": "過去一年",
+    "custom": "自訂時間"
+  },
+  "metrics": {
+    "views": "觀看次數",
+    "likes": "按讚",
+    "comments": "留言",
+    "shares": "分享",
+    "saves": "收藏",
+    "clicks": "點擊",
+    "impressions": "曝光",
+    "reach": "觸及",
+    "engagement": "互動",
+    "ctr": "點擊率",
+    "cpm": "千次曝光成本",
+    "cpc": "單次點擊成本"
+  },
+  "demographics": {
+    "title": "受眾分析",
+    "age": "年齡",
+    "gender": "性別",
+    "location": "地區",
+    "interests": "興趣",
+    "devices": "裝置",
+    "timezones": "時區"
+  },
+  "export": {
+    "title": "匯出",
+    "description": "匯出分析資料",
+    "formats": {
+      "pdf": "PDF報告",
+      "csv": "CSV資料",
+      "excel": "Excel檔案"
+    },
+    "dateRange": "選擇日期範圍",
+    "includeCharts": "包含圖表",
+    "downloadReport": "下載報告"
+  },
+  "noData": "此時間段無資料",
+  "loading": "正在載入資料...",
+  "error": "資料載入失敗"
+}

@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "invalidCredentials": "Credenciales inválidas",
+    "tokenExpired": "Token expirado. Inicia sesión nuevamente",
+    "unauthorized": "Acceso denegado",
+    "forbidden": "No tienes permisos para esta acción",
+    "accountLocked": "Cuenta bloqueada temporalmente",
+    "emailNotVerified": "Por favor verifica tu correo",
+    "userNotFound": "Usuario no encontrado",
+    "passwordTooWeak": "Contraseña muy débil"
+  },
+  "network": {
+    "offline": "Sin conexión a internet",
+    "timeout": "Tiempo de respuesta agotado",
+    "serverError": "Error del servidor",
+    "connectionFailed": "Conexión fallida"
+  },
+  "api": {
+    "notFound": "Recurso no encontrado",
+    "badRequest": "Solicitud inválida",
+    "conflict": "Conflicto de datos",
+    "tooManyRequests": "Demasiadas solicitudes. Inténtalo más tarde",
+    "maintenance": "Sistema en mantenimiento"
+  },
+  "validation": {
+    "invalidData": "Datos inválidos",
+    "missingRequired": "Campos obligatorios no completados"
+  },
+  "generic": "Algo salió mal. Inténtalo de nuevo",
+  "upload": {
+    "failed": "Error al subir archivo",
+    "tooLarge": "Archivo demasiado grande",
+    "invalidType": "Tipo de archivo no permitido",
+    "quotaExceeded": "Cuota de almacenamiento excedida"
+  },
+  "social": {
+    "connectionFailed": "Error al conectar con {platform}",
+    "postFailed": "Error al publicar",
+    "syncFailed": "Error al sincronizar datos",
+    "permissionDenied": "Permiso denegado por la plataforma"
+  }
+}

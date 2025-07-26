@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "invalidCredentials": "登录信息无效",
+    "tokenExpired": "令牌已过期，请重新登录",
+    "unauthorized": "访问被拒绝",
+    "forbidden": "您没有执行此操作的权限",
+    "accountLocked": "账户已被临时锁定",
+    "emailNotVerified": "请验证您的邮箱",
+    "userNotFound": "用户未找到",
+    "passwordTooWeak": "密码过于简单"
+  },
+  "network": {
+    "offline": "无互联网连接",
+    "timeout": "请求超时",
+    "serverError": "服务器错误",
+    "connectionFailed": "连接失败"
+  },
+  "api": {
+    "notFound": "资源未找到",
+    "badRequest": "请求无效",
+    "conflict": "数据冲突",
+    "tooManyRequests": "请求过多，请稍后再试",
+    "maintenance": "系统维护中"
+  },
+  "validation": {
+    "invalidData": "数据无效",
+    "missingRequired": "缺少必填字段"
+  },
+  "generic": "出现了问题，请重试",
+  "upload": {
+    "failed": "文件上传失败",
+    "tooLarge": "文件过大",
+    "invalidType": "不允许的文件类型",
+    "quotaExceeded": "存储配额已超过"
+  },
+  "social": {
+    "connectionFailed": "连接{platform}失败",
+    "postFailed": "发布失败",
+    "syncFailed": "数据同步失败",
+    "permissionDenied": "平台拒绝访问"
+  }
+}

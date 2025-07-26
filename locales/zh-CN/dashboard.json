@@ -1,0 +1,53 @@
+{
+  "welcome": {
+    "title": "欢迎使用SocialHub",
+    "subtitle": "在一个地方管理您的所有社交网络"
+  },
+  "stats": {
+    "followers": "粉丝",
+    "following": "关注",
+    "likes": "点赞",
+    "videos": "视频",
+    "engagement": "互动",
+    "reach": "触达",
+    "impressions": "展示",
+    "views": "观看",
+    "shares": "分享",
+    "comments": "评论"
+  },
+  "cards": {
+    "schedule": {
+      "title": "安排发布",
+      "description": "创建新的发布安排"
+    },
+    "calendar": {
+      "title": "日历",
+      "description": "查看所有安排"
+    },
+    "analytics": {
+      "title": "分析",
+      "description": "查看详细的性能分析"
+    },
+    "connections": {
+      "title": "连接",
+      "description": "管理社交网络"
+    }
+  },
+  "quickActions": {
+    "title": "快速操作",
+    "newPost": "新建帖子",
+    "viewAnalytics": "查看分析",
+    "manageTeam": "团队管理",
+    "settings": "设置"
+  },
+  "recentActivity": {
+    "title": "最近活动",
+    "noActivity": "暂无最近活动",
+    "viewAll": "查看全部"
+  },
+  "notifications": {
+    "title": "通知",
+    "noNotifications": "暂无通知",
+    "markAllRead": "全部标记为已读"
+  }
+}

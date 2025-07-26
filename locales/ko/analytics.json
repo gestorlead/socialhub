@@ -1,0 +1,74 @@
+{
+  "title": "분석",
+  "subtitle": "성과 지표를 자세히 분석하세요",
+  "overview": {
+    "title": "개요",
+    "totalFollowers": "총 팔로워 수",
+    "totalPosts": "총 게시물 수",
+    "totalEngagement": "총 참여도",
+    "engagementRate": "참여율",
+    "averageReach": "평균 도달",
+    "topPerforming": "최고 성과"
+  },
+  "charts": {
+    "engagement": "참여도 추이",
+    "followers": "팔로워 증가",
+    "reach": "도달 추이",
+    "impressions": "노출 추이",
+    "clicks": "클릭 추이"
+  },
+  "platforms": {
+    "title": "플랫폼별 분석",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "twitter": "Twitter",
+    "facebook": "Facebook",
+    "youtube": "YouTube",
+    "linkedin": "LinkedIn"
+  },
+  "periods": {
+    "last7days": "지난 7일",
+    "last30days": "지난 30일",
+    "last90days": "지난 90일",
+    "lastYear": "지난 1년",
+    "custom": "사용자 정의 기간"
+  },
+  "metrics": {
+    "views": "조회수",
+    "likes": "좋아요",
+    "comments": "댓글",
+    "shares": "공유",
+    "saves": "저장",
+    "clicks": "클릭",
+    "impressions": "노출",
+    "reach": "도달",
+    "engagement": "참여도",
+    "ctr": "클릭률",
+    "cpm": "천회 노출당 비용",
+    "cpc": "클릭당 비용"
+  },
+  "demographics": {
+    "title": "오디언스 분석",
+    "age": "연령",
+    "gender": "성별",
+    "location": "지역",
+    "interests": "관심사",
+    "devices": "기기",
+    "timezones": "시간대"
+  },
+  "export": {
+    "title": "내보내기",
+    "description": "분석 데이터 내보내기",
+    "formats": {
+      "pdf": "PDF 리포트",
+      "csv": "CSV 데이터",
+      "excel": "Excel 파일"
+    },
+    "dateRange": "날짜 범위 선택",
+    "includeCharts": "차트 포함",
+    "downloadReport": "리포트 다운로드"
+  },
+  "noData": "이 기간에 대한 데이터가 없습니다",
+  "loading": "데이터 로딩 중...",
+  "error": "데이터 로딩에 실패했습니다"
+}

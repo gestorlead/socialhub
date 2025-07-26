@@ -1,0 +1,22 @@
+{
+  "required": "このフィールドは必須です",
+  "email": "有効なメールアドレスを入力してください",
+  "minLength": "最低{min}文字入力してください",
+  "maxLength": "最大{max}文字まで入力可能です",
+  "minValue": "最小値: {min}",
+  "maxValue": "最大値: {max}",
+  "pattern": "形式が正しくありません",
+  "passwordMatch": "パスワードが一致しません",
+  "passwordStrength": "パスワードが弱すぎます",
+  "fileSize": "ファイルサイズが大きすぎます。最大: {size}",
+  "fileType": "サポートされていないファイル形式です",
+  "url": "有効なURLを入力してください",
+  "phone": "有効な電話番号を入力してください",
+  "date": "有効な日付を入力してください",
+  "futureDate": "未来の日付を入力してください",
+  "pastDate": "過去の日付を入力してください",
+  "unique": "この値は既に使用されています",
+  "alphanumeric": "英数字のみ使用してください",
+  "numeric": "数字のみ入力してください",
+  "alphabetic": "文字のみ入力してください"
+}

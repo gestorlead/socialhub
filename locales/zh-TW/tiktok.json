@@ -1,0 +1,92 @@
+{
+  "title": "TikTok分析",
+  "subtitle": "TikTok帳戶的詳細分析",
+  "connection": {
+    "title": "TikTok連接",
+    "connect": "連接TikTok",
+    "disconnect": "中斷連接",
+    "reconnect": "重新連接",
+    "status": "連接狀態",
+    "connected": "已連接",
+    "disconnected": "未連接",
+    "error": "連接錯誤"
+  },
+  "profile": {
+    "title": "個人檔案資訊",
+    "username": "使用者名稱",
+    "displayName": "顯示名稱",
+    "bio": "個人簡介",
+    "followerCount": "追蹤者數",
+    "followingCount": "追蹤中",
+    "likesCount": "按讚數",
+    "videoCount": "影片數",
+    "verified": "已驗證"
+  },
+  "videos": {
+    "title": "影片分析",
+    "recentVideos": "最新影片",
+    "topVideos": "熱門影片",
+    "videoTitle": "影片標題",
+    "views": "觀看次數",
+    "likes": "按讚",
+    "comments": "留言",
+    "shares": "分享",
+    "duration": "時長",
+    "publishedAt": "發佈時間",
+    "engagement": "互動",
+    "engagementRate": "互動率"
+  },
+  "metrics": {
+    "title": "效能指標",
+    "totalViews": "總觀看次數",
+    "totalLikes": "總按讚數",
+    "totalComments": "總留言數",
+    "totalShares": "總分享數",
+    "averageViews": "平均觀看次數",
+    "averageLikes": "平均按讚數",
+    "averageComments": "平均留言數",
+    "viewsGrowth": "觀看成長率",
+    "likesGrowth": "按讚成長率",
+    "followersGrowth": "追蹤者成長率"
+  },
+  "analytics": {
+    "title": "詳細分析",
+    "engagement": "互動分析",
+    "audience": "受眾分析",
+    "content": "內容分析",
+    "trends": "趨勢分析",
+    "hashtags": "標籤分析",
+    "bestTimes": "最佳發佈時間",
+    "demographics": "用戶統計",
+    "geography": "地理分布"
+  },
+  "insights": {
+    "title": "洞察",
+    "recommendations": "建議",
+    "opportunities": "機會",
+    "warnings": "警告",
+    "trends": "趨勢",
+    "bestPractices": "最佳實務"
+  },
+  "export": {
+    "title": "資料匯出",
+    "exportAll": "匯出全部資料",
+    "exportSelected": "匯出選取資料",
+    "dateRange": "日期範圍",
+    "format": "格式",
+    "download": "下載"
+  },
+  "errors": {
+    "connectionFailed": "連接TikTok失敗",
+    "dataLoadFailed": "資料載入失敗",
+    "apiLimitReached": "API限制已達到",
+    "unauthorized": "需要授權",
+    "videoNotFound": "影片未找到"
+  },
+  "loading": {
+    "connecting": "正在連接TikTok...",
+    "loadingProfile": "正在載入個人檔案...",
+    "loadingVideos": "正在載入影片...",
+    "loadingAnalytics": "正在載入分析資料..."
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "connection": {
+    "title": "Conexão TikTok",
+    "status": "Status da Conexão",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "connect": "Conectar TikTok",
+    "disconnect": "Desconectar",
+    "reconnect": "Reconectar",
+    "lastSync": "Última sincronização",
+    "syncNow": "Sincronizar agora"
+  },
+  "stats": {
+    "title": "Estatísticas do TikTok",
+    "followers": "Seguidores",
+    "following": "Seguindo",
+    "likes": "Curtidas",
+    "videos": "Vídeos",
+    "views": "Visualizações",
+    "shares": "Compartilhamentos",
+    "comments": "Comentários"
+  },
+  "publish": {
+    "title": "Publicar no TikTok",
+    "caption": "Legenda",
+    "captionPlaceholder": "Escreva uma legenda para seu vídeo...",
+    "hashtags": "Hashtags",
+    "addHashtag": "Adicionar hashtag",
+    "video": "Vídeo",
+    "uploadVideo": "Enviar vídeo",
+    "videoRequirements": "MP4, máximo 287MB",
+    "privacy": "Privacidade",
+    "public": "Público",
+    "friends": "Amigos",
+    "private": "Privado",
+    "allowComments": "Permitir comentários",
+    "allowDuet": "Permitir Duet",
+    "allowStitch": "Permitir Stitch",
+    "publish": "Publicar",
+    "publishing": "Publicando...",
+    "published": "Publicado com sucesso!",
+    "schedule": "Agendar",
+    "saveDraft": "Salvar rascunho"
+  },
+  "videos": {
+    "title": "Seus Vídeos",
+    "noVideos": "Nenhum vídeo encontrado",
+    "loadMore": "Carregar mais",
+    "views": "{count} visualizações",
+    "likes": "{count} curtidas",
+    "comments": "{count} comentários",
+    "shares": "{count} compartilhamentos",
+    "delete": "Excluir vídeo",
+    "edit": "Editar vídeo"
+  },
+  "errors": {
+    "connectionFailed": "Falha ao conectar com TikTok",
+    "tokenExpired": "Token expirado. Por favor, reconecte.",
+    "uploadFailed": "Falha ao enviar vídeo",
+    "publishFailed": "Falha ao publicar vídeo",
+    "syncFailed": "Falha ao sincronizar dados"
+  },
+  "sandbox": {
+    "title": "Modo Sandbox",
+    "description": "Você está no modo sandbox do TikTok",
+    "limitations": "Algumas funcionalidades podem estar limitadas"
+  }
+}

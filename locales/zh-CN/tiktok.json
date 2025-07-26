@@ -1,0 +1,92 @@
+{
+  "title": "TikTok分析",
+  "subtitle": "TikTok账户的详细分析",
+  "connection": {
+    "title": "TikTok连接",
+    "connect": "连接TikTok",
+    "disconnect": "断开连接",
+    "reconnect": "重新连接",
+    "status": "连接状态",
+    "connected": "已连接",
+    "disconnected": "未连接",
+    "error": "连接错误"
+  },
+  "profile": {
+    "title": "个人资料信息",
+    "username": "用户名",
+    "displayName": "显示名称",
+    "bio": "个人简介",
+    "followerCount": "粉丝数",
+    "followingCount": "关注数",
+    "likesCount": "点赞数",
+    "videoCount": "视频数",
+    "verified": "已认证"
+  },
+  "videos": {
+    "title": "视频分析",
+    "recentVideos": "最新视频",
+    "topVideos": "热门视频",
+    "videoTitle": "视频标题",
+    "views": "观看次数",
+    "likes": "点赞",
+    "comments": "评论",
+    "shares": "分享",
+    "duration": "时长",
+    "publishedAt": "发布时间",
+    "engagement": "互动",
+    "engagementRate": "互动率"
+  },
+  "metrics": {
+    "title": "性能指标",
+    "totalViews": "总观看次数",
+    "totalLikes": "总点赞数",
+    "totalComments": "总评论数",
+    "totalShares": "总分享数",
+    "averageViews": "平均观看次数",
+    "averageLikes": "平均点赞数",
+    "averageComments": "平均评论数",
+    "viewsGrowth": "观看增长率",
+    "likesGrowth": "点赞增长率",
+    "followersGrowth": "粉丝增长率"
+  },
+  "analytics": {
+    "title": "详细分析",
+    "engagement": "互动分析",
+    "audience": "受众分析",
+    "content": "内容分析",
+    "trends": "趋势分析",
+    "hashtags": "标签分析",
+    "bestTimes": "最佳发布时间",
+    "demographics": "用户统计",
+    "geography": "地理分布"
+  },
+  "insights": {
+    "title": "洞察",
+    "recommendations": "建议",
+    "opportunities": "机会",
+    "warnings": "警告",
+    "trends": "趋势",
+    "bestPractices": "最佳实践"
+  },
+  "export": {
+    "title": "数据导出",
+    "exportAll": "导出全部数据",
+    "exportSelected": "导出选中数据",
+    "dateRange": "日期范围",
+    "format": "格式",
+    "download": "下载"
+  },
+  "errors": {
+    "connectionFailed": "连接TikTok失败",
+    "dataLoadFailed": "数据加载失败",
+    "apiLimitReached": "API限制已达到",
+    "unauthorized": "需要授权",
+    "videoNotFound": "视频未找到"
+  },
+  "loading": {
+    "connecting": "正在连接TikTok...",
+    "loadingProfile": "正在加载个人资料...",
+    "loadingVideos": "正在加载视频...",
+    "loadingAnalytics": "正在加载分析数据..."
+  }
+}

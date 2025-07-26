@@ -1,0 +1,92 @@
+{
+  "title": "TikTok 분석",
+  "subtitle": "TikTok 계정의 상세 분석",
+  "connection": {
+    "title": "TikTok 연결",
+    "connect": "TikTok 연결",
+    "disconnect": "연결 해제",
+    "reconnect": "다시 연결",
+    "status": "연결 상태",
+    "connected": "연결됨",
+    "disconnected": "연결 안됨",
+    "error": "연결 오류"
+  },
+  "profile": {
+    "title": "프로필 정보",
+    "username": "사용자명",
+    "displayName": "표시 이름",
+    "bio": "소개",
+    "followerCount": "팔로워 수",
+    "followingCount": "팔로잉 수",
+    "likesCount": "좋아요 수",
+    "videoCount": "동영상 수",
+    "verified": "인증됨"
+  },
+  "videos": {
+    "title": "동영상 분석",
+    "recentVideos": "최신 동영상",
+    "topVideos": "인기 동영상",
+    "videoTitle": "동영상 제목",
+    "views": "조회수",
+    "likes": "좋아요",
+    "comments": "댓글",
+    "shares": "공유",
+    "duration": "재생 시간",
+    "publishedAt": "게시 시간",
+    "engagement": "참여도",
+    "engagementRate": "참여율"
+  },
+  "metrics": {
+    "title": "성과 지표",
+    "totalViews": "총 조회수",
+    "totalLikes": "총 좋아요 수",
+    "totalComments": "총 댓글 수",
+    "totalShares": "총 공유 수",
+    "averageViews": "평균 조회수",
+    "averageLikes": "평균 좋아요 수",
+    "averageComments": "평균 댓글 수",
+    "viewsGrowth": "조회수 증가율",
+    "likesGrowth": "좋아요 증가율",
+    "followersGrowth": "팔로워 증가율"
+  },
+  "analytics": {
+    "title": "상세 분석",
+    "engagement": "참여도 분석",
+    "audience": "오디언스 분석",
+    "content": "콘텐츠 분석",
+    "trends": "트렌드 분석",
+    "hashtags": "해시태그 분석",
+    "bestTimes": "최적 게시 시간",
+    "demographics": "인구 통계",
+    "geography": "지역별 분포"
+  },
+  "insights": {
+    "title": "인사이트",
+    "recommendations": "추천사항",
+    "opportunities": "기회",
+    "warnings": "주의사항",
+    "trends": "트렌드",
+    "bestPractices": "모범 사례"
+  },
+  "export": {
+    "title": "데이터 내보내기",
+    "exportAll": "모든 데이터 내보내기",
+    "exportSelected": "선택된 데이터 내보내기",
+    "dateRange": "날짜 범위",
+    "format": "형식",
+    "download": "다운로드"
+  },
+  "errors": {
+    "connectionFailed": "TikTok 연결에 실패했습니다",
+    "dataLoadFailed": "데이터 로딩에 실패했습니다",
+    "apiLimitReached": "API 한도에 도달했습니다",
+    "unauthorized": "인증이 필요합니다",
+    "videoNotFound": "동영상을 찾을 수 없습니다"
+  },
+  "loading": {
+    "connecting": "TikTok에 연결 중...",
+    "loadingProfile": "프로필 로딩 중...",
+    "loadingVideos": "동영상 로딩 중...",
+    "loadingAnalytics": "분석 데이터 로딩 중..."
+  }
+}

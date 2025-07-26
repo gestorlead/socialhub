@@ -1,0 +1,53 @@
+{
+  "welcome": {
+    "title": "Bem-vindo ao SocialHub",
+    "subtitle": "Gerencie todas suas redes sociais em um só lugar"
+  },
+  "stats": {
+    "followers": "Seguidores",
+    "following": "Seguindo",
+    "likes": "Curtidas",
+    "videos": "Vídeos",
+    "engagement": "Engajamento",
+    "reach": "Alcance",
+    "impressions": "Impressões",
+    "views": "Visualizações",
+    "shares": "Compartilhamentos",
+    "comments": "Comentários"
+  },
+  "cards": {
+    "schedule": {
+      "title": "Agendar post",
+      "description": "Criar novo agendamento"
+    },
+    "calendar": {
+      "title": "Calendário",
+      "description": "Ver agenda completa"
+    },
+    "analytics": {
+      "title": "Análises",
+      "description": "Ver performance detalhada"
+    },
+    "connections": {
+      "title": "Conexões",
+      "description": "Gerenciar redes sociais"
+    }
+  },
+  "quickActions": {
+    "title": "Ações rápidas",
+    "newPost": "Novo post",
+    "viewAnalytics": "Ver análises",
+    "manageTeam": "Gerenciar equipe",
+    "settings": "Configurações"
+  },
+  "recentActivity": {
+    "title": "Atividade recente",
+    "noActivity": "Nenhuma atividade recente",
+    "viewAll": "Ver tudo"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "noNotifications": "Nenhuma notificação",
+    "markAllRead": "Marcar todas como lidas"
+  }
+}

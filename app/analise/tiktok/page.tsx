@@ -78,7 +78,14 @@ export default function AnalyticsPage() {
     tiktokConnection?.profile_data?.open_id,
     selectedPeriod
   )
-  const { videos, loading: videosLoading, error: videosError } = useTikTokVideos(
+  const { 
+    videos, 
+    loading: videosLoading, 
+    error: videosError,
+    hasMore,
+    fetchMore,
+    refetch
+  } = useTikTokVideos(
     tiktokConnection?.profile_data?.open_id
   )
 
@@ -310,6 +317,9 @@ export default function AnalyticsPage() {
                   videos={videos}
                   loading={videosLoading}
                   error={videosError}
+                  hasMore={hasMore}
+                  onLoadMore={fetchMore}
+                  onRefresh={refetch}
                 />
               </CardContent>
             </Card>

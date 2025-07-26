@@ -21,8 +21,11 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
     return num.toString()
   }
 
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString)
+  const formatRelativeTime = (timestamp: number | string) => {
+    // Handle both Unix timestamp (seconds) and ISO string
+    const date = typeof timestamp === 'number' 
+      ? new Date(timestamp * 1000)  // Convert Unix timestamp to milliseconds
+      : new Date(timestamp)
     const now = new Date()
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
     
@@ -63,9 +66,10 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
         {video.cover_image_url ? (
           <Image
             src={video.cover_image_url}
-            alt={video.title || 'TikTok video'}
+            alt={video.title || video.video_description || 'TikTok video'}
             fill
             className="object-cover"
+            unoptimized // TikTok CDN images have 6-hour TTL
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400">
@@ -81,24 +85,24 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-sm mb-2 line-clamp-2">
-          {video.title || video.description || 'Sem título'}
+          {video.title || video.video_description || 'Sem título'}
         </h3>
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
           <div className="flex items-center gap-1">
             <Eye className="h-4 w-4" />
-            <span>{formatNumber(video.view_count)}</span>
+            <span>{formatNumber(video.view_count || 0)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Heart className="h-4 w-4" />
-            <span>{formatNumber(video.like_count)}</span>
+            <span>{formatNumber(video.like_count || 0)}</span>
           </div>
           <div className="flex items-center gap-1">
             <MessageCircle className="h-4 w-4" />
-            <span>{formatNumber(video.comment_count)}</span>
+            <span>{formatNumber(video.comment_count || 0)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Share2 className="h-4 w-4" />
-            <span>{formatNumber(video.share_count)}</span>
+            <span>{formatNumber(video.share_count || 0)}</span>
           </div>
         </div>
         {video.create_time && (

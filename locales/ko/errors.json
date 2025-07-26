@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "invalidCredentials": "로그인 정보가 올바르지 않습니다",
+    "tokenExpired": "토큰이 만료되었습니다. 다시 로그인하세요",
+    "unauthorized": "접근이 거부되었습니다",
+    "forbidden": "이 작업을 수행할 권한이 없습니다",
+    "accountLocked": "계정이 일시적으로 잠겼습니다",
+    "emailNotVerified": "이메일을 인증해주세요",
+    "userNotFound": "사용자를 찾을 수 없습니다",
+    "passwordTooWeak": "비밀번호가 너무 약합니다"
+  },
+  "network": {
+    "offline": "인터넷 연결이 없습니다",
+    "timeout": "요청 시간이 초과되었습니다",
+    "serverError": "서버 오류",
+    "connectionFailed": "연결에 실패했습니다"
+  },
+  "api": {
+    "notFound": "리소스를 찾을 수 없습니다",
+    "badRequest": "잘못된 요청입니다",
+    "conflict": "데이터 충돌이 발생했습니다",
+    "tooManyRequests": "요청이 너무 많습니다. 잠시 후 다시 시도하세요",
+    "maintenance": "시스템 점검 중입니다"
+  },
+  "validation": {
+    "invalidData": "유효하지 않은 데이터입니다",
+    "missingRequired": "필수 필드가 누락되었습니다"
+  },
+  "generic": "문제가 발생했습니다. 다시 시도하세요",
+  "upload": {
+    "failed": "파일 업로드에 실패했습니다",
+    "tooLarge": "파일 크기가 너무 큽니다",
+    "invalidType": "허용되지 않는 파일 형식입니다",
+    "quotaExceeded": "저장 공간 할당량을 초과했습니다"
+  },
+  "social": {
+    "connectionFailed": "{platform} 연결에 실패했습니다",
+    "postFailed": "게시에 실패했습니다",
+    "syncFailed": "데이터 동기화에 실패했습니다",
+    "permissionDenied": "플랫폼에서 접근이 거부되었습니다"
+  }
+}

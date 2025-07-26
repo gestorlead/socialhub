@@ -1,0 +1,68 @@
+{
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ko": "한국어"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "view": "查看",
+    "connect": "连接",
+    "disconnect": "断开连接",
+    "refresh": "刷新",
+    "loading": "加载中...",
+    "retry": "重试",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "confirm": "确认",
+    "close": "关闭",
+    "search": "搜索",
+    "filter": "筛选",
+    "export": "导出",
+    "import": "导入",
+    "download": "下载",
+    "upload": "上传"
+  },
+  "navigation": {
+    "dashboard": "仪表板",
+    "analytics": "分析",
+    "publish": "发布",
+    "calendar": "日历",
+    "networks": "社交网络",
+    "settings": "设置",
+    "profile": "个人资料",
+    "logout": "退出登录",
+    "help": "帮助"
+  },
+  "time": {
+    "today": "今天",
+    "yesterday": "昨天",
+    "tomorrow": "明天",
+    "lastWeek": "上周",
+    "lastMonth": "上个月",
+    "lastYear": "去年",
+    "thisWeek": "本周",
+    "thisMonth": "本月",
+    "thisYear": "今年"
+  },
+  "status": {
+    "active": "活跃",
+    "inactive": "非活跃",
+    "pending": "待处理",
+    "completed": "已完成",
+    "failed": "失败",
+    "cancelled": "已取消",
+    "scheduled": "已安排",
+    "draft": "草稿",
+    "published": "已发布"
+  }
+}

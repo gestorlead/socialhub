@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "invalidCredentials": "Invalid credentials",
+    "tokenExpired": "Token expired. Please login again",
+    "unauthorized": "Access denied",
+    "forbidden": "You don't have permission for this action",
+    "accountLocked": "Account temporarily locked",
+    "emailNotVerified": "Please verify your email",
+    "userNotFound": "User not found",
+    "passwordTooWeak": "Password too weak"
+  },
+  "network": {
+    "offline": "No internet connection",
+    "timeout": "Request timeout",
+    "serverError": "Server error",
+    "connectionFailed": "Connection failed"
+  },
+  "api": {
+    "notFound": "Resource not found",
+    "badRequest": "Invalid request",
+    "conflict": "Data conflict",
+    "tooManyRequests": "Too many requests. Try again later",
+    "maintenance": "System under maintenance"
+  },
+  "validation": {
+    "invalidData": "Invalid data",
+    "missingRequired": "Required fields not filled"
+  },
+  "generic": "Something went wrong. Please try again",
+  "upload": {
+    "failed": "Failed to upload file",
+    "tooLarge": "File too large",
+    "invalidType": "File type not allowed",
+    "quotaExceeded": "Storage quota exceeded"
+  },
+  "social": {
+    "connectionFailed": "Failed to connect to {platform}",
+    "postFailed": "Failed to publish",
+    "syncFailed": "Failed to sync data",
+    "permissionDenied": "Permission denied by platform"
+  }
+}

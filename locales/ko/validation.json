@@ -1,0 +1,22 @@
+{
+  "required": "이 필드는 필수입니다",
+  "email": "유효한 이메일 주소를 입력하세요",
+  "minLength": "최소 {min}자 이상 입력하세요",
+  "maxLength": "최대 {max}자까지 입력 가능합니다",
+  "minValue": "최솟값: {min}",
+  "maxValue": "최댓값: {max}",
+  "pattern": "형식이 올바르지 않습니다",
+  "passwordMatch": "비밀번호가 일치하지 않습니다",
+  "passwordStrength": "비밀번호가 너무 약합니다",
+  "fileSize": "파일 크기가 너무 큽니다. 최대: {size}",
+  "fileType": "지원하지 않는 파일 형식입니다",
+  "url": "유효한 URL을 입력하세요",
+  "phone": "유효한 전화번호를 입력하세요",
+  "date": "유효한 날짜를 입력하세요",
+  "futureDate": "미래 날짜를 입력하세요",
+  "pastDate": "과거 날짜를 입력하세요",
+  "unique": "이미 사용 중인 값입니다",
+  "alphanumeric": "영문자와 숫자만 사용하세요",
+  "numeric": "숫자만 입력하세요",
+  "alphabetic": "문자만 입력하세요"
+}

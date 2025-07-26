@@ -1,0 +1,68 @@
+{
+  "connection": {
+    "title": "TikTok Connection",
+    "status": "Connection Status",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connect": "Connect TikTok",
+    "disconnect": "Disconnect",
+    "reconnect": "Reconnect",
+    "lastSync": "Last sync",
+    "syncNow": "Sync now"
+  },
+  "stats": {
+    "title": "TikTok Statistics",
+    "followers": "Followers",
+    "following": "Following",
+    "likes": "Likes",
+    "videos": "Videos",
+    "views": "Views",
+    "shares": "Shares",
+    "comments": "Comments"
+  },
+  "publish": {
+    "title": "Publish to TikTok",
+    "caption": "Caption",
+    "captionPlaceholder": "Write a caption for your video...",
+    "hashtags": "Hashtags",
+    "addHashtag": "Add hashtag",
+    "video": "Video",
+    "uploadVideo": "Upload video",
+    "videoRequirements": "MP4, max 287MB",
+    "privacy": "Privacy",
+    "public": "Public",
+    "friends": "Friends",
+    "private": "Private",
+    "allowComments": "Allow comments",
+    "allowDuet": "Allow Duet",
+    "allowStitch": "Allow Stitch",
+    "publish": "Publish",
+    "publishing": "Publishing...",
+    "published": "Published successfully!",
+    "schedule": "Schedule",
+    "saveDraft": "Save draft"
+  },
+  "videos": {
+    "title": "Your Videos",
+    "noVideos": "No videos found",
+    "loadMore": "Load more",
+    "views": "{count} views",
+    "likes": "{count} likes",
+    "comments": "{count} comments",
+    "shares": "{count} shares",
+    "delete": "Delete video",
+    "edit": "Edit video"
+  },
+  "errors": {
+    "connectionFailed": "Failed to connect to TikTok",
+    "tokenExpired": "Token expired. Please reconnect.",
+    "uploadFailed": "Failed to upload video",
+    "publishFailed": "Failed to publish video",
+    "syncFailed": "Failed to sync data"
+  },
+  "sandbox": {
+    "title": "Sandbox Mode",
+    "description": "You are in TikTok sandbox mode",
+    "limitations": "Some features may be limited"
+  }
+}
