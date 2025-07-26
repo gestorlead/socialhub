@@ -17,11 +17,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Social Hub - Analytics de Redes Sociais",
   description: "Plataforma completa para análise e gestão de redes sociais com insights em tempo real",
-  icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
-  },
+  icons: [
+    {
+      rel: 'icon',
+      type: 'image/png',
+      sizes: '32x32',
+      url: '/favicon.png',
+    },
+    {
+      rel: 'icon',
+      type: 'image/x-icon',
+      url: '/favicon.ico',
+    },
+    {
+      rel: 'apple-touch-icon',
+      sizes: '180x180',
+      url: '/favicon.png',
+    },
+  ],
 };
 
 export default function RootLayout({
