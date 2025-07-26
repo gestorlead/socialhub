@@ -26,7 +26,6 @@ import { GrowthRateChart } from "@/components/analytics/growth-rate-chart"
 import { MultiMetricChart } from "@/components/analytics/multi-metric-chart"
 import { VideoList } from "@/components/analytics/video-list"
 import { useTikTokVideos } from "@/hooks/use-tiktok-videos"
-import { useTestAuth } from "@/hooks/use-test-auth"
 import { formatNumber } from "@/lib/utils"
 
 type Period = '7d' | '30d' | '60d' | '90d'
@@ -82,7 +81,6 @@ export default function AnalyticsPage() {
   const { videos, loading: videosLoading, error: videosError } = useTikTokVideos(
     tiktokConnection?.profile_data?.open_id
   )
-  const { result: testResult, loading: testLoading, error: testError } = useTestAuth()
 
   const metrics = useMemo(() => {
     if (!analyticsData?.current || !analyticsData?.previous) return null
@@ -182,19 +180,6 @@ export default function AnalyticsPage() {
               Exportar
             </Button>
           </div>
-        </div>
-
-        {/* Debug Auth Test */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-medium text-blue-900 mb-2">Auth Test Debug</h3>
-          {testLoading && <p className="text-blue-700">Testing authentication...</p>}
-          {testError && <p className="text-red-700">Auth Error: {testError}</p>}
-          {testResult && (
-            <div className="text-green-700">
-              <p>✅ Auth Working! User: {testResult.userEmail}</p>
-              <p>User ID: {testResult.userId}</p>
-            </div>
-          )}
         </div>
 
         {/* Error Display */}

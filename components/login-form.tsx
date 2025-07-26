@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/supabase-auth-helpers"
+import { useAuthSession } from "@/hooks/use-auth-session"
 
 export function LoginForm({
   className,
@@ -21,33 +22,30 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, signInWithOAuth, user } = useAuth()
+  const { signIn, signInWithOAuth } = useAuth()
+  const { session, loading: sessionLoading, isAuthenticated } = useAuthSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   const isLogout = searchParams?.get('logout') === 'true'
+  const redirectTo = searchParams?.get('redirectTo') || '/'
 
   useEffect(() => {
-    // Check if there are auth tokens in the URL hash
-    if (typeof window !== 'undefined' && window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1))
-      const accessToken = hashParams.get('access_token')
-      
-      if (accessToken) {
-        // Redirect to home if we have tokens
-        router.push('/')
-      }
+    // Wait for session to be ready and redirect authenticated users
+    if (isAuthenticated && !isLogout && !sessionLoading) {
+      console.log('User authenticated and ready, redirecting to:', redirectTo)
+      // Add delay to ensure middleware has processed the session
+      const delay = loading ? 300 : 150 // Longer delay if we just logged in
+      setTimeout(() => {
+        // Clear temporary cookies before redirect
+        document.cookie = 'sh-login-success=; path=/; max-age=0'
+        document.cookie = 'sh-login-timestamp=; path=/; max-age=0'
+        router.push(redirectTo)
+      }, delay)
     }
-    
-    // Client-side fallback: If user is already logged in, redirect to home
-    // This serves as backup in case middleware doesn't catch all scenarios
-    // But don't redirect if we're in logout flow
-    if (user && !loading && !isLogout) {
-      router.push('/')
-    }
-  }, [user, loading, router, isLogout])
+  }, [isAuthenticated, isLogout, redirectTo, router, sessionLoading, loading])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,13 +57,23 @@ export function LoginForm({
 
       if (error) throw error
 
-      // Let middleware and useEffect handle redirection
-      // Removing manual redirect to prevent conflicts
+      // Set explicit success cookies for middleware detection
+      const hostname = window.location.hostname
+      document.cookie = `sh-login-success=true; path=/; max-age=60`
+      document.cookie = `sh-login-timestamp=${Date.now()}; path=/; max-age=60`
+      
+      console.log('Login successful, cookies set, waiting for session sync...')
+      
+      // Force a brief delay to ensure cookie is set before any redirects
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // The useEffect with isAuthenticated will handle the redirect
+      // No need to manually redirect here
     } catch (error: any) {
       setError(error.message)
-    } finally {
       setLoading(false)
     }
+    // Note: Don't set loading to false on success - let the redirect handle it
   }
 
   const handleGoogleLogin = async () => {

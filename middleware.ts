@@ -1,81 +1,145 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { validateAuthentication, isProtectedPath } from '@/lib/middleware-auth'
 
+/**
+ * Secure authentication middleware for Social Hub
+ * Handles authentication, authorization, and security headers
+ */
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
-  const {
-    data: { session },
-    error
-  } = await supabase.auth.getSession()
-
-  console.log('Middleware - Path:', req.nextUrl.pathname, 'Session:', !!session, 'Error:', error)
-
-  // Define route permissions
-  const publicRoutes = ['/login', '/signup', '/auth/callback', '/unauthorized']
-  const adminRoutes = ['/admin']
-  const superAdminRoutes = ['/super-admin', '/users', '/roles']
+  // Add security headers
+  res.headers.set('X-Frame-Options', 'DENY')
+  res.headers.set('X-Content-Type-Options', 'nosniff')
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.headers.set('X-XSS-Protection', '1; mode=block')
   
-  const isPublicRoute = publicRoutes.includes(req.nextUrl.pathname)
-  const isAdminRoute = adminRoutes.some(route => req.nextUrl.pathname.startsWith(route))
-  const isSuperAdminRoute = superAdminRoutes.some(route => req.nextUrl.pathname.startsWith(route))
-  
-  // Redirect unauthenticated users to login
-  if (!session && !isPublicRoute) {
-    console.log('Redirecting to login - no session')
-    return NextResponse.redirect(new URL('/login', req.url))
+  // Add CSP header for enhanced security
+  if (process.env.NODE_ENV === 'production') {
+    res.headers.set('Content-Security-Policy', 
+      "default-src 'self'; " +
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: https: blob:; " +
+      "font-src 'self' data:; " +
+      "connect-src 'self' https://*.supabase.co https://*.supabase.in https://vercel.live wss://vercel.live; " +
+      "frame-ancestors 'none';"
+    )
   }
 
-  // Handle authenticated users
-  if (session) {
-    // Get user role level
-    let userLevel = 1 // default User role
+  try {
+    // Define route permissions
+    const adminRoutes = ['/admin', '/integracoes']
+    const superAdminRoutes = ['/super-admin', '/users', '/roles', '/api/admin/']
     
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          roles!inner (
-            level
-          )
-        `)
-        .eq('id', session.user.id)
-        .single()
+    const isAdminRoute = adminRoutes.some(route => req.nextUrl.pathname.startsWith(route))
+    const isSuperAdminRoute = superAdminRoutes.some(route => req.nextUrl.pathname.startsWith(route))
+    
+    // Check if this path needs authentication
+    if (!isProtectedPath(req.nextUrl.pathname)) {
+      return res
+    }
 
-      if (!profileError && profile?.roles) {
-        userLevel = profile.roles.level
+    // Validate authentication using comprehensive method
+    const authResult = await validateAuthentication(req)
+    const { isAuthenticated, session, user } = authResult
+
+    // Redirect unauthenticated users to login
+    if (!isAuthenticated) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🚫 Redirecting to login - user not authenticated')
       }
-    } catch (error) {
-      console.error('Error fetching user role:', error)
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
+      return NextResponse.redirect(loginUrl)
     }
 
-    console.log('User level:', userLevel, 'Path:', req.nextUrl.pathname)
+    // Handle authenticated users with valid session
+    if (isAuthenticated && session && user) {
+      // Get user role level with error handling
+      let userLevel = 1 // default User role
+      
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            roles!inner (
+              level
+            )
+          `)
+          .eq('id', user.id)
+          .single()
 
-    // Check role-based access
-    if (isSuperAdminRoute && userLevel < 3) {
-      console.log('Redirecting to unauthorized - insufficient permissions for super admin route')
-      return NextResponse.redirect(new URL('/unauthorized', req.url))
+        if (!profileError && profile?.roles) {
+          userLevel = (profile.roles as any).level
+        } else if (profileError && process.env.NODE_ENV === 'development') {
+          console.warn('Profile fetch error (using default role):', profileError.message)
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching user role:', error)
+        }
+        // Continue with default role instead of blocking
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('User level:', userLevel, 'Path:', req.nextUrl.pathname)
+      }
+
+      // Check role-based access with proper error handling
+      if (isSuperAdminRoute && userLevel < 3) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Redirecting to unauthorized - insufficient permissions for super admin route')
+        }
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      if (isAdminRoute && userLevel < 2) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Redirecting to unauthorized - insufficient permissions for admin route')
+        }
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      // Redirect authenticated users away from login/signup pages
+      if (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ Redirecting authenticated user away from login')
+        }
+        const redirectTo = req.nextUrl.searchParams.get('redirectTo')
+        const targetUrl = redirectTo && redirectTo.startsWith('/') ? redirectTo : '/'
+        return NextResponse.redirect(new URL(targetUrl, req.url))
+      }
+    } else if (isAuthenticated && !session) {
+      // Handle case where we detected auth but no session (cookie-based detection)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⚠️ Auth detected via cookies but no session - allowing through')
+      }
+      // Allow the request through - the client will handle session recovery
     }
 
-    if (isAdminRoute && userLevel < 2) {
-      console.log('Redirecting to unauthorized - insufficient permissions for admin route')
-      return NextResponse.redirect(new URL('/unauthorized', req.url))
-    }
-
-    // Redirect authenticated users away from login/signup pages
-    if (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup') {
-      console.log('Redirecting to home - user authenticated')
-      return NextResponse.redirect(new URL('/', req.url))
-    }
+    return res
+  } catch (error) {
+    console.error('Middleware error:', error)
+    // In case of middleware errors, allow the request to continue
+    // but log the error for monitoring
+    return res
   }
-
-  return res
 }
 
 export const config = {
-  // Temporarily disabled to test client-side auth
-  matcher: [],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder files
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
