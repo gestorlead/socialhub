@@ -4,13 +4,14 @@ import { useAuth } from "@/lib/supabase-auth-helpers"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
 import { useState, useEffect } from "react"
-import { ArrowLeft, TikTok } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { MediaUploader } from "@/components/publish/MediaUploader"
 import { CaptionManager } from "@/components/publish/CaptionManager"
 import { TikTokPreview } from "@/components/publish/TikTokPreview"
 import { PublishSettings } from "@/components/publish/PublishSettings"
 import { PublishButton } from "@/components/publish/PublishButton"
+import { NetworkIcon } from "@/components/ui/network-icon"
 
 interface PublishState {
   selectedNetworks: string[]
@@ -33,6 +34,52 @@ interface PublishState {
   }
   isPublishing: boolean
 }
+
+// Definição das redes sociais disponíveis
+const socialNetworks = [
+  {
+    id: 'tiktok',
+    name: 'TikTok',
+    colors: 'from-pink-500 to-rose-600',
+    iconPath: '/images/social-icons/tiktok.png',
+    connectPath: '/redes/tiktok'
+  },
+  {
+    id: 'instagram',
+    name: 'Instagram', 
+    colors: 'from-purple-500 to-pink-500',
+    iconPath: '/images/social-icons/instagram.png',
+    connectPath: '/redes/instagram'
+  },
+  {
+    id: 'youtube',
+    name: 'YouTube',
+    colors: 'from-red-500 to-red-600', 
+    iconPath: '/images/social-icons/youtube.png',
+    connectPath: '/redes/youtube'
+  },
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    colors: 'from-blue-500 to-blue-600',
+    iconPath: '/images/social-icons/facebook.png', 
+    connectPath: '/redes/facebook'
+  },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    colors: 'from-blue-600 to-blue-700',
+    iconPath: '/images/social-icons/linkedin.png',
+    connectPath: '/redes/linkedin'
+  },
+  {
+    id: 'threads',
+    name: 'Threads',
+    colors: 'from-gray-800 to-black',
+    iconPath: '/images/social-icons/threads.png',
+    connectPath: '/redes/threads'
+  }
+]
 
 export default function PublishPage() {
   const { user, loading } = useAuth()
@@ -128,68 +175,44 @@ export default function PublishPage() {
         {/* Network Selection */}
         <div className="bg-card border rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Redes Sociais</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
-                  <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-                    <span className="text-xs font-bold text-black">T</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="font-medium">TikTok</p>
-                  <p className="text-sm text-muted-foreground">
-                    {tiktokConnection 
-                      ? `@${tiktokConnection.profile_data?.username || 'usuario'}`
-                      : 'Não conectado'
+          <div className="flex items-center gap-4 flex-wrap">
+            {socialNetworks.map((network) => {
+              const connection = getConnection(network.id)
+              const isConnected = !!connection
+              const isSelected = publishState.selectedNetworks.includes(network.id)
+              
+              return (
+                <NetworkIcon
+                  key={network.id}
+                  id={network.id}
+                  name={network.name}
+                  colors={network.colors}
+                  iconPath={network.iconPath}
+                  connected={isConnected}
+                  selected={isSelected}
+                  username={connection?.profile_data?.username}
+                  onClick={() => {
+                    if (isConnected) {
+                      // Toggle seleção
+                      const networks = isSelected
+                        ? publishState.selectedNetworks.filter(n => n !== network.id)
+                        : [...publishState.selectedNetworks, network.id]
+                      updatePublishState({ selectedNetworks: networks })
+                    } else {
+                      // Redirecionar para página de conexão
+                      window.location.href = network.connectPath
                     }
-                  </p>
-                </div>
+                  }}
+                />
+              )
+            })}
+            
+            {/* Texto explicativo quando nenhuma rede estiver conectada */}
+            {!socialNetworks.some(network => getConnection(network.id)) && (
+              <div className="text-sm text-muted-foreground ml-2">
+                Clique nos ícones para conectar suas redes sociais
               </div>
-              <div className="flex items-center gap-2">
-                {tiktokConnection ? (
-                  <>
-                    <input
-                      type="checkbox"
-                      checked={publishState.selectedNetworks.includes('tiktok')}
-                      onChange={(e) => {
-                        const networks = e.target.checked
-                          ? [...publishState.selectedNetworks, 'tiktok']
-                          : publishState.selectedNetworks.filter(n => n !== 'tiktok')
-                        updatePublishState({ selectedNetworks: networks })
-                      }}
-                      className="w-4 h-4 rounded border-gray-300"
-                    />
-                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
-                      Conectado
-                    </span>
-                  </>
-                ) : (
-                  <Link 
-                    href="/redes/tiktok"
-                    className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                  >
-                    Conectar
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            {/* Future networks placeholder */}
-            <div className="flex items-center justify-between p-3 border rounded-lg opacity-50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">IG</span>
-                </div>
-                <div>
-                  <p className="font-medium">Instagram</p>
-                  <p className="text-sm text-muted-foreground">Em breve</p>
-                </div>
-              </div>
-              <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">
-                Em desenvolvimento
-              </span>
-            </div>
+            )}
           </div>
         </div>
 
