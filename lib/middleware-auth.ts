@@ -85,6 +85,12 @@ export function isProtectedPath(pathname: string): boolean {
   const publicRoutes = ['/login', '/signup', '/auth/callback', '/unauthorized']
   const publicPatterns = ['/api/auth/', '/api/cron/']
   
+  // API routes that handle their own authentication
+  const selfAuthenticatedAPIs = [
+    '/api/analytics/data',
+    '/api/social/'
+  ]
+  
   // Static files
   if (pathname.startsWith('/_next/') ||
       pathname.startsWith('/favicon.ico') ||
@@ -100,6 +106,11 @@ export function isProtectedPath(pathname: string): boolean {
   
   // Public API patterns
   if (publicPatterns.some(pattern => pathname.startsWith(pattern))) {
+    return false
+  }
+  
+  // Self-authenticated API routes
+  if (selfAuthenticatedAPIs.some(pattern => pathname.startsWith(pattern))) {
     return false
   }
   

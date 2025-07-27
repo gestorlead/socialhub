@@ -83,6 +83,10 @@ export default function AnalyticsPage() {
   
   const tiktokConnection = getConnection('tiktok')
   
+  // Debug logging
+  console.log('TikTok Connection:', tiktokConnection)
+  console.log('Profile data:', tiktokConnection?.profile_data)
+  console.log('Open ID:', tiktokConnection?.profile_data?.open_id)
   
   const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalyticsData(
     tiktokConnection?.profile_data?.open_id,
