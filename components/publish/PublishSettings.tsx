@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, Lock, MessageCircle, Users, Copy, Scissors, Play } from 'lucide-react'
+import { Settings, Lock, MessageCircle, Users, Copy, Scissors } from 'lucide-react'
 
 interface PublishSettingsProps {
   selectedNetworks: string[]
@@ -234,57 +234,32 @@ export function PublishSettings({
             </div>
           </div>
 
-          {/* Video-specific settings */}
-          {isVideo && (
-            <div>
-              <label className="text-sm font-medium mb-3 block flex items-center gap-2">
-                <Play className="w-4 h-4" />
-                Configurações do Vídeo
-              </label>
-              <div className="space-y-3">
-                <div className="p-3 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <div className="font-medium text-sm">Capa do Vídeo</div>
-                      <div className="text-xs text-muted-foreground">
-                        Frame que aparecerá como thumbnail (em segundos)
-                      </div>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {settings.tiktok?.coverTimestamp || 0}s
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30"
-                    step="0.5"
-                    value={settings.tiktok?.coverTimestamp || 0}
-                    onChange={(e) => updateTikTokSettings({ coverTimestamp: parseFloat(e.target.value) })}
-                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                    <span>0s</span>
-                    <span>30s</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Settings Summary */}
           <div className="bg-muted/30 rounded-lg p-4">
-            <h4 className="text-sm font-medium mb-2">Resumo das Configurações:</h4>
+            <h4 className="text-sm font-medium mb-3">Resumo das Configurações:</h4>
+            
             <div className="space-y-1 text-xs text-muted-foreground">
-              <div>• Privacidade: {
-                PRIVACY_OPTIONS.find(p => p.value === settings.tiktok?.privacy)?.label || 'Público'
-              }</div>
-              <div>• Comentários: {settings.tiktok?.allowComments ? 'Permitidos' : 'Desabilitados'}</div>
+              <div className="flex items-center gap-2">
+                <Lock className="w-3 h-3" />
+                Privacidade: {
+                  PRIVACY_OPTIONS.find(p => p.value === settings.tiktok?.privacy)?.label || 'Público'
+                }
+              </div>
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-3 h-3" />
+                Comentários: {settings.tiktok?.allowComments ? 'Permitidos' : 'Desabilitados'}
+              </div>
               {isVideo && (
                 <>
-                  <div>• Duet: {settings.tiktok?.allowDuet ? 'Permitido' : 'Desabilitado'}</div>
-                  <div>• Stitch: {settings.tiktok?.allowStitch ? 'Permitido' : 'Desabilitado'}</div>
-                  <div>• Capa: {settings.tiktok?.coverTimestamp || 0}s</div>
+                  <div className="flex items-center gap-2">
+                    <Copy className="w-3 h-3" />
+                    Duet: {settings.tiktok?.allowDuet ? 'Permitido' : 'Desabilitado'}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Scissors className="w-3 h-3" />
+                    Stitch: {settings.tiktok?.allowStitch ? 'Permitido' : 'Desabilitado'}
+                  </div>
                 </>
               )}
             </div>

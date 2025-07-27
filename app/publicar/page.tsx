@@ -235,6 +235,14 @@ export default function PublishPage() {
                   caption={getEffectiveCaption('tiktok')}
                   userProfile={tiktokConnection?.profile_data}
                   settings={publishState.settings.tiktok}
+                  onSettingsChange={(tiktokSettings) => {
+                    updatePublishState({
+                      settings: {
+                        ...publishState.settings,
+                        tiktok: tiktokSettings
+                      }
+                    })
+                  }}
                 />
               )}
 
