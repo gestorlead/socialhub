@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, Music, Play } from 'lucide-react'
 import Image from 'next/image'
 
@@ -34,9 +34,7 @@ export function TikTokPreview({
   settings,
   onSettingsChange
 }: TikTokPreviewProps) {
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const previewVideoRef = useRef<HTMLVideoElement>(null)
 
   const isVideo = mediaFile?.type.startsWith('video/')
 
@@ -47,57 +45,18 @@ export function TikTokPreview({
         ...settings,
         ...updates
       })
+      
+      // Se mudou o timestamp da capa, atualizar o vídeo principal
+      if (updates.coverTimestamp !== undefined && previewVideoRef.current) {
+        previewVideoRef.current.currentTime = updates.coverTimestamp
+      }
     }
   }
 
-  // Função para capturar thumbnail do vídeo no tempo especificado
-  const captureVideoThumbnail = (timestamp: number) => {
-    if (!mediaFile || !isVideo) return
-
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    
-    if (!video || !canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Configurar o vídeo para capturar o frame
-    const url = URL.createObjectURL(mediaFile)
-    video.src = url
-    
-    const handleLoadedMetadata = () => {
-      // Ajustar o timestamp para não exceder a duração do vídeo
-      const actualTimestamp = Math.min(timestamp, video.duration)
-      video.currentTime = actualTimestamp
-    }
-
-    const handleSeeked = () => {
-      // Configurar canvas com as dimensões do vídeo
-      canvas.width = video.videoWidth || 480
-      canvas.height = video.videoHeight || 270
-      
-      // Desenhar o frame atual no canvas
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-      
-      // Converter para URL de imagem
-      const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8)
-      setThumbnailUrl(thumbnailDataUrl)
-      
-      // Limpar recursos e eventos
-      URL.revokeObjectURL(url)
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-      video.removeEventListener('seeked', handleSeeked)
-    }
-    
-    video.addEventListener('loadedmetadata', handleLoadedMetadata)
-    video.addEventListener('seeked', handleSeeked)
-  }
-
-  // Atualizar thumbnail quando o tempo da capa mudar
+  // Atualizar o tempo do vídeo principal quando as configurações mudarem
   useEffect(() => {
-    if (isVideo && settings?.coverTimestamp !== undefined) {
-      captureVideoThumbnail(settings.coverTimestamp)
+    if (isVideo && settings?.coverTimestamp !== undefined && previewVideoRef.current) {
+      previewVideoRef.current.currentTime = settings.coverTimestamp
     }
   }, [settings?.coverTimestamp, mediaFile, isVideo])
 
@@ -174,11 +133,18 @@ export function TikTokPreview({
                 <>
                   {mediaFile?.type.startsWith('video/') ? (
                     <video
+                      ref={previewVideoRef}
                       src={mediaPreview}
                       className="w-full h-full object-contain"
                       loop
                       muted
                       playsInline
+                      onLoadedMetadata={() => {
+                        // Definir o tempo inicial quando o vídeo carregar
+                        if (previewVideoRef.current && settings?.coverTimestamp) {
+                          previewVideoRef.current.currentTime = settings.coverTimestamp
+                        }
+                      }}
                     />
                   ) : (
                     <img
@@ -326,23 +292,9 @@ export function TikTokPreview({
               <span>30s</span>
             </div>
             
-            {/* Thumbnail Preview */}
-            {thumbnailUrl && (
-              <div className="border rounded-lg p-3 bg-background/50">
-                <div className="text-xs font-medium text-muted-foreground mb-2">
-                  Preview da Capa Selecionada
-                </div>
-                <div className="w-full max-w-[200px] mx-auto">
-                  <div className="aspect-[9/16] border rounded-lg overflow-hidden bg-muted shadow-sm">
-                    <img 
-                      src={thumbnailUrl} 
-                      alt="Preview da capa"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="text-xs text-muted-foreground text-center mt-2">
+              Arraste para ver diferentes momentos do vídeo no preview acima
+            </div>
           </div>
         </div>
       )}
@@ -360,16 +312,6 @@ export function TikTokPreview({
         </div>
       )}
 
-      {/* Elementos ocultos para captura de thumbnail */}
-      <video 
-        ref={videoRef}
-        className="hidden"
-        preload="metadata"
-      />
-      <canvas 
-        ref={canvasRef}
-        className="hidden"
-      />
     </div>
   )
 }
