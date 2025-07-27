@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Send, Upload, CheckCircle, AlertTriangle, Clock, Stethoscope } from 'lucide-react'
 import { useAuth } from '@/lib/supabase-auth-helpers'
 import { TikTokUploadInfo } from './TikTokUploadInfo'
@@ -52,6 +52,18 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
   const [diagnostics, setDiagnostics] = useState<any>(null)
   const [showTikTokInfo, setShowTikTokInfo] = useState(false)
   const [showSandboxGuide, setShowSandboxGuide] = useState(false)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
+  
+  // Reset validation errors when user makes changes
+  useEffect(() => {
+    if (showValidationErrors) {
+      setShowValidationErrors(false)
+    }
+  }, [
+    publishState.mediaFile,
+    publishState.selectedNetworks,
+    publishState.captions
+  ])
   
   const runDiagnostics = async () => {
     if (!user) return
@@ -113,12 +125,16 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     return issues
   }
   
+  // Calcula validação mas só mostra erros se showValidationErrors for true
   const validation = validatePublish()
   const errors = validation.filter(v => v.type === 'error')
   const warnings = validation.filter(v => v.type === 'warning')
   const canPublish = errors.length === 0 && !publishState.isPublishing
   
   const handlePublish = async () => {
+    // Mostrar erros de validação quando tentar publicar
+    setShowValidationErrors(true)
+    
     if (!canPublish || !user) return
     
     // Reset publish status and errors
@@ -324,8 +340,8 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     <div className="bg-card border rounded-lg p-6">
       <h3 className="text-lg font-semibold mb-4">Publicar Conteúdo</h3>
       
-      {/* Validation Issues */}
-      {(errors.length > 0 || warnings.length > 0) && (
+      {/* Validation Issues - só mostra após tentativa de publicar */}
+      {showValidationErrors && (errors.length > 0 || warnings.length > 0) && (
         <div className="mb-4 space-y-2">
           {errors.map((error, index) => (
             <div key={`error-${index}`} className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
@@ -456,13 +472,13 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         )}
       </button>
       
-      {!canPublish && !isPublishing && errors.length === 0 && (
+      {!canPublish && !isPublishing && showValidationErrors && errors.length === 0 && (
         <p className="text-xs text-muted-foreground text-center mt-2">
           Complete as informações necessárias para publicar
         </p>
       )}
       
-      {errors.length > 0 && (
+      {showValidationErrors && errors.length > 0 && (
         <p className="text-xs text-red-600 dark:text-red-400 text-center mt-2">
           Corrija os erros acima para continuar
         </p>
