@@ -48,10 +48,18 @@ export function validateTikTokVideo(data: any): TikTokVideo | null {
     title: typeof data.title === 'string' ? data.title : undefined,
     embed_html: typeof data.embed_html === 'string' ? data.embed_html : undefined,
     embed_link: typeof data.embed_link === 'string' ? data.embed_link : undefined,
-    like_count: typeof data.like_count === 'number' ? data.like_count : undefined,
-    comment_count: typeof data.comment_count === 'number' ? data.comment_count : undefined,
-    share_count: typeof data.share_count === 'number' ? data.share_count : undefined,
-    view_count: typeof data.view_count === 'number' ? data.view_count : undefined,
+    like_count: typeof data.like_count === 'number' ? data.like_count : 
+                typeof data.like_count === 'string' ? parseInt(data.like_count) || 0 : 
+                data.like_count ? Number(data.like_count) || 0 : 0,
+    comment_count: typeof data.comment_count === 'number' ? data.comment_count : 
+                   typeof data.comment_count === 'string' ? parseInt(data.comment_count) || 0 : 
+                   data.comment_count ? Number(data.comment_count) || 0 : 0,
+    share_count: typeof data.share_count === 'number' ? data.share_count : 
+                 typeof data.share_count === 'string' ? parseInt(data.share_count) || 0 : 
+                 data.share_count ? Number(data.share_count) || 0 : 0,
+    view_count: typeof data.view_count === 'number' ? data.view_count : 
+                typeof data.view_count === 'string' ? parseInt(data.view_count) || 0 : 
+                data.view_count ? Number(data.view_count) || 0 : 0,
   }
 
   return video

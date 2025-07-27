@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import { FollowersGrowthChart } from "@/components/analytics/followers-growth-chart"
 import { GrowthRateChart } from "@/components/analytics/growth-rate-chart"
-import { MultiMetricChart } from "@/components/analytics/multi-metric-chart"
+import { EngagementAnalyticsDashboard } from "@/components/analytics/engagement-analytics-dashboard"
 import { VideoList } from "@/components/analytics/video-list"
 import { useTikTokVideos } from "@/hooks/use-tiktok-videos"
 import { formatNumber } from "@/lib/utils"
@@ -294,20 +294,10 @@ export default function AnalyticsPage() {
           </TabsContent>
 
           <TabsContent value="engagement" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Métricas de Engajamento</CardTitle>
-                <CardDescription>
-                  Análise detalhada de interações e engajamento
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MultiMetricChart 
-                  data={analyticsData?.timeSeries || []}
-                  loading={analyticsLoading}
-                />
-              </CardContent>
-            </Card>
+            <EngagementAnalyticsDashboard 
+              data={analyticsData?.timeSeries || []}
+              loading={analyticsLoading}
+            />
           </TabsContent>
 
           <TabsContent value="content" className="space-y-6">

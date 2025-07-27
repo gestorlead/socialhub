@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database'
 import { TikTokTokenManager } from '@/lib/tiktok-token-manager'
 import { TikTokVideoListResponse } from '@/types/tiktok'
+import { transformDatabaseVideoToTikTokFormat } from '@/lib/tiktok-api-utils'
 
 export async function GET(request: NextRequest) {
   console.log('[TikTok Videos API] ===== REQUEST RECEIVED =====')
@@ -228,14 +229,25 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`[TikTok Videos API] Returning ${dbVideos?.length || 0} videos from database`)
+    // Transform database videos to TikTok API format
+    const transformedVideos = (dbVideos || []).map(transformDatabaseVideoToTikTokFormat)
+    
+    console.log(`[TikTok Videos API] Returning ${transformedVideos.length} videos from database`)
+    console.log(`[TikTok Videos API] Sample video stats:`, transformedVideos[0] ? {
+      id: transformedVideos[0].id,
+      view_count: transformedVideos[0].view_count,
+      like_count: transformedVideos[0].like_count,
+      comment_count: transformedVideos[0].comment_count,
+      share_count: transformedVideos[0].share_count
+    } : 'No videos')
+    
     return NextResponse.json({
       data: {
-        videos: dbVideos || [],
+        videos: transformedVideos,
         has_more: data.has_more || false,
         cursor: data.cursor
       },
-      total_count: dbVideos?.length || 0
+      total_count: transformedVideos.length
     })
   } catch (error) {
     console.error('[TikTok Videos API] Unexpected error:', error)

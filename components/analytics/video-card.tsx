@@ -1,7 +1,6 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { TikTokVideo } from '@/types/tiktok'
 import { Eye, Heart, MessageCircle, Share2, Play, Clock } from 'lucide-react'
 import Image from 'next/image'
@@ -88,42 +87,26 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
         <h3 className="font-semibold text-sm mb-2 line-clamp-2">
           {video.title || video.video_description || 'Sem título'}
         </h3>
-        <div className="flex items-center justify-between">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Eye className="h-4 w-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Visualizações: {formatNumber(video.view_count || 0)}</p>
-            </TooltipContent>
-          </Tooltip>
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="flex flex-col items-center gap-1">
+            <Eye className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs font-medium">{formatNumber(video.view_count || 0)}</span>
+          </div>
           
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Heart className="h-4 w-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Curtidas: {formatNumber(video.like_count || 0)}</p>
-            </TooltipContent>
-          </Tooltip>
+          <div className="flex flex-col items-center gap-1">
+            <Heart className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs font-medium">{formatNumber(video.like_count || 0)}</span>
+          </div>
           
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <MessageCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Comentários: {formatNumber(video.comment_count || 0)}</p>
-            </TooltipContent>
-          </Tooltip>
+          <div className="flex flex-col items-center gap-1">
+            <MessageCircle className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs font-medium">{formatNumber(video.comment_count || 0)}</span>
+          </div>
           
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Share2 className="h-4 w-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Compartilhamentos: {formatNumber(video.share_count || 0)}</p>
-            </TooltipContent>
-          </Tooltip>
+          <div className="flex flex-col items-center gap-1">
+            <Share2 className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs font-medium">{formatNumber(video.share_count || 0)}</span>
+          </div>
         </div>
         {video.create_time && (
           <p className="text-xs text-gray-500 mt-3">

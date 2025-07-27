@@ -46,7 +46,8 @@
       "Bash(git add:*)",
       "Bash(ls:*)",
       "mcp__sequential-thinking__sequentialthinking",
-      "mcp__supabase__list_tables"
+      "mcp__supabase__list_tables",
+      "mcp__shadcn__get_component"
     ],
     "deny": []
   }
