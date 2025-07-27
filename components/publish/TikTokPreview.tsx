@@ -105,7 +105,7 @@ export function TikTokPreview({
                   {mediaFile?.type.startsWith('video/') ? (
                     <video
                       src={mediaPreview}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       loop
                       muted
                       playsInline
@@ -114,7 +114,7 @@ export function TikTokPreview({
                     <img
                       src={mediaPreview}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   )}
                 </>
