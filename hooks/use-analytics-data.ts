@@ -35,11 +35,7 @@ export function useAnalyticsData(platformUserId: string | undefined, period: Per
   const { session } = useAuth()
 
   useEffect(() => {
-    console.log('useAnalyticsData - platformUserId:', platformUserId)
-    console.log('useAnalyticsData - session:', session)
-    
     if (!platformUserId || !session?.access_token) {
-      console.log('useAnalyticsData - Missing platformUserId or session token')
       setData(null)
       return
     }
@@ -49,15 +45,12 @@ export function useAnalyticsData(platformUserId: string | undefined, period: Per
       setError(null)
       
       try {
-        console.log('Fetching analytics with:', { platformUserId, period })
         const response = await fetch(`/api/analytics/data?platform_user_id=${platformUserId}&period=${period}`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'
           }
         })
-        
-        console.log('Analytics response status:', response.status)
         
         if (!response.ok) {
           const errorText = await response.text()
@@ -66,7 +59,6 @@ export function useAnalyticsData(platformUserId: string | undefined, period: Per
         }
         
         const result = await response.json()
-        console.log('Analytics result:', result)
         setData(result)
       } catch (err) {
         console.error('Error fetching analytics:', err)

@@ -56,8 +56,12 @@ export async function GET(request: NextRequest) {
     const startDate = new Date()
     startDate.setDate(endDate.getDate() - days)
 
-    // Fetch time series data
-    const { data: timeSeriesData, error: timeSeriesError } = await supabase
+    // Fetch time series data - first try with exact platform_user_id, then try with just user_id
+    let timeSeriesData = null
+    let timeSeriesError = null
+    
+    // Try with exact platform_user_id first
+    const exactMatch = await supabase
       .from('tiktok_daily_stats')
       .select('date, follower_count, following_count, likes_count, video_count')
       .eq('user_id', userId)
@@ -65,6 +69,25 @@ export async function GET(request: NextRequest) {
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0])
       .order('date', { ascending: true })
+
+    if (exactMatch.data && exactMatch.data.length > 0) {
+      timeSeriesData = exactMatch.data
+      timeSeriesError = exactMatch.error
+    } else {
+      // If no exact match, try with just user_id (for historical data with different platform_user_id)
+      const userMatch = await supabase
+        .from('tiktok_daily_stats')
+        .select('date, follower_count, following_count, likes_count, video_count')
+        .eq('user_id', userId)
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', endDate.toISOString().split('T')[0])
+        .order('date', { ascending: true })
+      
+      timeSeriesData = userMatch.data
+      timeSeriesError = userMatch.error
+      
+      console.log('Analytics: Used fallback user_id search, found', userMatch.data?.length || 0, 'records')
+    }
 
     if (timeSeriesError) {
       console.error('Error fetching time series data:', timeSeriesError)
