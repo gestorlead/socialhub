@@ -16,7 +16,7 @@ interface PerformanceRadarChartProps {
 const chartConfig = {
   performance: {
     label: "Performance",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(220, 91%, 60%)", // Azul vibrante
   },
 }
 

@@ -247,39 +247,36 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        {/* Main Dashboard */}
-        <div className="grid gap-6">
-          {/* Followers Growth */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LineChartIcon className="w-5 h-5" />
-                Crescimento de Seguidores
-              </CardTitle>
-              <CardDescription>
-                Evolução do número de seguidores ao longo do tempo
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FollowersGrowthChart 
-                data={analyticsData?.timeSeries || []} 
-                period={selectedPeriod}
-                loading={analyticsLoading}
-              />
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Detailed Analytics Tabs */}
         <Tabs defaultValue="growth" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="growth">Crescimento</TabsTrigger>
             <TabsTrigger value="engagement">Engajamento</TabsTrigger>
             <TabsTrigger value="content">Conteúdo</TabsTrigger>
-            <TabsTrigger value="comparison">Comparativo</TabsTrigger>
           </TabsList>
 
           <TabsContent value="growth" className="space-y-6">
+            {/* Followers Growth */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LineChartIcon className="w-5 h-5" />
+                  Crescimento de Seguidores
+                </CardTitle>
+                <CardDescription>
+                  Evolução do número de seguidores ao longo do tempo
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FollowersGrowthChart 
+                  data={analyticsData?.timeSeries || []} 
+                  period={selectedPeriod}
+                  loading={analyticsLoading}
+                />
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Taxa de Crescimento</CardTitle>
@@ -334,21 +331,6 @@ export default function AnalyticsPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="comparison" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Comparação de Períodos</CardTitle>
-                <CardDescription>
-                  Compare performance entre diferentes períodos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Comparação de períodos em desenvolvimento
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>

@@ -14,7 +14,7 @@ interface FollowersGrowthChartProps {
 const chartConfig = {
   follower_count: {
     label: "Seguidores",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(220, 91%, 60%)", // Azul vibrante
   },
 }
 
@@ -53,8 +53,8 @@ export function FollowersGrowthChart({ data, period, loading }: FollowersGrowthC
       <AreaChart data={chartData}>
         <defs>
           <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
-            <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1}/>
+            <stop offset="5%" stopColor="hsl(220, 91%, 60%)" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="hsl(220, 91%, 60%)" stopOpacity={0.1}/>
           </linearGradient>
         </defs>
         <XAxis 
@@ -83,7 +83,7 @@ export function FollowersGrowthChart({ data, period, loading }: FollowersGrowthC
         <Area
           type="monotone"
           dataKey="followers"
-          stroke="hsl(var(--chart-1))"
+          stroke="hsl(220, 91%, 60%)"
           fillOpacity={1}
           fill="url(#colorFollowers)"
           strokeWidth={2}

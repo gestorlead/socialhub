@@ -17,27 +17,27 @@ interface EngagementOverviewChartProps {
 const chartConfig = {
   followers: {
     label: "Seguidores",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(220, 91%, 60%)", // Azul vibrante
   },
   likes: {
     label: "Curtidas",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(200, 85%, 55%)", // Azul ciano
   },
   videos: {
     label: "Vídeos",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(240, 80%, 65%)", // Azul roxo
   },
   following: {
     label: "Seguindo",
-    color: "hsl(var(--chart-4))",
+    color: "hsl(210, 70%, 50%)", // Azul escuro
   },
 }
 
 const COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
+  "hsl(220, 91%, 60%)", // Azul vibrante
+  "hsl(200, 85%, 55%)", // Azul ciano
+  "hsl(240, 80%, 65%)", // Azul roxo
+  "hsl(210, 70%, 50%)", // Azul escuro
 ]
 
 export function EngagementOverviewChart({ data, loading }: EngagementOverviewChartProps) {

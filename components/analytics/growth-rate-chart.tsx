@@ -1,7 +1,7 @@
 "use client"
 
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, ReferenceLine } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { GrowthData } from '@/hooks/use-analytics-data'
 
 interface GrowthRateChartProps {
@@ -10,17 +10,17 @@ interface GrowthRateChartProps {
 }
 
 const chartConfig = {
-  follower_growth_percent: {
+  followers: {
     label: "Seguidores",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(210, 100%, 50%)", // Azul puro vibrante
   },
-  likes_growth_percent: {
-    label: "Curtidas",
-    color: "hsl(var(--chart-2))",
+  likes: {
+    label: "Curtidas", 
+    color: "hsl(180, 100%, 40%)", // Ciano escuro
   },
-  video_growth_percent: {
+  videos: {
     label: "Vídeos",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(260, 100%, 60%)", // Roxo-azul vibrante
   },
 }
 
@@ -90,28 +90,29 @@ export function GrowthRateChart({ data, loading }: GrowthRateChartProps) {
             />
           }
         />
+        <ChartLegend content={<ChartLegendContent />} />
         <Line
           type="monotone"
           dataKey="followers"
-          stroke="hsl(var(--chart-1))"
+          stroke="var(--color-followers)"
           strokeWidth={2}
-          dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }}
+          dot={{ fill: "var(--color-followers)", strokeWidth: 2, r: 3 }}
           activeDot={{ r: 5 }}
         />
         <Line
           type="monotone"
           dataKey="likes"
-          stroke="hsl(var(--chart-2))"
+          stroke="var(--color-likes)"
           strokeWidth={2}
-          dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 3 }}
+          dot={{ fill: "var(--color-likes)", strokeWidth: 2, r: 3 }}
           activeDot={{ r: 5 }}
         />
         <Line
           type="monotone"
           dataKey="videos"
-          stroke="hsl(var(--chart-3))"
+          stroke="var(--color-videos)"
           strokeWidth={2}
-          dot={{ fill: "hsl(var(--chart-3))", strokeWidth: 2, r: 3 }}
+          dot={{ fill: "var(--color-videos)", strokeWidth: 2, r: 3 }}
           activeDot={{ r: 5 }}
         />
       </LineChart>
