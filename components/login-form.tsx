@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/lib/supabase-auth-helpers"
 
 export function LoginForm({
   className,
@@ -22,6 +23,7 @@ export function LoginForm({
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClientComponentClient()
+  const { signInWithOAuth } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -70,14 +72,7 @@ export function LoginForm({
     setError(null)
 
     try {
-      const redirectTo = `${window.location.origin}/auth/callback`
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectTo
-        }
-      })
+      const { error } = await signInWithOAuth('google')
 
       if (error) {
         setError(error.message)
