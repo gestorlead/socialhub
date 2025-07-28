@@ -15,15 +15,20 @@ export default function AuthCallbackPage() {
     
     // Aguarda o carregamento completo antes de redirecionar
     if (!loading && !isRedirecting) {
-      if (user) {
+      if (user && profile) {
         console.log('User authenticated, redirecting to home')
         setIsRedirecting(true)
         
-        // Aguarda um momento para garantir que o perfil foi carregado
+        // Set cookies for middleware detection (mesmo padrão do email/senha)
+        document.cookie = `sh-login-success=true; path=/; max-age=60`
+        document.cookie = `sh-login-timestamp=${Date.now()}; path=/; max-age=60`
+        
+        // Aguarda um momento para garantir que os cookies foram definidos e sessão persistida
         setTimeout(() => {
+          console.log('Redirecting to home with cookies set')
           router.replace('/') // Usar replace em vez de push para evitar loop
-        }, 1000)
-      } else {
+        }, 2000) // Tempo suficiente para garantir que middleware detecte a sessão
+      } else if (!loading && !user) {
         console.log('No user found, redirecting to login')
         setIsRedirecting(true)
         
@@ -31,6 +36,7 @@ export default function AuthCallbackPage() {
           router.replace('/login') // Usar replace em vez de push
         }, 500)
       }
+      // Se user existe mas profile ainda não, continue aguardando
     }
   }, [user, loading, profile, router, isRedirecting])
 

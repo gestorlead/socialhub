@@ -130,6 +130,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         const profileData = await fetchProfile(session.user.id)
         setProfile(profileData)
+        
+        // Se for um SIGNED_IN event, forçar um refresh da sessão para garantir persistência
+        if (_event === 'SIGNED_IN') {
+          console.log('[Auth] Forcing session refresh after OAuth login')
+          try {
+            // Aguarda um momento antes do refresh para garantir que a sessão inicial foi estabelecida
+            await new Promise(resolve => setTimeout(resolve, 500))
+            await supabase.auth.refreshSession()
+            console.log('[Auth] Session refresh completed successfully')
+          } catch (error) {
+            console.warn('[Auth] Session refresh failed:', error)
+          }
+        }
       } else {
         setProfile(null)
       }

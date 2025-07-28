@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 
 /**
@@ -11,8 +11,8 @@ export async function validateAuthentication(req: NextRequest) {
   let sessionError = null
   
   try {
-    // Create middleware client with proper response object
-    const res = new Response()
+    // Create middleware client with proper NextResponse for cookie handling
+    const res = NextResponse.next()
     const supabase = createMiddlewareClient({ req, res })
     
     const { data, error } = await supabase.auth.getSession()
