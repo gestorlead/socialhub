@@ -33,43 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('[Auth] Fetching profile for user:', userId)
       
-      // First try without roles to see if basic profile exists
-      const { data: basicProfile, error: basicError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (basicError) {
-        console.error('[Auth] Error fetching basic profile:', basicError)
-        
-        // If profile doesn't exist, create one
-        if (basicError.code === 'PGRST116') {
-          console.log('[Auth] Profile not found, creating new profile')
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              full_name: null,
-              avatar_url: null,
-              role_id: null
-            })
-            .select()
-            .single()
-
-          if (createError) {
-            console.error('[Auth] Error creating profile:', createError)
-            return null
-          }
-          
-          console.log('[Auth] Profile created successfully')
-          return newProfile as Profile
-        }
-        
-        return null
-      }
-
-      // Now try to get the full profile with roles
+      // Seguindo as melhores práticas do Supabase: sempre adicionar filtro
+      // Busca perfil com roles em uma única query otimizada
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -82,17 +47,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             permissions
           )
         `)
-        .eq('id', userId)
+        .eq('id', userId)  // Filtro explícito conforme documentação
         .single()
 
       if (error) {
-        console.error('[Auth] Error fetching profile with roles:', error)
-        // Return basic profile if roles query fails
-        return basicProfile as Profile
+        // Se perfil não existe (código PGRST116), o trigger deve ter criado
+        // Aguarda um momento e tenta novamente
+        if (error.code === 'PGRST116') {
+          console.log('[Auth] Profile not found, waiting for trigger creation...')
+          
+          // Aguarda 500ms para o trigger ter tempo de criar o perfil
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          // Tenta buscar novamente
+          const { data: retryData, error: retryError } = await supabase
+            .from('profiles')
+            .select(`
+              *,
+              roles (
+                id,
+                name,
+                level,
+                description,
+                permissions
+              )
+            `)
+            .eq('id', userId)
+            .single()
+            
+          if (retryError) {
+            console.error('[Auth] Profile still not found after retry:', retryError)
+            return null
+          }
+          
+          console.log('[Auth] Profile fetched successfully on retry')
+          return retryData as Profile
+        }
+        
+        console.error('[Auth] Error fetching profile:', error)
+        return null
       }
 
       console.log('[Auth] Profile fetched successfully')
-      return data
+      return data as Profile
     } catch (error) {
       console.error('[Auth] Unexpected error in fetchProfile:', error)
       return null
@@ -167,9 +164,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error }
     },
     signInWithOAuth: async (provider: 'google' | 'facebook' | 'github') => {
+      // Usa sempre a origem atual para callback em desenvolvimento
       const redirectTo = typeof window !== 'undefined' 
         ? `${window.location.origin}/auth/callback`
-        : process.env.NEXT_PUBLIC_SUPABASE_URL_CALLBACK || 'https://socialhub.gestorlead.com.br/auth/callback'
+        : (process.env.NODE_ENV === 'development' 
+            ? 'http://localhost:3001/auth/callback'
+            : process.env.NEXT_PUBLIC_SUPABASE_URL_CALLBACK || 'https://socialhub.gestorlead.com.br/auth/callback'
+          )
+      
+      console.log('OAuth redirect URL:', redirectTo)
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -180,11 +183,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error }
     },
     signUp: async (email: string, password: string) => {
+      const emailRedirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : (process.env.NODE_ENV === 'development' 
+            ? 'http://localhost:3001/auth/callback'
+            : process.env.NEXT_PUBLIC_SUPABASE_URL_CALLBACK || 'https://socialhub.gestorlead.com.br/auth/callback'
+          )
+      
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_SUPABASE_URL_CALLBACK || `${window.location.origin}/auth/callback`
+          emailRedirectTo: emailRedirectTo
         }
       })
       return { error }

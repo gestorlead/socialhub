@@ -47,7 +47,10 @@
       "Bash(ls:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "mcp__supabase__list_tables",
-      "mcp__shadcn__get_component"
+      "mcp__shadcn__get_component",
+      "Bash(git checkout:*)",
+      "mcp__supabase__search_docs",
+      "WebFetch(domain:supabase.com)"
     ],
     "deny": []
   }

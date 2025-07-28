@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,8 +21,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClientComponentClient()
-  const { signInWithOAuth } = useAuth()
+  const { signIn, signInWithOAuth } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -38,10 +36,7 @@ export function LoginForm({
     setError(null)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      const { error } = await signIn(email, password)
 
       if (error) {
         setError(error.message)
@@ -49,7 +44,7 @@ export function LoginForm({
         return
       }
 
-      console.log('✅ Login Successful! User:', data.user.email)
+      console.log('✅ Login Successful! User:', email)
 
       // Set cookies for middleware detection
       document.cookie = `sh-login-success=true; path=/; max-age=60`
