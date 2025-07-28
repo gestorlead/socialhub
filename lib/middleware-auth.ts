@@ -6,19 +6,24 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
  * Handles multiple session detection methods and fallbacks
  */
 export async function validateAuthentication(req: NextRequest) {
-  const supabase = createMiddlewareClient({ req, res: {} as any })
-  
-  // Method 1: Standard Supabase session
+  // Method 1: Standard Supabase session with error handling
   let session = null
   let sessionError = null
   
   try {
+    // Create middleware client with proper response object
+    const res = new Response()
+    const supabase = createMiddlewareClient({ req, res })
+    
     const { data, error } = await supabase.auth.getSession()
     session = data.session
     sessionError = error
   } catch (e) {
     sessionError = e
-    console.error('Session fetch error:', e)
+    // Log error in development only to avoid spam
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Session fetch error:', e)
+    }
   }
 
   // Method 2: Check for login success indicators
@@ -41,7 +46,11 @@ export async function validateAuthentication(req: NextRequest) {
   })
 
   // Method 4: Check for Supabase access token in various formats
-  const allCookieNames = Array.from(req.cookies.keys())
+  // In Next.js 15, we need to check cookies differently
+  const allCookieNames: string[] = []
+  req.cookies.getAll().forEach(cookie => {
+    allCookieNames.push(cookie.name)
+  })
   const supabaseTokenCookie = allCookieNames.find(name => 
     name.includes('supabase') && name.includes('auth') && req.cookies.get(name)?.value
   )
@@ -56,10 +65,9 @@ export async function validateAuthentication(req: NextRequest) {
     sessionError: sessionError
   }
 
-  // Conservative authentication check - require session OR multiple indicators
+  // Strict authentication check - prioritize valid session
   const isAuthenticated = indicators.hasValidSession || 
-    (indicators.hasLoginSuccess && indicators.isRecentLogin) ||
-    (indicators.hasAuthCookies && !indicators.sessionError)
+    (indicators.hasLoginSuccess && indicators.isRecentLogin)
 
   if (process.env.NODE_ENV === 'development') {
     console.log('🔍 Auth Validation Results:', {
@@ -82,13 +90,20 @@ export async function validateAuthentication(req: NextRequest) {
  * Check if a path requires authentication
  */
 export function isProtectedPath(pathname: string): boolean {
-  const publicRoutes = ['/login', '/signup', '/auth/callback', '/unauthorized']
+  const publicRoutes = ['/login', '/signup', '/auth/callback', '/unauthorized', '/test-login']
   const publicPatterns = ['/api/auth/', '/api/cron/']
   
   // API routes that handle their own authentication
   const selfAuthenticatedAPIs = [
     '/api/analytics/data',
     '/api/social/'
+  ]
+  
+  // Startup validation routes that should be publicly accessible
+  const startupValidationRoutes = [
+    '/api/admin/validate-environment',
+    '/api/admin/integrations/test-crypto',
+    '/api/admin/auth/force-logout'
   ]
   
   // Static files
@@ -111,6 +126,11 @@ export function isProtectedPath(pathname: string): boolean {
   
   // Self-authenticated API routes
   if (selfAuthenticatedAPIs.some(pattern => pathname.startsWith(pattern))) {
+    return false
+  }
+  
+  // Startup validation routes (publicly accessible)
+  if (startupValidationRoutes.includes(pathname)) {
     return false
   }
   

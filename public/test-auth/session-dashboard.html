@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Session Test Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .button { background: #007cba; color: white; padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .danger { background: #dc3545; }
+        .success { background: #28a745; }
+        .info { background: #17a2b8; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .loading { color: #007cba; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Session Management Test Dashboard</h1>
+    
+    <div class="section">
+        <h2>Current Session Status</h2>
+        <button class="button info" onclick="checkSessions()">Check Current Sessions</button>
+        <button class="button info" onclick="getDetailedSessions()">Get Detailed Sessions</button>
+        <div id="session-result" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Force Logout Actions</h2>
+        <button class="button danger" onclick="forceLogoutAll()">Force Logout All Users</button>
+        <button class="button danger" onclick="logoutSpecificUser()">Logout Specific User</button>
+        <div id="logout-result" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Cookie Management</h2>
+        <button class="button" onclick="clearAllCookies()">Clear All Auth Cookies</button>
+        <button class="button" onclick="showCookies()">Show Current Cookies</button>
+        <div id="cookie-result" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Auth Protection Test</h2>
+        <button class="button success" onclick="testProtectedRoute()">Test Protected Route</button>
+        <button class="button success" onclick="testPublicRoute()">Test Public Route</button>
+        <div id="auth-result" class="result"></div>
+    </div>
+
+    <script>
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function checkSessions() {
+            const result = document.getElementById('session-result');
+            result.innerHTML = '<div class="loading">Checking sessions...</div>';
+            
+            const response = await apiCall('/api/admin/auth/force-logout');
+            
+            if (response.success) {
+                result.innerHTML = `
+                    <strong>✅ Session Check Results:</strong><br>
+                    Active Sessions: ${response.data.count}<br>
+                    Recent Sessions: ${response.data.recent_count}<br>
+                    <details>
+                        <summary>Session Details</summary>
+                        <pre>${JSON.stringify(response.data.active_sessions, null, 2)}</pre>
+                    </details>
+                `;
+            } else {
+                result.innerHTML = `<div class="error">❌ Error: ${response.error || response.data?.error}</div>`;
+            }
+        }
+
+        async function getDetailedSessions() {
+            const result = document.getElementById('session-result');
+            result.innerHTML = '<div class="loading">Getting detailed sessions...</div>';
+            
+            const response = await apiCall('/api/admin/auth/force-logout', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'get_sessions' })
+            });
+            
+            if (response.success) {
+                result.innerHTML = `
+                    <strong>✅ Detailed Sessions (${response.data.count} total):</strong><br>
+                    <details>
+                        <summary>Full Session Data</summary>
+                        <pre>${JSON.stringify(response.data.sessions, null, 2)}</pre>
+                    </details>
+                `;
+            } else {
+                result.innerHTML = `<div class="error">❌ Error: ${response.error || response.data?.error}</div>`;
+            }
+        }
+
+        async function forceLogoutAll() {
+            if (!confirm('Are you sure you want to logout ALL users? This will clear all authentication cookies.')) {
+                return;
+            }
+            
+            const result = document.getElementById('logout-result');
+            result.innerHTML = '<div class="loading">Forcing logout of all users...</div>';
+            
+            const response = await apiCall('/api/admin/auth/force-logout', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'logout_all' })
+            });
+            
+            if (response.success) {
+                result.innerHTML = `<strong>✅ ${response.data.message}</strong><br>Timestamp: ${response.data.timestamp}`;
+                // Auto-refresh session status
+                setTimeout(checkSessions, 1000);
+            } else {
+                result.innerHTML = `<div class="error">❌ Error: ${response.error || response.data?.error}</div>`;
+            }
+        }
+
+        async function logoutSpecificUser() {
+            const email = prompt('Enter user email to logout:');
+            if (!email) return;
+            
+            const result = document.getElementById('logout-result');
+            result.innerHTML = `<div class="loading">Logging out user: ${email}...</div>`;
+            
+            const response = await apiCall('/api/admin/auth/force-logout', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'logout_user',
+                    userEmail: email
+                })
+            });
+            
+            if (response.success) {
+                result.innerHTML = `<strong>✅ ${response.data.message}</strong>`;
+                setTimeout(getDetailedSessions, 1000);
+            } else {
+                result.innerHTML = `<div class="error">❌ Error: ${response.error || response.data?.error}</div>`;
+            }
+        }
+
+        function clearAllCookies() {
+            const result = document.getElementById('cookie-result');
+            
+            const cookiePatterns = [
+                'sb-localhost-auth-token',
+                'sb-127.0.0.1-auth-token',
+                'supabase-auth-token',
+                'sh-login-success',
+                'sh-login-timestamp'
+            ];
+            
+            let cleared = [];
+            
+            cookiePatterns.forEach(pattern => {
+                document.cookie = pattern + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+                cleared.push(pattern);
+            });
+            
+            // Clear any cookie containing auth-related keywords
+            document.cookie.split(';').forEach(cookie => {
+                const name = cookie.split('=')[0].trim();
+                if (name.includes('supabase') || name.includes('auth') || name.includes('sb-')) {
+                    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+                    cleared.push(name);
+                }
+            });
+            
+            result.innerHTML = `<strong>✅ Cleared ${cleared.length} cookies:</strong><br>${cleared.join(', ')}`;
+        }
+
+        function showCookies() {
+            const result = document.getElementById('cookie-result');
+            const cookies = document.cookie.split(';').map(c => c.trim()).filter(c => c);
+            
+            if (cookies.length > 0) {
+                result.innerHTML = `
+                    <strong>Current Cookies (${cookies.length}):</strong><br>
+                    <pre>${cookies.join('\n')}</pre>
+                `;
+            } else {
+                result.innerHTML = '<strong>No cookies found</strong>';
+            }
+        }
+
+        async function testProtectedRoute() {
+            const result = document.getElementById('auth-result');
+            result.innerHTML = '<div class="loading">Testing protected route /publicar...</div>';
+            
+            try {
+                const response = await fetch('/publicar', { redirect: 'manual' });
+                
+                if (response.status === 200) {
+                    result.innerHTML = '✅ <strong>Access granted</strong> - User is authenticated';
+                } else if (response.status === 302 || response.status === 307) {
+                    const location = response.headers.get('location');
+                    result.innerHTML = `🔄 <strong>Redirected</strong> - Likely to login (Location: ${location})`;
+                } else if (response.status === 401 || response.status === 403) {
+                    result.innerHTML = '🔒 <strong>Access denied</strong> - User is not authenticated';
+                } else {
+                    result.innerHTML = `❓ <strong>Unexpected status:</strong> ${response.status}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testPublicRoute() {
+            const result = document.getElementById('auth-result');
+            result.innerHTML = '<div class="loading">Testing public route /login...</div>';
+            
+            try {
+                const response = await fetch('/login');
+                
+                if (response.status === 200) {
+                    result.innerHTML = '✅ <strong>Public route accessible</strong> - Working correctly';
+                } else {
+                    result.innerHTML = `❓ <strong>Unexpected status for public route:</strong> ${response.status}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-load session status on page load
+        window.onload = function() {
+            checkSessions();
+        };
+    </script>
+</body>
+</html>
+  

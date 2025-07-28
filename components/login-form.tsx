@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,8 +14,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuth } from "@/lib/supabase-auth-helpers"
-import { useAuthSession } from "@/hooks/use-auth-session"
 
 export function LoginForm({
   className,
@@ -22,8 +21,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, signInWithOAuth } = useAuth()
-  const { session, loading: sessionLoading, isAuthenticated } = useAuthSession()
+  const supabase = createClientComponentClient()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -32,48 +30,39 @@ export function LoginForm({
   const isLogout = searchParams?.get('logout') === 'true'
   const redirectTo = searchParams?.get('redirectTo') || '/'
 
-  useEffect(() => {
-    // Wait for session to be ready and redirect authenticated users
-    if (isAuthenticated && !isLogout && !sessionLoading) {
-      console.log('User authenticated and ready, redirecting to:', redirectTo)
-      // Add delay to ensure middleware has processed the session
-      const delay = loading ? 300 : 150 // Longer delay if we just logged in
-      setTimeout(() => {
-        // Clear temporary cookies before redirect
-        document.cookie = 'sh-login-success=; path=/; max-age=0'
-        document.cookie = 'sh-login-timestamp=; path=/; max-age=0'
-        router.push(redirectTo)
-      }, delay)
-    }
-  }, [isAuthenticated, isLogout, redirectTo, router, sessionLoading, loading])
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
     try {
-      const { error } = await signIn(email, password)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
 
-      if (error) throw error
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+        return
+      }
 
-      // Set explicit success cookies for middleware detection
-      const hostname = window.location.hostname
+      console.log('✅ Login Successful! User:', data.user.email)
+
+      // Set cookies for middleware detection
       document.cookie = `sh-login-success=true; path=/; max-age=60`
       document.cookie = `sh-login-timestamp=${Date.now()}; path=/; max-age=60`
       
-      console.log('Login successful, cookies set, waiting for session sync...')
+      // Brief delay to ensure cookies are set before redirect
+      await new Promise(resolve => setTimeout(resolve, 200))
       
-      // Force a brief delay to ensure cookie is set before any redirects
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Direct redirect to app
+      router.push(redirectTo)
       
-      // The useEffect with isAuthenticated will handle the redirect
-      // No need to manually redirect here
     } catch (error: any) {
       setError(error.message)
       setLoading(false)
     }
-    // Note: Don't set loading to false on success - let the redirect handle it
   }
 
   const handleGoogleLogin = async () => {
@@ -81,9 +70,19 @@ export function LoginForm({
     setError(null)
 
     try {
-      const { error } = await signInWithOAuth('google')
+      const redirectTo = `${window.location.origin}/auth/callback`
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo
+        }
+      })
 
-      if (error) throw error
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+      }
     } catch (error: any) {
       setError(error.message)
       setLoading(false)

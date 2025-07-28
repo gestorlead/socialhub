@@ -196,11 +196,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Supabase signOut error:', error)
         }
         
-        // Clear local state regardless of error
+        // Clear all possible authentication cookies explicitly
+        const cookiesToClear = [
+          'sb-localhost-auth-token',
+          'sb-127.0.0.1-auth-token',
+          'supabase-auth-token',
+          'sh-login-success',
+          'sh-login-timestamp'
+        ]
+        
+        // Get hostname for dynamic cookie patterns
+        const hostname = window.location.hostname
+        cookiesToClear.push(`sb-${hostname}-auth-token`)
+        
+        // Clear each cookie with multiple domain/path combinations
+        cookiesToClear.forEach(cookieName => {
+          // Clear for current path
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+          // Clear for root path
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}`
+          // Clear for localhost
+          if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=localhost`
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=127.0.0.1`
+          }
+        })
+        
+        // Clear any remaining Supabase cookies
+        document.cookie.split(';').forEach(cookie => {
+          const cookieName = cookie.split('=')[0].trim()
+          if (cookieName.includes('supabase') || cookieName.includes('sb-') || cookieName.includes('auth')) {
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}`
+          }
+        })
+        
+        // Clear local state
         setUser(null)
         setProfile(null)
         setSession(null)
         
+        console.log('✅ Logout completed - all cookies cleared')
         return { error }
       } catch (error) {
         console.error('SignOut error:', error)

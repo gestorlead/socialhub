@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Test - Clear All Cookies</title>
+</head>
+<body>
+    <h1>Authentication Cookie Test</h1>
+    <div id="status">Testing...</div>
+    
+    <script>
+        // Clear all possible authentication cookies
+        const cookiePatterns = [
+            'sb-localhost-auth-token',
+            'sb-127.0.0.1-auth-token',
+            'supabase-auth-token',
+            'sh-login-success',
+            'sh-login-timestamp'
+        ];
+        
+        // Clear cookies for current domain
+        cookiePatterns.forEach(pattern => {
+            document.cookie = pattern + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+            console.log('Cleared cookie:', pattern);
+        });
+        
+        // Clear cookies for localhost and 127.0.0.1
+        const hosts = ['localhost', '127.0.0.1'];
+        hosts.forEach(host => {
+            document.cookie = 'sb-' + host + '-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=' + host;
+        });
+        
+        // Clear all cookies that contain 'supabase' or 'auth'
+        document.cookie.split(';').forEach(cookie => {
+            const eqPos = cookie.indexOf('=');
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+            if (name.includes('supabase') || name.includes('auth') || name.includes('sb-')) {
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+                console.log('Cleared cookie:', name);
+            }
+        });
+        
+        document.getElementById('status').innerHTML = 
+            '<h2>✅ All authentication cookies cleared!</h2>' +
+            '<p>Now test accessing a protected route like <a href="/publicar">/publicar</a></p>' +
+            '<p>You should be redirected to login if auth protection is working correctly.</p>' +
+            '<button onclick="window.location.reload()">Clear Again</button> ' +
+            '<button onclick="window.location.href=\'/publicar\'">Test Protected Route</button>';
+    </script>
+</body>
+</html>
+  

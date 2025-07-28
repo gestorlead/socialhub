@@ -33,8 +33,31 @@ export function AppSidebar() {
   const handleSignOut = async () => {
     try {
       console.log('Attempting to sign out...')
+      
+      // Step 1: Client-side logout (clears cookies and local state)
       await signOut()
-      console.log('Sign out successful, redirecting to login...')
+      console.log('Client-side logout completed')
+      
+      // Step 2: Server-side logout (ensures complete session invalidation)
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (response.ok) {
+          console.log('Server-side logout completed')
+        } else {
+          console.warn('Server-side logout failed, but continuing...')
+        }
+      } catch (serverError) {
+        console.warn('Server-side logout error:', serverError)
+        // Continue with redirect even if server logout fails
+      }
+      
+      console.log('Full logout process completed, redirecting to login...')
       
       // Force redirect to login with logout parameter
       window.location.href = '/login?logout=true'
