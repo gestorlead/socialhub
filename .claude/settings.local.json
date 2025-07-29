@@ -52,7 +52,10 @@
       "mcp__supabase__search_docs",
       "WebFetch(domain:supabase.com)",
       "mcp__context7__resolve-library-id",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__supabase__search_docs"
     ],
     "deny": []
   }

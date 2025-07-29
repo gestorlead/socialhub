@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/supabase-auth-helpers'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 
 export interface SocialConnection {
   id: string
@@ -26,6 +26,7 @@ export function useSocialConnections() {
   const { user } = useAuth()
   const [connections, setConnections] = useState<SocialConnection[]>([])
   const [loading, setLoading] = useState(true)
+  const supabase = createClient()
 
   const fetchConnections = async () => {
     if (!user) {

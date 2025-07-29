@@ -1,7 +1,7 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { validateAuthentication, isProtectedPath } from '@/lib/middleware-auth'
+import { createClientForMiddleware } from '@/utils/supabase/server'
+import { isProtectedPath } from '@/lib/middleware-auth'
 
 /**
  * Secure authentication middleware for Social Hub
@@ -34,18 +34,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl, 301) // Permanent redirect
   }
 
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+  // Create Supabase client for middleware
+  const { supabase, supabaseResponse } = createClientForMiddleware(req)
 
   // Add security headers
-  res.headers.set('X-Frame-Options', 'SAMEORIGIN')
-  res.headers.set('X-Content-Type-Options', 'nosniff')
-  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  res.headers.set('X-XSS-Protection', '1; mode=block')
+  supabaseResponse.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
+  supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  supabaseResponse.headers.set('X-XSS-Protection', '1; mode=block')
   
   // Add CSP header for enhanced security
   if (false && process.env.NODE_ENV === 'production') {
-    res.headers.set('Content-Security-Policy', 
+    supabaseResponse.headers.set('Content-Security-Policy', 
       "default-src 'self'; " +
       "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://*.tiktok.com https://*.tiktokcdn.com; " +
       "style-src 'self' 'unsafe-inline'; " +
@@ -67,17 +67,21 @@ export async function middleware(req: NextRequest) {
     
     // Check if this path needs authentication
     if (!isProtectedPath(req.nextUrl.pathname)) {
-      return res
+      return supabaseResponse
     }
 
-    // Validate authentication using comprehensive method
-    const authResult = await validateAuthentication(req, res)
-    const { isAuthenticated, session, user } = authResult
+    // Get the session using Supabase SSR
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
 
     // Redirect unauthenticated users to login
-    if (!isAuthenticated) {
+    if (!session || !user) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🚫 Redirecting to login - user not authenticated')
+        console.log('🚫 Redirecting to login - no session found', {
+          hasSession: !!session,
+          hasUser: !!user,
+          pathname: req.nextUrl.pathname
+        })
       }
       const loginUrl = new URL('/login', req.url)
       loginUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
@@ -85,7 +89,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Handle authenticated users with valid session
-    if (isAuthenticated && session && user) {
+    if (session && user) {
       // Get user role level with error handling
       let userLevel = 1 // default User role
       
@@ -141,20 +145,14 @@ export async function middleware(req: NextRequest) {
         const targetUrl = redirectTo && redirectTo.startsWith('/') ? redirectTo : '/'
         return NextResponse.redirect(new URL(targetUrl, req.url))
       }
-    } else if (isAuthenticated && !session) {
-      // Handle case where we detected auth but no session (cookie-based detection)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('⚠️ Auth detected via cookies but no session - allowing through')
-      }
-      // Allow the request through - the client will handle session recovery
     }
 
-    return res
+    return supabaseResponse
   } catch (error) {
     console.error('Middleware error:', error)
     // In case of middleware errors, allow the request to continue
     // but log the error for monitoring
-    return res
+    return supabaseResponse
   }
 }
 

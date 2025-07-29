@@ -11,7 +11,7 @@ import { FullLanguageSelector } from "@/components/ui/language-selector"
 import { useCommonTranslations, useAuthTranslations } from "@/hooks/useAppTranslations"
 import { ArrowLeft, Save, User, Globe, Camera } from "lucide-react"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/utils/supabase/client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface ProfileData {
@@ -23,6 +23,7 @@ export default function ProfileSettingsPage() {
   const { user, profile, refreshProfile, loading } = useAuth()
   const t = useCommonTranslations()
   const tAuth = useAuthTranslations()
+  const supabase = createClient()
   
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: "",

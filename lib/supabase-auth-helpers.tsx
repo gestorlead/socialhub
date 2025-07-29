@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Session, User } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+import { createClient } from '@/utils/supabase/client'
 import { Profile, UserRole, hasPermission } from './types/auth'
 
 interface AuthContextType {
@@ -27,6 +27,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // Initialize Supabase client using SSR approach
+  const supabase = createClient()
 
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
@@ -104,8 +107,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const setData = async () => {
+      console.log('🔐 AuthProvider: Initial session fetch')
       const { data: { session }, error } = await supabase.auth.getSession()
-      if (error) throw error
+      
+      if (error) {
+        console.error('🔐 AuthProvider: Session fetch error:', error)
+        throw error
+      }
+      
+      console.log('🔐 AuthProvider: Initial session state:', {
+        hasSession: !!session,
+        userEmail: session?.user?.email,
+        expiresAt: session?.expires_at ? new Date(session.expires_at * 1000) : 'No expiry',
+        hasAccessToken: !!session?.access_token
+      })
       
       setSession(session)
       setUser(session?.user ?? null)
@@ -121,7 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state change:', _event, session?.user?.email, window.location.pathname)
+      console.log('🔐 Auth state change:', _event, session?.user?.email, window.location.pathname)
+      console.log('🔐 Session expires at:', session?.expires_at ? new Date(session.expires_at * 1000) : 'No expiry')
+      console.log('🔐 Session token exists:', !!session?.access_token)
       
       setSession(session)
       setUser(session?.user ?? null)

@@ -8,6 +8,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'  // Melhora segurança do OAuth
+    flowType: 'pkce',  // Melhora segurança do OAuth
+    debug: process.env.NODE_ENV === 'development',
+    storageKey: 'supabase-auth-token'
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-web'
+    }
   }
 })

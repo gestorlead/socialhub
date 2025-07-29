@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { TikTokTokenManager } from '@/lib/tiktok-token-manager'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     console.log(`[TikTok Diagnose] Checking status for user: ${userId}`)
     
     // 1. Check database connection
+    const supabase = createClient()
     const { data: connection, error: dbError } = await supabase
       .from('social_connections')
       .select('*')

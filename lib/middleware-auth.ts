@@ -38,17 +38,26 @@ export async function validateAuthentication(req: NextRequest, res?: NextRespons
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const projectRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || ''
   
+  // Comprehensive cookie patterns for Supabase auth
   const authCookiePatterns = [
-    `sb-${hostname}-auth-token`,
     `sb-${projectRef}-auth-token`,
+    `sb-${projectRef}-auth-token.0`,
+    `sb-${projectRef}-auth-token.1`,
+    `sb-${hostname}-auth-token`,
     'sb-127.0.0.1-auth-token', 
     'sb-localhost-auth-token',
-    'supabase-auth-token'
+    'supabase-auth-token',
+    'supabase.auth.token'
   ]
   
   if (process.env.NODE_ENV === 'development') {
     console.log('🍪 Cookie patterns checked:', authCookiePatterns)
     console.log('🍪 Available cookies:', req.cookies.getAll().map(c => c.name))
+    console.log('🔧 Supabase config:', { 
+      hostname, 
+      projectRef, 
+      supabaseUrl: supabaseUrl.substring(0, 50) + '...' 
+    })
   }
   
   const hasAuthCookies = authCookiePatterns.some(pattern => {
@@ -62,9 +71,12 @@ export async function validateAuthentication(req: NextRequest, res?: NextRespons
   req.cookies.getAll().forEach(cookie => {
     allCookieNames.push(cookie.name)
   })
-  const supabaseTokenCookie = allCookieNames.find(name => 
-    name.includes('supabase') && name.includes('auth') && req.cookies.get(name)?.value
-  )
+  const supabaseTokenCookie = allCookieNames.find(name => {
+    const isSupabaseAuth = (name.includes('supabase') && name.includes('auth')) ||
+                          name.startsWith(`sb-${projectRef}-auth`) ||
+                          name.startsWith('sb-') && name.includes('-auth-token')
+    return isSupabaseAuth && req.cookies.get(name)?.value
+  })
 
   // Authentication decision matrix
   const indicators = {
@@ -76,8 +88,10 @@ export async function validateAuthentication(req: NextRequest, res?: NextRespons
     sessionError: sessionError
   }
 
-  // Strict authentication check - prioritize valid session
+  // Enhanced authentication check - prioritize valid session but allow cookie fallback
   const isAuthenticated = indicators.hasValidSession || 
+    indicators.hasAuthCookies ||
+    indicators.hasTokenCookie ||
     (indicators.hasLoginSuccess && indicators.isRecentLogin)
 
   if (process.env.NODE_ENV === 'development') {

@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/supabase-auth-helpers"
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { ConnectionDebug } from "@/components/debug/connection-debug"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
 import { useTikTokTokenStatus } from "@/hooks/use-tiktok-token-status"
 import { useTikTokLiveStats } from "@/hooks/use-tiktok-live-stats"
@@ -140,6 +141,9 @@ export default function TikTokPage() {
               Conecte sua conta do TikTok para gerenciar seu conteúdo
             </p>
           </div>
+
+          {/* Debug Component - Remove after fixing */}
+          <ConnectionDebug />
 
           <div className="flex items-center justify-center h-96">
             <div className="text-center space-y-6 max-w-md">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
 import { Session } from '@supabase/supabase-js'
 
 /**
@@ -12,6 +12,7 @@ export function useAuthSession() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [isReady, setIsReady] = useState(false)
+  const supabase = createClient()
 
   useEffect(() => {
     let mounted = true
