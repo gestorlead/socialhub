@@ -80,17 +80,19 @@ export function VideoStatsModal({ video, open, onClose }: VideoStatsModalProps) 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Video Preview */}
           <div>
-            <div className="relative aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden">
-              {video.embed_html ? (
-                <div 
-                  className="w-full h-full"
-                  dangerouslySetInnerHTML={{ __html: video.embed_html }}
-                />
-              ) : video.embed_link ? (
+            <div 
+              className="relative aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden"
+              style={video.cover_image_url ? {
+                backgroundImage: `url(${video.cover_image_url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              } : undefined}
+            >
+              {video.embed_link ? (
                 <iframe
                   src={video.embed_link}
                   className="w-full h-full border-0"
-                  allow="encrypted-media; fullscreen; picture-in-picture"
+                  allow="encrypted-media; fullscreen; picture-in-picture; autoplay"
                   allowFullScreen
                   title={video.title || video.video_description || 'TikTok video'}
                 />

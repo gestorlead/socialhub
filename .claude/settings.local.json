@@ -55,7 +55,8 @@
       "Bash(git commit:*)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "mcp__supabase__search_docs"
+      "mcp__supabase__search_docs",
+      "mcp__playwright__browser_navigate"
     ],
     "deny": []
   }

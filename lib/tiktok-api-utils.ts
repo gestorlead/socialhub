@@ -75,7 +75,7 @@ export function transformDatabaseVideoToTikTokFormat(dbVideo: any): any {
     video_description: dbVideo.description,
     share_url: dbVideo.share_url,
     embed_link: dbVideo.embed_link,
-    embed_html: dbVideo.embed_link, // Use embed_link as fallback
+    embed_html: dbVideo.embed_html, // Keep original embed_html if available
     cover_image_url: dbVideo.cover_image_url,
     create_time: dbVideo.create_time ? Math.floor(new Date(dbVideo.create_time).getTime() / 1000) : undefined,
     duration: dbVideo.duration,
