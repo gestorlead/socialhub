@@ -2,14 +2,13 @@
 
 import { useAuth } from "@/lib/supabase-auth-helpers"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { ConnectionDebug } from "@/components/debug/connection-debug"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
 import { useTikTokTokenStatus } from "@/hooks/use-tiktok-token-status"
 import { useTikTokLiveStats } from "@/hooks/use-tiktok-live-stats"
 import { TokenStatusIndicator } from "@/components/token-status-indicator"
 import { TikTokStatCard } from "@/components/tiktok-stat-card"
 import { useEffect, useState } from "react"
-import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Play, Heart, Clock, AlertTriangle, Unlink, Key, Copy, Eye, EyeOff, Edit3, TrendingUp } from "lucide-react"
+import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Play, Heart, Clock, Unlink, Edit3, TrendingUp, Eye } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -19,8 +18,6 @@ export default function TikTokPage() {
   const { status: tokenStatus, refreshToken: refreshTokenStatus, refetch: refetchStatus } = useTikTokTokenStatus()
   const [refreshing, setRefreshing] = useState(false)
   const [refreshingToken, setRefreshingToken] = useState(false)
-  const [showToken, setShowToken] = useState(false)
-  const [copiedToken, setCopiedToken] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
 
   const tiktokConnection = getConnection('tiktok')
@@ -80,26 +77,6 @@ export default function TikTokPage() {
   }
 
 
-  const copyToken = async () => {
-    if (!tiktokConnection?.access_token) return
-    
-    try {
-      await navigator.clipboard.writeText(tiktokConnection.access_token)
-      setCopiedToken(true)
-      setTimeout(() => setCopiedToken(false), 2000)
-    } catch (error) {
-    }
-  }
-
-  const hasVideoPublishScope = () => {
-    if (!tiktokConnection?.scope) return false
-    
-    // Normalize scope string and check for video.publish
-    const scope = tiktokConnection.scope.toLowerCase().replace(/\s+/g, '')
-    return scope.includes('video.publish') || 
-           scope.includes('video_publish') ||
-           scope.includes('videopublish')
-  }
 
   const handleRefreshToken = async () => {
     if (!user) return
@@ -142,8 +119,6 @@ export default function TikTokPage() {
             </p>
           </div>
 
-          {/* Debug Component - Remove after fixing */}
-          <ConnectionDebug />
 
           <div className="flex items-center justify-center h-96">
             <div className="text-center space-y-6 max-w-md">
@@ -160,10 +135,7 @@ export default function TikTokPage() {
                   Para começar a gerenciar seu conteúdo, você precisa conectar sua conta do TikTok.
                 </p>
                 <button 
-                  onClick={() => {
-                    console.log('TikTok connect button clicked', { connectTikTok, user, isConnected: isConnected('tiktok') })
-                    connectTikTok()
-                  }}
+                  onClick={() => connectTikTok()}
                   className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
                 >
                   Conectar TikTok
@@ -491,91 +463,6 @@ export default function TikTokPage() {
           </div>
         </div>
 
-        {/* Developer Token Section */}
-        <div className="bg-card border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Key className="w-5 h-5" />
-              Token para Publicação de Conteúdo
-            </h3>
-            <div className="flex items-center gap-2 text-sm">
-              {hasVideoPublishScope() ? (
-                <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Habilitado para publicar
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  Sem permissão para publicar
-                </span>
-              )}
-            </div>
-          </div>
-
-          {hasVideoPublishScope() ? (
-            <div className="space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Key className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                      Access Token para API
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-white dark:bg-gray-800 border rounded px-3 py-2 text-sm font-mono break-all">
-                          {showToken 
-                            ? tiktokConnection?.access_token 
-                            : '•'.repeat(tiktokConnection?.access_token?.length || 0)
-                          }
-                        </code>
-                        <button
-                          onClick={() => setShowToken(!showToken)}
-                          className="p-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                          title={showToken ? 'Ocultar token' : 'Mostrar token'}
-                        >
-                          {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                        <button
-                          onClick={copyToken}
-                          className="p-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                          title="Copiar token"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                      </div>
-                      {copiedToken && (
-                        <p className="text-sm text-green-600 dark:text-green-400">
-                          Token copiado para a área de transferência!
-                        </p>
-                      )}
-                    </div>
-                    <div className="mt-3 text-sm text-blue-700 dark:text-blue-300">
-                      <p><strong>Open ID:</strong> {tiktokConnection?.profile_data?.open_id}</p>
-                      <p className="mt-1">
-                        <strong>Uso:</strong> Use este token para fazer requisições à Content Posting API do TikTok
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          ) : (
-            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                <div className="text-sm text-red-800 dark:text-red-200">
-                  <p className="font-medium">Escopo video.publish não encontrado</p>
-                  <p>Reconecte sua conta para obter permissões de publicação</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </DashboardLayout>
   )
