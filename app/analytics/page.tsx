@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
                   <Link
-                    href="/analise/tiktok"
+                    href="/analytics/tiktok"
                     className="opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Button variant="ghost" size="sm">
@@ -174,7 +174,7 @@ export default function AnalyticsPage() {
                     </span>
                   </div>
                 </div>
-                <Link href="/analise/tiktok" className="block mt-4">
+                <Link href="/analytics/tiktok" className="block mt-4">
                   <Button className="w-full" variant="outline">
                     Ver Análise Completa
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Conecte sua conta do TikTok para ver análises detalhadas
                 </p>
-                <Link href="/redes/tiktok">
+                <Link href="/networks/tiktok">
                   <Button className="w-full" variant="outline">
                     Conectar TikTok
                   </Button>
@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
                       </p>
                     </div>
                   </div>
-                  <Link href="/analise/tiktok">
+                  <Link href="/analytics/tiktok">
                     <Button variant="ghost" size="sm">
                       Ver Detalhes
                       <ArrowRight className="w-4 h-4 ml-2" />

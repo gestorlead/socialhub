@@ -292,7 +292,7 @@ export default function PublishPage() {
               </p>
               {!tiktokConnection && (
                 <Link 
-                  href="/redes/tiktok"
+                  href="/networks/tiktok"
                   className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
                 >
                   Conectar TikTok

@@ -441,7 +441,7 @@ export default function TikTokPage() {
           <h3 className="text-lg font-semibold mb-4">Ações Disponíveis</h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Link
-              href="/publicar"
+              href="/publish"
               className="group p-4 border rounded-lg hover:border-green-200 dark:hover:border-green-800 hover:bg-green-50 dark:hover:bg-green-950 transition-all duration-200"
             >
               <div className="flex items-center gap-3 mb-2">
@@ -456,7 +456,7 @@ export default function TikTokPage() {
             </Link>
             
             <Link
-              href="/analise/tiktok"
+              href="/analytics/tiktok"
               className="group p-4 border rounded-lg hover:border-blue-200 dark:hover:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all duration-200"
             >
               <div className="flex items-center gap-3 mb-2">

@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
               Conecte sua conta do TikTok para visualizar suas análises de performance
             </p>
             <Button asChild>
-              <a href="/redes/tiktok">Conectar TikTok</a>
+              <a href="/networks/tiktok">Conectar TikTok</a>
             </Button>
           </div>
         </div>

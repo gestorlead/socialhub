@@ -108,7 +108,7 @@ export default function Home() {
           )}
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Link href="/publicar" className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer">
+            <Link href="/publish" className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">

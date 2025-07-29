@@ -8,6 +8,32 @@ import { validateAuthentication, isProtectedPath } from '@/lib/middleware-auth'
  * Handles authentication, authorization, and security headers
  */
 export async function middleware(req: NextRequest) {
+  // Handle route redirections from Portuguese to English URLs
+  const { pathname } = req.nextUrl
+  
+  // Route redirections mapping
+  const routeRedirects: Record<string, string> = {
+    '/configuracoes': '/settings',
+    '/configuracoes/perfil': '/settings/profile',
+    '/analise': '/analytics',
+    '/analise/tiktok': '/analytics/tiktok',
+    '/publicar': '/publish',
+    '/redes': '/networks',
+    '/redes/tiktok': '/networks/tiktok',
+    '/integracoes': '/integrations',
+    '/integracoes/tiktok': '/integrations/tiktok',
+    '/admin/integracoes': '/admin/integrations'
+  }
+  
+  // Check if current path matches any old route
+  const redirectPath = routeRedirects[pathname]
+  if (redirectPath) {
+    const redirectUrl = new URL(redirectPath, req.url)
+    // Preserve query parameters
+    redirectUrl.search = req.nextUrl.search
+    return NextResponse.redirect(redirectUrl, 301) // Permanent redirect
+  }
+
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 

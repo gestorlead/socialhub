@@ -100,7 +100,7 @@ export default function Home() {
           )}
           
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Link href="/publicar" className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer">
+            <Link href="/publish" className="rounded-lg border bg-card p-4 hover:shadow-md transition-shadow cursor-pointer">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
@@ -178,7 +178,7 @@ export default function Home() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {/* TikTok */}
               {isConnected('tiktok') ? (
-                <Link href="/redes/tiktok" className="relative overflow-hidden rounded-lg border bg-gradient-to-br from-gray-900 to-black p-4 text-white hover:shadow-lg transition-shadow cursor-pointer group">
+                <Link href="/networks/tiktok" className="relative overflow-hidden rounded-lg border bg-gradient-to-br from-gray-900 to-black p-4 text-white hover:shadow-lg transition-shadow cursor-pointer group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center p-2 group-hover:bg-white/30 transition-colors">

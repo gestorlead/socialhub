@@ -24,68 +24,68 @@ export interface MenuGroup {
   items: MenuItem[]
 }
 
-// Grupo Redes Sociais - Todos os usuários
-export const redesGroup: MenuGroup = {
-  id: 'redes',
-  label: 'Redes Sociais',
+// Grupo Networks - Todos os usuários
+export const networksGroup: MenuGroup = {
+  id: 'networks',
+  label: 'Networks',
   requiredRole: UserRole.USER,
   items: [
     {
       id: 'tiktok',
       label: 'TikTok',
-      href: '/redes/tiktok',
+      href: '/networks/tiktok',
       requiredRole: UserRole.USER
     },
     {
       id: 'instagram',
       label: 'Instagram',
-      href: '/redes/instagram',
+      href: '/networks/instagram',
       requiredRole: UserRole.USER
     },
     {
       id: 'facebook',
       label: 'Facebook',
-      href: '/redes/facebook',
+      href: '/networks/facebook',
       requiredRole: UserRole.USER
     },
     {
       id: 'linkedin',
       label: 'LinkedIn',
-      href: '/redes/linkedin',
+      href: '/networks/linkedin',
       requiredRole: UserRole.USER
     },
     {
       id: 'youtube',
       label: 'YouTube',
-      href: '/redes/youtube',
+      href: '/networks/youtube',
       requiredRole: UserRole.USER
     },
     {
       id: 'threads',
       label: 'Threads',
-      href: '/redes/threads',
+      href: '/networks/threads',
       requiredRole: UserRole.USER
     }
   ]
 }
 
-// Grupo Conteúdo - Todos os usuários
-export const conteudoGroup: MenuGroup = {
-  id: 'conteudo',
-  label: 'Conteúdo',
+// Grupo Content - Todos os usuários
+export const contentGroup: MenuGroup = {
+  id: 'content',
+  label: 'Content',
   requiredRole: UserRole.USER,
   items: [
     {
-      id: 'publicar',
-      label: 'Publicar',
-      href: '/publicar',
+      id: 'publish',
+      label: 'Publish',
+      href: '/publish',
       icon: Edit3,
       requiredRole: UserRole.USER
     },
     {
-      id: 'analise',
-      label: 'Análise',
-      href: '/analise',
+      id: 'analytics',
+      label: 'Analytics',
+      href: '/analytics',
       icon: BarChart3,
       requiredRole: UserRole.USER
     }
@@ -99,44 +99,44 @@ export const settingsGroup: MenuGroup = {
   requiredRole: UserRole.ADMIN,
   items: [
     {
-      id: 'equipes',
-      label: 'Equipes',
-      href: '/settings/equipes',
+      id: 'teams',
+      label: 'Teams',
+      href: '/settings/teams',
       icon: UserCog,
       requiredRole: UserRole.ADMIN
     },
     {
-      id: 'usuarios',
-      label: 'Usuários',
-      href: '/settings/usuarios',
+      id: 'users',
+      label: 'Users',
+      href: '/settings/users',
       icon: Users,
       requiredRole: UserRole.ADMIN
     }
   ]
 }
 
-// Grupo Integrações - Super Admin
-export const integracoesGroup: MenuGroup = {
-  id: 'integracoes',
-  label: 'Integrações',
+// Grupo Integrations - Super Admin
+export const integrationsGroup: MenuGroup = {
+  id: 'integrations',
+  label: 'Integrations',
   requiredRole: UserRole.SUPER_ADMIN,
   items: [
     {
       id: 'tiktok-integration',
       label: 'TikTok',
-      href: '/integracoes/tiktok',
+      href: '/integrations/tiktok',
       requiredRole: UserRole.SUPER_ADMIN
     },
     {
       id: 'meta-integration',
       label: 'Meta',
-      href: '/integracoes/meta',
+      href: '/integrations/meta',
       requiredRole: UserRole.SUPER_ADMIN
     },
     {
       id: 'google-integration',
       label: 'Google',
-      href: '/integracoes/google',
+      href: '/integrations/google',
       requiredRole: UserRole.SUPER_ADMIN
     }
   ]
@@ -152,11 +152,16 @@ export const dashboardItem: MenuItem = {
 }
 
 export const menuGroups: MenuGroup[] = [
-  redesGroup,
-  conteudoGroup,
+  networksGroup,
+  contentGroup,
   settingsGroup,
-  integracoesGroup
+  integrationsGroup
 ]
+
+// Compatibility exports (deprecated - use new names)
+export const redesGroup = networksGroup
+export const conteudoGroup = contentGroup
+export const integracoesGroup = integrationsGroup
 
 export const getMenuGroupsForRole = (userRole: UserRole): MenuGroup[] => {
   return menuGroups.filter(group => userRole >= group.requiredRole)
