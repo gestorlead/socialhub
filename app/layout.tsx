@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/supabase-auth-helpers";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NextIntlClientProvider } from 'next-intl';
 import { getUserLocale } from '@/lib/locale-server';
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,6 +60,7 @@ export default async function RootLayout({
           >
             <AuthProvider>
               {children}
+              <Toaster />
             </AuthProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

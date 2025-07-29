@@ -17,7 +17,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { LogOut, User2 } from "lucide-react"
+import { LogOut, User2, Settings } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "./ui/button"
@@ -126,15 +126,28 @@ export function AppSidebar() {
                 <User2 className="h-4 w-4" />
                 <span>{user?.email}</span>
               </div>
-              <Button 
-                onClick={handleSignOut}
-                variant="outline" 
-                size="sm"
-                className="w-full justify-start"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign out
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  asChild
+                  variant="outline" 
+                  size="sm"
+                  className="flex-1 justify-start"
+                >
+                  <Link href="/profile/edit">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Editar Perfil
+                  </Link>
+                </Button>
+                <Button 
+                  onClick={handleSignOut}
+                  variant="outline" 
+                  size="sm"
+                  className="flex-1 justify-start"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </Button>
+              </div>
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
