@@ -5,15 +5,15 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
  * Comprehensive authentication validation for middleware
  * Handles multiple session detection methods and fallbacks
  */
-export async function validateAuthentication(req: NextRequest) {
+export async function validateAuthentication(req: NextRequest, res?: NextResponse) {
   // Method 1: Standard Supabase session with error handling
   let session = null
   let sessionError = null
   
   try {
-    // Create middleware client with proper NextResponse for cookie handling
-    const res = NextResponse.next()
-    const supabase = createMiddlewareClient({ req, res })
+    // Use provided response or create new one
+    const response = res || NextResponse.next()
+    const supabase = createMiddlewareClient({ req, res: response })
     
     const { data, error } = await supabase.auth.getSession()
     session = data.session
@@ -33,12 +33,23 @@ export async function validateAuthentication(req: NextRequest) {
 
   // Method 3: Direct cookie inspection
   const hostname = req.headers.get('host') || 'localhost'
+  
+  // Extract the Supabase project ref from environment
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const projectRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || ''
+  
   const authCookiePatterns = [
     `sb-${hostname}-auth-token`,
+    `sb-${projectRef}-auth-token`,
     'sb-127.0.0.1-auth-token', 
     'sb-localhost-auth-token',
     'supabase-auth-token'
   ]
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🍪 Cookie patterns checked:', authCookiePatterns)
+    console.log('🍪 Available cookies:', req.cookies.getAll().map(c => c.name))
+  }
   
   const hasAuthCookies = authCookiePatterns.some(pattern => {
     const cookie = req.cookies.get(pattern)

@@ -21,7 +21,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, signInWithOAuth } = useAuth()
+  const { signIn } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -50,11 +50,11 @@ export function LoginForm({
       document.cookie = `sh-login-success=true; path=/; max-age=60`
       document.cookie = `sh-login-timestamp=${Date.now()}; path=/; max-age=60`
       
-      // Brief delay to ensure cookies are set before redirect
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // Wait a bit longer to ensure session is properly established
+      await new Promise(resolve => setTimeout(resolve, 500))
       
-      // Direct redirect to app
-      router.push(redirectTo)
+      // Use window.location for hard redirect to ensure middleware runs
+      window.location.href = redirectTo
       
     } catch (error: any) {
       setError(error.message)
@@ -62,22 +62,6 @@ export function LoginForm({
     }
   }
 
-  const handleGoogleLogin = async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const { error } = await signInWithOAuth('google')
-
-      if (error) {
-        setError(error.message)
-        setLoading(false)
-      }
-    } catch (error: any) {
-      setError(error.message)
-      setLoading(false)
-    }
-  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -135,15 +119,6 @@ export function LoginForm({
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Loading..." : "Login"}
-                </Button>
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  className="w-full"
-                  onClick={handleGoogleLogin}
-                  disabled={loading}
-                >
-                  Login with Google
                 </Button>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import { LoginForm } from "@/components/login-form"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { AuthDebug } from "@/components/auth-debug"
 
 export default function Page() {
   return (
@@ -11,7 +10,6 @@ export default function Page() {
       <div className="w-full max-w-sm">
         <LoginForm />
       </div>
-      <AuthDebug />
     </div>
   )
 }

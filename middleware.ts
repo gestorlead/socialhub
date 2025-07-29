@@ -12,20 +12,21 @@ export async function middleware(req: NextRequest) {
   const supabase = createMiddlewareClient({ req, res })
 
   // Add security headers
-  res.headers.set('X-Frame-Options', 'DENY')
+  res.headers.set('X-Frame-Options', 'SAMEORIGIN')
   res.headers.set('X-Content-Type-Options', 'nosniff')
   res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.headers.set('X-XSS-Protection', '1; mode=block')
   
   // Add CSP header for enhanced security
-  if (process.env.NODE_ENV === 'production') {
+  if (false && process.env.NODE_ENV === 'production') {
     res.headers.set('Content-Security-Policy', 
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live; " +
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://*.tiktok.com https://*.tiktokcdn.com; " +
       "style-src 'self' 'unsafe-inline'; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data:; " +
       "connect-src 'self' https://*.supabase.co https://*.supabase.in https://vercel.live wss://vercel.live; " +
+      "frame-src 'self' https://*.tiktok.com https://*.tiktokcdn.com https://www.tiktok.com; " +
       "frame-ancestors 'none';"
     )
   }
@@ -44,7 +45,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Validate authentication using comprehensive method
-    const authResult = await validateAuthentication(req)
+    const authResult = await validateAuthentication(req, res)
     const { isAuthenticated, session, user } = authResult
 
     // Redirect unauthenticated users to login

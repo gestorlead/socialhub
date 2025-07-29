@@ -12,7 +12,6 @@ interface AuthContextType {
   loading: boolean
   userRole: UserRole
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
-  signInWithOAuth: (provider: 'google' | 'facebook' | 'github') => Promise<{ error: Error | null }>
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   hasRole: (minLevel: UserRole) => boolean
@@ -131,18 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profileData = await fetchProfile(session.user.id)
         setProfile(profileData)
         
-        // Se for um SIGNED_IN event, forçar um refresh da sessão para garantir persistência
-        if (_event === 'SIGNED_IN') {
-          console.log('[Auth] Forcing session refresh after OAuth login')
-          try {
-            // Aguarda um momento antes do refresh para garantir que a sessão inicial foi estabelecida
-            await new Promise(resolve => setTimeout(resolve, 500))
-            await supabase.auth.refreshSession()
-            console.log('[Auth] Session refresh completed successfully')
-          } catch (error) {
-            console.warn('[Auth] Session refresh failed:', error)
-          }
-        }
+        // Remover refresh forçado que pode estar causando conflitos
+        // A sessão já está estabelecida adequadamente
       } else {
         setProfile(null)
       }
@@ -174,25 +163,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshProfile,
     signIn: async (email: string, password: string) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      return { error }
-    },
-    signInWithOAuth: async (provider: 'google' | 'facebook' | 'github') => {
-      // Usa sempre a origem atual para callback em desenvolvimento
-      const redirectTo = typeof window !== 'undefined' 
-        ? `${window.location.origin}/auth/callback`
-        : (process.env.NODE_ENV === 'development' 
-            ? 'http://localhost:3001/auth/callback'
-            : process.env.NEXT_PUBLIC_SUPABASE_URL_CALLBACK || 'https://socialhub.gestorlead.com.br/auth/callback'
-          )
-      
-      console.log('OAuth redirect URL:', redirectTo)
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: redirectTo
-        }
-      })
       return { error }
     },
     signUp: async (email: string, password: string) => {
