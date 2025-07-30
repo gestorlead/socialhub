@@ -33,7 +33,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
-      console.log('[Auth] Fetching profile for user:', userId)
       
       // Seguindo as melhores práticas do Supabase: sempre adicionar filtro
       // Busca perfil com roles em uma única query otimizada
@@ -56,7 +55,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Se perfil não existe (código PGRST116), o trigger deve ter criado
         // Aguarda um momento e tenta novamente
         if (error.code === 'PGRST116') {
-          console.log('[Auth] Profile not found, waiting for trigger creation...')
           
           // Aguarda 500ms para o trigger ter tempo de criar o perfil
           await new Promise(resolve => setTimeout(resolve, 500))
@@ -78,22 +76,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .single()
             
           if (retryError) {
-            console.error('[Auth] Profile still not found after retry:', retryError)
             return null
           }
           
-          console.log('[Auth] Profile fetched successfully on retry')
           return retryData as Profile
         }
         
-        console.error('[Auth] Error fetching profile:', error)
         return null
       }
 
-      console.log('[Auth] Profile fetched successfully')
       return data as Profile
     } catch (error) {
-      console.error('[Auth] Unexpected error in fetchProfile:', error)
       return null
     }
   }
@@ -107,20 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const setData = async () => {
-      console.log('🔐 AuthProvider: Initial session fetch')
       const { data: { session }, error } = await supabase.auth.getSession()
       
       if (error) {
-        console.error('🔐 AuthProvider: Session fetch error:', error)
         throw error
       }
-      
-      console.log('🔐 AuthProvider: Initial session state:', {
-        hasSession: !!session,
-        userEmail: session?.user?.email,
-        expiresAt: session?.expires_at ? new Date(session.expires_at * 1000) : 'No expiry',
-        hasAccessToken: !!session?.access_token
-      })
       
       setSession(session)
       setUser(session?.user ?? null)
@@ -136,9 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('🔐 Auth state change:', _event, session?.user?.email, window.location.pathname)
-      console.log('🔐 Session expires at:', session?.expires_at ? new Date(session.expires_at * 1000) : 'No expiry')
-      console.log('🔐 Session token exists:', !!session?.access_token)
       
       setSession(session)
       setUser(session?.user ?? null)
@@ -246,10 +227,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null)
         setSession(null)
         
-        console.log('✅ Logout completed - all cookies cleared')
         return { error }
       } catch (error) {
-        console.error('SignOut error:', error)
         
         // Clear local state even if there's an error
         setUser(null)
