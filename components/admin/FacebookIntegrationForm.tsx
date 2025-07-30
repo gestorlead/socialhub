@@ -24,21 +24,30 @@ import {
   Info,
   Database,
   FileText,
-  Instagram,
+  Facebook,
   Settings,
   Shield,
   Globe,
-  Camera,
-  Film,
-  Image
+  Users,
+  Calendar,
+  Target,
+  Plus,
+  Trash2
 } from 'lucide-react'
 
-interface InstagramSettings {
+interface FacebookPage {
+  id: string
+  name: string
+  access_token: string
+  category: string
+  is_active: boolean
+}
+
+interface FacebookSettings {
   id?: string
   app_id?: string
   app_secret?: string
   access_token?: string
-  instagram_business_account_id?: string
   api_version: string
   environment: 'development' | 'production'
   is_active: boolean
@@ -46,11 +55,22 @@ interface InstagramSettings {
   webhook_url?: string
   webhook_verify_token?: string
   permissions?: string[]
-  content_types?: {
-    posts: boolean
-    stories: boolean
-    reels: boolean
-    igtv: boolean
+  pages?: FacebookPage[]
+  privacy_settings?: {
+    default_privacy: 'PUBLIC' | 'FRIENDS' | 'ONLY_ME' | 'CUSTOM'
+    allow_message_replies: boolean
+    restrict_location: boolean
+  }
+  scheduling?: {
+    enabled: boolean
+    max_scheduled_posts: number
+    min_schedule_minutes: number
+  }
+  audience_targeting?: {
+    enabled: boolean
+    default_age_min?: number
+    default_age_max?: number
+    default_countries?: string[]
   }
   config_data?: {
     source?: string
@@ -68,22 +88,33 @@ interface TestResult {
 interface TestResults {
   credentials: TestResult
   permissions: TestResult
-  business_account: TestResult
+  pages_access: TestResult
   api_access: TestResult
 }
 
-export function InstagramIntegrationForm() {
+export function FacebookIntegrationForm() {
   const { user } = useAuth()
-  const [settings, setSettings] = useState<InstagramSettings>({
+  const [settings, setSettings] = useState<FacebookSettings>({
     api_version: 'v18.0',
     environment: 'development',
     is_active: true,
-    permissions: ['instagram_basic', 'instagram_content_publish', 'instagram_manage_insights'],
-    content_types: {
-      posts: true,
-      stories: true,
-      reels: true,
-      igtv: false
+    permissions: ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts'],
+    pages: [],
+    privacy_settings: {
+      default_privacy: 'PUBLIC',
+      allow_message_replies: true,
+      restrict_location: false
+    },
+    scheduling: {
+      enabled: true,
+      max_scheduled_posts: 50,
+      min_schedule_minutes: 10
+    },
+    audience_targeting: {
+      enabled: false,
+      default_age_min: 18,
+      default_age_max: 65,
+      default_countries: []
     }
   })
   
@@ -93,7 +124,8 @@ export function InstagramIntegrationForm() {
   const [showSecrets, setShowSecrets] = useState({
     app_secret: false,
     access_token: false,
-    webhook_verify_token: false
+    webhook_verify_token: false,
+    page_tokens: {} as Record<string, boolean>
   })
   
   const [testResults, setTestResults] = useState<{
@@ -105,6 +137,13 @@ export function InstagramIntegrationForm() {
   
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [newPageForm, setNewPageForm] = useState({
+    id: '',
+    name: '',
+    access_token: '',
+    category: '',
+    is_active: true
+  })
 
   const apiVersions = [
     'v18.0',
@@ -114,13 +153,21 @@ export function InstagramIntegrationForm() {
   ]
 
   const availablePermissions = [
-    { id: 'instagram_basic', name: 'Instagram Basic', required: true },
-    { id: 'instagram_content_publish', name: 'Content Publishing', required: true },
-    { id: 'instagram_manage_insights', name: 'Manage Insights', required: false },
-    { id: 'instagram_manage_comments', name: 'Manage Comments', required: false },
-    { id: 'instagram_manage_messages', name: 'Manage Messages', required: false },
     { id: 'pages_show_list', name: 'Show Page List', required: true },
-    { id: 'pages_read_engagement', name: 'Read Page Engagement', required: false }
+    { id: 'pages_read_engagement', name: 'Read Page Engagement', required: true },
+    { id: 'pages_manage_posts', name: 'Manage Posts', required: true },
+    { id: 'pages_manage_metadata', name: 'Manage Page Metadata', required: false },
+    { id: 'pages_read_user_content', name: 'Read User Content', required: false },
+    { id: 'pages_manage_ads', name: 'Manage Ads', required: false },
+    { id: 'pages_manage_engagement', name: 'Manage Engagement', required: false },
+    { id: 'pages_messaging', name: 'Page Messaging', required: false }
+  ]
+
+  const privacyOptions = [
+    { value: 'PUBLIC', label: 'Public' },
+    { value: 'FRIENDS', label: 'Friends' },
+    { value: 'ONLY_ME', label: 'Only Me' },
+    { value: 'CUSTOM', label: 'Custom' }
   ]
 
   // Load current settings
@@ -130,10 +177,21 @@ export function InstagramIntegrationForm() {
 
   const getAuthToken = async () => {
     try {
-      const { data: { session } } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
-      return session?.access_token || ''
+      const { data: { session }, error } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
+      if (error) {
+        console.error('Session error:', error)
+        setErrorMessage('Authentication error. Please refresh and try again.')
+        return ''
+      }
+      if (!session?.access_token) {
+        console.error('No valid session found')
+        setErrorMessage('No valid session. Please log in again.')
+        return ''
+      }
+      return session.access_token
     } catch (error) {
       console.error('Error getting auth token:', error)
+      setErrorMessage('Failed to authenticate. Please refresh and try again.')
       return ''
     }
   }
@@ -141,16 +199,8 @@ export function InstagramIntegrationForm() {
   const loadSettings = async () => {
     try {
       setLoading(true)
-      setErrorMessage('') // Clear any previous errors
       const token = await getAuthToken()
-      
-      // If no token, just set loading to false without showing error
-      if (!token) {
-        setLoading(false)
-        return
-      }
-      
-      const response = await fetch('/api/admin/integrations/instagram', {
+      const response = await fetch('/api/admin/integrations/facebook', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -161,14 +211,10 @@ export function InstagramIntegrationForm() {
         setSettings(data.data)
       } else {
         const error = await response.json()
-        // Only show error if it's not an authentication error for initial load
-        if (response.status !== 401) {
-          setErrorMessage(error.error || 'Failed to load settings')
-        }
+        setErrorMessage(error.error || 'Failed to load settings')
       }
     } catch (error) {
-      console.error('Error loading settings:', error)
-      // Don't show error message for network/loading errors on initial load
+      setErrorMessage('Failed to load settings')
     } finally {
       setLoading(false)
     }
@@ -188,13 +234,7 @@ export function InstagramIntegrationForm() {
       }
       
       const token = await getAuthToken()
-      if (!token) {
-        setErrorMessage('Please sign in to save settings')
-        setSaving(false)
-        return
-      }
-      
-      const response = await fetch('/api/admin/integrations/instagram', {
+      const response = await fetch('/api/admin/integrations/facebook', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -222,16 +262,9 @@ export function InstagramIntegrationForm() {
     try {
       setTesting(true)
       setTestResults(null)
-      setErrorMessage('')
       
       const token = await getAuthToken()
-      if (!token) {
-        setErrorMessage('Please sign in to test connection')
-        setTesting(false)
-        return
-      }
-      
-      const response = await fetch('/api/admin/integrations/instagram/test', {
+      const response = await fetch('/api/admin/integrations/facebook/test', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -250,26 +283,56 @@ export function InstagramIntegrationForm() {
     }
   }
 
-  const toggleSecretVisibility = (field: keyof typeof showSecrets) => {
-    setShowSecrets(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }))
+  const toggleSecretVisibility = (field: keyof typeof showSecrets, pageId?: string) => {
+    if (field === 'page_tokens' && pageId) {
+      setShowSecrets(prev => ({
+        ...prev,
+        page_tokens: {
+          ...prev.page_tokens,
+          [pageId]: !prev.page_tokens[pageId]
+        }
+      }))
+    } else {
+      setShowSecrets(prev => ({
+        ...prev,
+        [field]: !prev[field]
+      }))
+    }
   }
 
-  const handleInputChange = (field: keyof InstagramSettings, value: any) => {
+  const handleInputChange = (field: keyof FacebookSettings, value: any) => {
     setSettings(prev => ({
       ...prev,
       [field]: value
     }))
   }
 
-  const handleContentTypeChange = (type: keyof InstagramSettings['content_types'], checked: boolean) => {
+  const handlePrivacyChange = (field: keyof FacebookSettings['privacy_settings'], value: any) => {
     setSettings(prev => ({
       ...prev,
-      content_types: {
-        ...prev.content_types,
-        [type]: checked
+      privacy_settings: {
+        ...prev.privacy_settings,
+        [field]: value
+      }
+    }))
+  }
+
+  const handleSchedulingChange = (field: keyof FacebookSettings['scheduling'], value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      scheduling: {
+        ...prev.scheduling,
+        [field]: value
+      }
+    }))
+  }
+
+  const handleTargetingChange = (field: keyof FacebookSettings['audience_targeting'], value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      audience_targeting: {
+        ...prev.audience_targeting,
+        [field]: value
       }
     }))
   }
@@ -280,6 +343,43 @@ export function InstagramIntegrationForm() {
       permissions: prev.permissions?.includes(permissionId)
         ? prev.permissions.filter(p => p !== permissionId)
         : [...(prev.permissions || []), permissionId]
+    }))
+  }
+
+  const addPage = () => {
+    if (!newPageForm.id || !newPageForm.name || !newPageForm.access_token) {
+      setErrorMessage('Page ID, name, and access token are required')
+      return
+    }
+
+    setSettings(prev => ({
+      ...prev,
+      pages: [...(prev.pages || []), newPageForm]
+    }))
+
+    // Reset form
+    setNewPageForm({
+      id: '',
+      name: '',
+      access_token: '',
+      category: '',
+      is_active: true
+    })
+  }
+
+  const removePage = (pageId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      pages: prev.pages?.filter(p => p.id !== pageId) || []
+    }))
+  }
+
+  const togglePageActive = (pageId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      pages: prev.pages?.map(p => 
+        p.id === pageId ? { ...p, is_active: !p.is_active } : p
+      ) || []
     }))
   }
 
@@ -328,10 +428,11 @@ export function InstagramIntegrationForm() {
       )}
 
       <Tabs defaultValue="credentials" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="credentials">Credentials</TabsTrigger>
+          <TabsTrigger value="pages">Pages</TabsTrigger>
           <TabsTrigger value="permissions">Permissions</TabsTrigger>
-          <TabsTrigger value="content">Content Types</TabsTrigger>
+          <TabsTrigger value="privacy">Privacy</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
@@ -348,7 +449,7 @@ export function InstagramIntegrationForm() {
                       type="text"
                       value={settings.app_id || ''}
                       onChange={(e) => handleInputChange('app_id', e.target.value)}
-                      placeholder="Enter Instagram App ID"
+                      placeholder="Enter Facebook App ID"
                       required
                     />
                   </div>
@@ -379,14 +480,14 @@ export function InstagramIntegrationForm() {
 
                   {/* Access Token */}
                   <div className="md:col-span-2">
-                    <Label htmlFor="access_token">Access Token (Long-lived)</Label>
+                    <Label htmlFor="access_token">User Access Token</Label>
                     <div className="space-y-2">
                       <div className="relative">
                         <Textarea
                           id="access_token"
                           value={settings.access_token || ''}
                           onChange={(e) => handleInputChange('access_token', e.target.value)}
-                          placeholder="Enter long-lived access token"
+                          placeholder="Enter user access token"
                           className="min-h-[80px] pr-10"
                         />
                         <Button
@@ -401,32 +502,125 @@ export function InstagramIntegrationForm() {
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-muted-foreground">
-                          Get a long-lived access token through Instagram OAuth
+                          Get access token and page information through Facebook OAuth
                         </p>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open('/api/auth/instagram', '_blank')}
+                          onClick={() => window.open('/api/auth/facebook', '_blank')}
                           className="flex items-center gap-2"
                         >
-                          <Instagram className="w-4 h-4" />
-                          Connect Instagram
+                          <Facebook className="w-4 h-4" />
+                          Connect Facebook
                         </Button>
                       </div>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                  {/* Instagram Business Account ID */}
-                  <div className="md:col-span-2">
-                    <Label htmlFor="instagram_business_account_id">Instagram Business Account ID</Label>
-                    <Input
-                      id="instagram_business_account_id"
-                      type="text"
-                      value={settings.instagram_business_account_id || ''}
-                      onChange={(e) => handleInputChange('instagram_business_account_id', e.target.value)}
-                      placeholder="Enter Instagram Business Account ID"
-                    />
+          <TabsContent value="pages" className="space-y-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Facebook Pages</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Add and manage Facebook pages for content publishing
+                    </p>
+                  </div>
+
+                  {/* Existing Pages */}
+                  {settings.pages && settings.pages.length > 0 && (
+                    <div className="space-y-3 mb-6">
+                      {settings.pages.map(page => (
+                        <div key={page.id} className="flex items-center justify-between p-4 rounded-lg border">
+                          <div className="flex items-center space-x-3">
+                            <div>
+                              <p className="font-medium">{page.name}</p>
+                              <p className="text-xs text-muted-foreground">ID: {page.id}</p>
+                              {page.category && (
+                                <Badge variant="secondary" className="text-xs mt-1">{page.category}</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={page.is_active}
+                              onCheckedChange={() => togglePageActive(page.id)}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removePage(page.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add New Page Form */}
+                  <div className="p-4 border rounded-lg bg-muted/50">
+                    <h4 className="font-medium mb-3">Add New Page</h4>
+                    <div className="grid gap-3">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div>
+                          <Label htmlFor="new_page_id">Page ID</Label>
+                          <Input
+                            id="new_page_id"
+                            type="text"
+                            value={newPageForm.id}
+                            onChange={(e) => setNewPageForm(prev => ({ ...prev, id: e.target.value }))}
+                            placeholder="Enter page ID"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="new_page_name">Page Name</Label>
+                          <Input
+                            id="new_page_name"
+                            type="text"
+                            value={newPageForm.name}
+                            onChange={(e) => setNewPageForm(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="Enter page name"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="new_page_token">Page Access Token</Label>
+                        <Input
+                          id="new_page_token"
+                          type="password"
+                          value={newPageForm.access_token}
+                          onChange={(e) => setNewPageForm(prev => ({ ...prev, access_token: e.target.value }))}
+                          placeholder="Enter page access token"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new_page_category">Category (optional)</Label>
+                        <Input
+                          id="new_page_category"
+                          type="text"
+                          value={newPageForm.category}
+                          onChange={(e) => setNewPageForm(prev => ({ ...prev, category: e.target.value }))}
+                          placeholder="e.g., Business, Media, etc."
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={addPage}
+                        className="w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Page
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -440,7 +634,7 @@ export function InstagramIntegrationForm() {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Required Permissions</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Select the permissions your app needs for Instagram integration
+                      Select the permissions your app needs for Facebook integration
                     </p>
                   </div>
                   
@@ -469,73 +663,135 @@ export function InstagramIntegrationForm() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="content" className="space-y-4">
+          <TabsContent value="privacy" className="space-y-4">
             <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Content Types</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Enable the content types you want to publish to Instagram
-                    </p>
-                  </div>
+              <CardContent className="pt-6 space-y-4">
+                {/* Default Privacy */}
+                <div>
+                  <Label htmlFor="default_privacy">Default Privacy Setting</Label>
+                  <Select
+                    value={settings.privacy_settings?.default_privacy}
+                    onValueChange={(value) => handlePrivacyChange('default_privacy', value)}
+                  >
+                    <SelectTrigger id="default_privacy">
+                      <SelectValue placeholder="Select default privacy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {privacyOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Allow Message Replies */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="allow_message_replies"
+                    checked={settings.privacy_settings?.allow_message_replies || false}
+                    onCheckedChange={(checked) => handlePrivacyChange('allow_message_replies', checked)}
+                  />
+                  <Label htmlFor="allow_message_replies">Allow message replies on posts</Label>
+                </div>
+
+                {/* Restrict Location */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="restrict_location"
+                    checked={settings.privacy_settings?.restrict_location || false}
+                    onCheckedChange={(checked) => handlePrivacyChange('restrict_location', checked)}
+                  />
+                  <Label htmlFor="restrict_location">Restrict location information</Label>
+                </div>
+
+                {/* Scheduling Settings */}
+                <div className="pt-4 border-t">
+                  <h4 className="font-medium mb-3">Post Scheduling</h4>
                   
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Image className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Posts</Label>
-                          <p className="text-xs text-muted-foreground">Regular feed posts</p>
-                        </div>
-                      </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
                       <Switch
-                        checked={settings.content_types?.posts || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('posts', checked)}
+                        id="scheduling_enabled"
+                        checked={settings.scheduling?.enabled || false}
+                        onCheckedChange={(checked) => handleSchedulingChange('enabled', checked)}
                       />
+                      <Label htmlFor="scheduling_enabled">Enable post scheduling</Label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Camera className="w-5 h-5 text-muted-foreground" />
+                    {settings.scheduling?.enabled && (
+                      <>
                         <div>
-                          <Label className="text-sm font-medium">Stories</Label>
-                          <p className="text-xs text-muted-foreground">24-hour stories</p>
+                          <Label htmlFor="max_scheduled_posts">Maximum scheduled posts</Label>
+                          <Input
+                            id="max_scheduled_posts"
+                            type="number"
+                            value={settings.scheduling?.max_scheduled_posts || 50}
+                            onChange={(e) => handleSchedulingChange('max_scheduled_posts', parseInt(e.target.value))}
+                            min="1"
+                            max="100"
+                          />
                         </div>
-                      </div>
+
+                        <div>
+                          <Label htmlFor="min_schedule_minutes">Minimum schedule time (minutes)</Label>
+                          <Input
+                            id="min_schedule_minutes"
+                            type="number"
+                            value={settings.scheduling?.min_schedule_minutes || 10}
+                            onChange={(e) => handleSchedulingChange('min_schedule_minutes', parseInt(e.target.value))}
+                            min="10"
+                            max="1440"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Audience Targeting */}
+                <div className="pt-4 border-t">
+                  <h4 className="font-medium mb-3">Audience Targeting</h4>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
                       <Switch
-                        checked={settings.content_types?.stories || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('stories', checked)}
+                        id="targeting_enabled"
+                        checked={settings.audience_targeting?.enabled || false}
+                        onCheckedChange={(checked) => handleTargetingChange('enabled', checked)}
                       />
+                      <Label htmlFor="targeting_enabled">Enable audience targeting</Label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Film className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Reels</Label>
-                          <p className="text-xs text-muted-foreground">Short-form videos</p>
+                    {settings.audience_targeting?.enabled && (
+                      <>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div>
+                            <Label htmlFor="default_age_min">Minimum age</Label>
+                            <Input
+                              id="default_age_min"
+                              type="number"
+                              value={settings.audience_targeting?.default_age_min || 18}
+                              onChange={(e) => handleTargetingChange('default_age_min', parseInt(e.target.value))}
+                              min="13"
+                              max="65"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="default_age_max">Maximum age</Label>
+                            <Input
+                              id="default_age_max"
+                              type="number"
+                              value={settings.audience_targeting?.default_age_max || 65}
+                              onChange={(e) => handleTargetingChange('default_age_max', parseInt(e.target.value))}
+                              min="13"
+                              max="65"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <Switch
-                        checked={settings.content_types?.reels || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('reels', checked)}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Film className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">IGTV</Label>
-                          <p className="text-xs text-muted-foreground">Long-form videos</p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={settings.content_types?.igtv || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('igtv', checked)}
-                      />
-                    </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -591,7 +847,7 @@ export function InstagramIntegrationForm() {
                     type="url"
                     value={settings.oauth_redirect_uri || ''}
                     onChange={(e) => handleInputChange('oauth_redirect_uri', e.target.value)}
-                    placeholder={`${process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com'}/auth/instagram/callback`}
+                    placeholder={`${process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com'}/auth/facebook/callback`}
                   />
                 </div>
 
@@ -603,7 +859,7 @@ export function InstagramIntegrationForm() {
                     type="url"
                     value={settings.webhook_url || ''}
                     onChange={(e) => handleInputChange('webhook_url', e.target.value)}
-                    placeholder="https://yourdomain.com/webhooks/instagram"
+                    placeholder="https://yourdomain.com/webhooks/facebook"
                   />
                 </div>
 

@@ -128,6 +128,18 @@ export const integrationsGroup: MenuGroup = {
       requiredRole: UserRole.SUPER_ADMIN
     },
     {
+      id: 'instagram-integration',
+      label: 'Instagram',
+      href: '/integrations/instagram',
+      requiredRole: UserRole.SUPER_ADMIN
+    },
+    {
+      id: 'facebook-integration',
+      label: 'Facebook',
+      href: '/integrations/facebook',
+      requiredRole: UserRole.SUPER_ADMIN
+    },
+    {
       id: 'meta-integration',
       label: 'Meta',
       href: '/integrations/meta',
