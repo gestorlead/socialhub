@@ -78,6 +78,32 @@ export function useSocialConnections() {
     window.location.href = `/api/auth/tiktok?user_id=${user.id}`
   }
 
+  const connectInstagram = async () => {
+    if (!user) {
+      throw new Error('User must be logged in to connect Instagram')
+    }
+
+    try {
+      // Get Instagram OAuth URL from the API
+      const response = await fetch(`/api/auth/instagram?user_id=${user.id}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initiate Instagram OAuth')
+      }
+
+      if (data.success && data.auth_url) {
+        // Redirect to Instagram OAuth
+        window.location.href = data.auth_url
+      } else {
+        throw new Error('Invalid response from Instagram OAuth endpoint')
+      }
+    } catch (error) {
+      console.error('Error connecting Instagram:', error)
+      throw error
+    }
+  }
+
   const disconnect = async (platform: string) => {
     if (!user) {
       throw new Error('User must be logged in')
@@ -108,6 +134,7 @@ export function useSocialConnections() {
     isConnected,
     getConnection,
     connectTikTok,
+    connectInstagram,
     disconnect,
     refresh: fetchConnections
   }

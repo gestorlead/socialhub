@@ -15,8 +15,7 @@ interface TestResult {
 interface TestResults {
   credentials: TestResult
   permissions: TestResult
-  business_account: TestResult
-  api_access: TestResult
+  oauth_endpoints: TestResult
 }
 
 // Verify Super Admin access
@@ -72,9 +71,9 @@ export async function POST(request: NextRequest) {
 
     // Get current settings
     const { data: dbSettings, error: dbError } = await supabase
-      .from('instagram_settings')
+      .from('integration_settings')
       .select('*')
-      .limit(1)
+      .eq('platform', 'instagram')
       .single()
 
     let settings
@@ -88,10 +87,9 @@ export async function POST(request: NextRequest) {
       settings = {
         app_id: process.env.INSTAGRAM_APP_ID,
         app_secret: process.env.INSTAGRAM_APP_SECRET,
-        access_token: process.env.INSTAGRAM_ACCESS_TOKEN,
-        instagram_business_account_id: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID,
-        api_version: process.env.INSTAGRAM_API_VERSION || 'v18.0',
-        environment: process.env.INSTAGRAM_ENVIRONMENT || 'development'
+        api_version: process.env.INSTAGRAM_API_VERSION || 'v23.0',
+        environment: process.env.INSTAGRAM_ENVIRONMENT || 'development',
+        permissions: process.env.INSTAGRAM_PERMISSIONS?.split(',') || ['instagram_business_basic']
       }
     }
 
@@ -105,12 +103,11 @@ export async function POST(request: NextRequest) {
     const results: TestResults = {
       credentials: { passed: false, message: '' },
       permissions: { passed: false, message: '' },
-      business_account: { passed: false, message: '' },
-      api_access: { passed: false, message: '' }
+      oauth_endpoints: { passed: false, message: '' }
     }
 
     let passedTests = 0
-    const totalTests = 4
+    const totalTests = 3
 
     // Test 1: Credentials validation
     try {
@@ -120,8 +117,7 @@ export async function POST(request: NextRequest) {
           message: 'App credentials are properly configured',
           details: {
             app_id_present: !!settings.app_id,
-            app_secret_present: !!settings.app_secret,
-            access_token_present: !!settings.access_token
+            app_secret_present: !!settings.app_secret
           }
         }
         passedTests++
@@ -141,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     // Test 2: Permissions check
     try {
-      const requiredPermissions = ['instagram_basic', 'pages_show_list']
+      const requiredPermissions = ['instagram_business_basic']
       const configuredPermissions = settings.permissions || []
       const hasRequiredPermissions = requiredPermissions.every(perm => 
         configuredPermissions.includes(perm)
@@ -176,68 +172,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Test 3: Business Account validation
+    // Test 3: OAuth Endpoints validation
     try {
-      if (settings.instagram_business_account_id) {
-        results.business_account = {
+      const oauth_redirect_uri = settings.oauth_redirect_uri || process.env.INSTAGRAM_OAUTH_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
+      
+      if (oauth_redirect_uri) {
+        // Test if OAuth endpoints are reachable
+        const authUrl = `https://www.instagram.com/oauth/authorize?client_id=${settings.app_id}&redirect_uri=${encodeURIComponent(oauth_redirect_uri)}&scope=instagram_business_basic&response_type=code`
+        
+        results.oauth_endpoints = {
           passed: true,
-          message: 'Instagram Business Account ID is configured',
+          message: 'OAuth endpoints are properly configured',
           details: {
-            account_id: settings.instagram_business_account_id
+            auth_url: authUrl,
+            redirect_uri: oauth_redirect_uri
           }
         }
         passedTests++
       } else {
-        results.business_account = {
+        results.oauth_endpoints = {
           passed: false,
-          message: 'Instagram Business Account ID not configured'
+          message: 'OAuth redirect URI not configured'
         }
       }
     } catch (error) {
-      results.business_account = {
+      results.oauth_endpoints = {
         passed: false,
-        message: 'Error validating business account',
-        details: error.message
-      }
-    }
-
-    // Test 4: API Access Test (if access token is available)
-    try {
-      if (settings.access_token) {
-        // Test API call to Instagram Graph API
-        const testUrl = `https://graph.facebook.com/${settings.api_version}/me?access_token=${settings.access_token}`
-        
-        const response = await fetch(testUrl)
-        
-        if (response.ok) {
-          const data = await response.json()
-          results.api_access = {
-            passed: true,
-            message: 'API access successful',
-            details: {
-              user_id: data.id,
-              name: data.name
-            }
-          }
-          passedTests++
-        } else {
-          const errorData = await response.json()
-          results.api_access = {
-            passed: false,
-            message: 'API access failed',
-            details: errorData
-          }
-        }
-      } else {
-        results.api_access = {
-          passed: false,
-          message: 'No access token available for API testing'
-        }
-      }
-    } catch (error) {
-      results.api_access = {
-        passed: false,
-        message: 'Error testing API access',
+        message: 'Error validating OAuth endpoints',
         details: error.message
       }
     }

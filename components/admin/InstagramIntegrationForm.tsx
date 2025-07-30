@@ -30,15 +30,15 @@ import {
   Globe,
   Camera,
   Film,
-  Image
+  Image,
+  Copy,
+  Check
 } from 'lucide-react'
 
 interface InstagramSettings {
   id?: string
   app_id?: string
   app_secret?: string
-  access_token?: string
-  instagram_business_account_id?: string
   api_version: string
   environment: 'development' | 'production'
   is_active: boolean
@@ -46,12 +46,6 @@ interface InstagramSettings {
   webhook_url?: string
   webhook_verify_token?: string
   permissions?: string[]
-  content_types?: {
-    posts: boolean
-    stories: boolean
-    reels: boolean
-    igtv: boolean
-  }
   config_data?: {
     source?: string
     last_updated_by?: string
@@ -68,23 +62,15 @@ interface TestResult {
 interface TestResults {
   credentials: TestResult
   permissions: TestResult
-  business_account: TestResult
-  api_access: TestResult
+  oauth_endpoints: TestResult
 }
 
 export function InstagramIntegrationForm() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const [settings, setSettings] = useState<InstagramSettings>({
-    api_version: 'v18.0',
+    api_version: 'v23.0',
     environment: 'development',
-    is_active: true,
-    permissions: ['instagram_basic', 'instagram_content_publish', 'instagram_manage_insights'],
-    content_types: {
-      posts: true,
-      stories: true,
-      reels: true,
-      igtv: false
-    }
+    is_active: true
   })
   
   const [loading, setLoading] = useState(true)
@@ -92,7 +78,6 @@ export function InstagramIntegrationForm() {
   const [testing, setTesting] = useState(false)
   const [showSecrets, setShowSecrets] = useState({
     app_secret: false,
-    access_token: false,
     webhook_verify_token: false
   })
   
@@ -105,22 +90,22 @@ export function InstagramIntegrationForm() {
   
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [copiedTest, setCopiedTest] = useState(false)
 
   const apiVersions = [
-    'v18.0',
-    'v17.0',
-    'v16.0',
-    'v15.0'
+    'v23.0',
+    'v22.0',
+    'v21.0',
+    'v20.0',
+    'v19.0',
+    'v18.0'
   ]
 
   const availablePermissions = [
-    { id: 'instagram_basic', name: 'Instagram Basic', required: true },
-    { id: 'instagram_content_publish', name: 'Content Publishing', required: true },
-    { id: 'instagram_manage_insights', name: 'Manage Insights', required: false },
-    { id: 'instagram_manage_comments', name: 'Manage Comments', required: false },
-    { id: 'instagram_manage_messages', name: 'Manage Messages', required: false },
-    { id: 'pages_show_list', name: 'Show Page List', required: true },
-    { id: 'pages_read_engagement', name: 'Read Page Engagement', required: false }
+    { id: 'instagram_business_basic', name: 'Instagram Business Basic', required: true },
+    { id: 'instagram_business_content_publish', name: 'Content Publishing', required: false },
+    { id: 'instagram_business_manage_messages', name: 'Manage Messages', required: false },
+    { id: 'instagram_business_manage_comments', name: 'Manage Comments', required: false }
   ]
 
   // Load current settings
@@ -129,13 +114,7 @@ export function InstagramIntegrationForm() {
   }, [])
 
   const getAuthToken = async () => {
-    try {
-      const { data: { session } } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
-      return session?.access_token || ''
-    } catch (error) {
-      console.error('Error getting auth token:', error)
-      return ''
-    }
+    return session?.access_token || ''
   }
 
   const loadSettings = async () => {
@@ -167,8 +146,7 @@ export function InstagramIntegrationForm() {
         }
       }
     } catch (error) {
-      console.error('Error loading settings:', error)
-      // Don't show error message for network/loading errors on initial load
+      // Silent fail on initial load
     } finally {
       setLoading(false)
     }
@@ -218,6 +196,27 @@ export function InstagramIntegrationForm() {
     }
   }
 
+  const copyTestResults = async () => {
+    if (!testResults) return
+    
+    try {
+      const resultsText = JSON.stringify(testResults, null, 2)
+      await navigator.clipboard.writeText(resultsText)
+      setCopiedTest(true)
+      setTimeout(() => setCopiedTest(false), 2000)
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = JSON.stringify(testResults, null, 2)
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      setCopiedTest(true)
+      setTimeout(() => setCopiedTest(false), 2000)
+    }
+  }
+
   const testConnection = async () => {
     try {
       setTesting(true)
@@ -264,15 +263,6 @@ export function InstagramIntegrationForm() {
     }))
   }
 
-  const handleContentTypeChange = (type: keyof InstagramSettings['content_types'], checked: boolean) => {
-    setSettings(prev => ({
-      ...prev,
-      content_types: {
-        ...prev.content_types,
-        [type]: checked
-      }
-    }))
-  }
 
   const handlePermissionToggle = (permissionId: string) => {
     setSettings(prev => ({
@@ -328,10 +318,9 @@ export function InstagramIntegrationForm() {
       )}
 
       <Tabs defaultValue="credentials" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="credentials">Credentials</TabsTrigger>
           <TabsTrigger value="permissions">Permissions</TabsTrigger>
-          <TabsTrigger value="content">Content Types</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
@@ -377,56 +366,15 @@ export function InstagramIntegrationForm() {
                     </div>
                   </div>
 
-                  {/* Access Token */}
+                  {/* Note about user connections */}
                   <div className="md:col-span-2">
-                    <Label htmlFor="access_token">Access Token (Long-lived)</Label>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Textarea
-                          id="access_token"
-                          value={settings.access_token || ''}
-                          onChange={(e) => handleInputChange('access_token', e.target.value)}
-                          placeholder="Enter long-lived access token"
-                          className="min-h-[80px] pr-10"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-2 top-2"
-                          onClick={() => toggleSecretVisibility('access_token')}
-                        >
-                          {showSecrets.access_token ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">
-                          Get a long-lived access token through Instagram OAuth
-                        </p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open('/api/auth/instagram', '_blank')}
-                          className="flex items-center gap-2"
-                        >
-                          <Instagram className="w-4 h-4" />
-                          Connect Instagram
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Instagram Business Account ID */}
-                  <div className="md:col-span-2">
-                    <Label htmlFor="instagram_business_account_id">Instagram Business Account ID</Label>
-                    <Input
-                      id="instagram_business_account_id"
-                      type="text"
-                      value={settings.instagram_business_account_id || ''}
-                      onChange={(e) => handleInputChange('instagram_business_account_id', e.target.value)}
-                      placeholder="Enter Instagram Business Account ID"
-                    />
+                    <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                      <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <AlertDescription className="text-blue-700 dark:text-blue-300">
+                        <strong>Configuração do App:</strong> Configure aqui as credenciais do seu App Instagram no Meta Developer.<br/>
+                        <strong>Conexões de usuários:</strong> Cada usuário conectará sua própria conta Instagram na página "Redes".
+                      </AlertDescription>
+                    </Alert>
                   </div>
                 </div>
               </CardContent>
@@ -469,78 +417,6 @@ export function InstagramIntegrationForm() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="content" className="space-y-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Content Types</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Enable the content types you want to publish to Instagram
-                    </p>
-                  </div>
-                  
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Image className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Posts</Label>
-                          <p className="text-xs text-muted-foreground">Regular feed posts</p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={settings.content_types?.posts || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('posts', checked)}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Camera className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Stories</Label>
-                          <p className="text-xs text-muted-foreground">24-hour stories</p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={settings.content_types?.stories || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('stories', checked)}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Film className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">Reels</Label>
-                          <p className="text-xs text-muted-foreground">Short-form videos</p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={settings.content_types?.reels || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('reels', checked)}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Film className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <Label className="text-sm font-medium">IGTV</Label>
-                          <p className="text-xs text-muted-foreground">Long-form videos</p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={settings.content_types?.igtv || false}
-                        onCheckedChange={(checked) => handleContentTypeChange('igtv', checked)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="advanced" className="space-y-4">
             <Card>
@@ -672,14 +548,35 @@ export function InstagramIntegrationForm() {
       {testResults && (
         <Card className="mt-6">
           <CardContent className="pt-6">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              {testResults.success ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              ) : (
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              )}
-              Test Results
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                {testResults.success ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                )}
+                Test Results
+              </h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={copyTestResults}
+                className="flex items-center gap-2"
+              >
+                {copiedTest ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copy Results
+                  </>
+                )}
+              </Button>
+            </div>
             
             {testResults.error ? (
               <p className="text-red-600">{testResults.error}</p>
