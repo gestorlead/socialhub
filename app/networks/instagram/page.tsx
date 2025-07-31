@@ -9,7 +9,6 @@ import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Heart, Cloc
 import Image from "next/image"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { TokenStatusIndicator } from "@/components/token-status-indicator"
 
 export default function InstagramPage() {
   const { user, loading } = useAuth()
@@ -371,50 +370,33 @@ export default function InstagramPage() {
               </p>
             </div>
 
-            <div className="md:col-span-full">
-              <p className="text-sm text-muted-foreground mb-2">Status do Token</p>
-              <TokenStatusIndicator
-                status={(() => {
+            <div>
+              <p className="text-sm text-muted-foreground">Status do Token</p>
+              <div className="flex items-center gap-2 mt-1">
+                {(() => {
                   const now = new Date()
                   const expiresAt = instagramConnection?.expires_at ? new Date(instagramConnection.expires_at) : null
+                  const hasValidToken = instagramConnection?.access_token && (!expiresAt || expiresAt > now)
                   
-                  if (!instagramConnection?.access_token) {
-                    return 'not_found'
+                  if (hasValidToken) {
+                    return (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-green-600 dark:text-green-400">Válido</span>
+                      </>
+                    )
+                  } else {
+                    return (
+                      <>
+                        <AlertTriangle className="w-4 h-4 text-red-500" />
+                        <span className="text-sm text-red-600 dark:text-red-400">
+                          {expiresAt && expiresAt <= now ? 'Expirado' : 'Inválido'}
+                        </span>
+                      </>
+                    )
                   }
-                  
-                  if (!expiresAt) {
-                    return 'valid' // Instagram tokens that don't expire
-                  }
-                  
-                  if (expiresAt <= now) {
-                    return 'expired'
-                  }
-                  
-                  // Check if expiring soon (within 7 days)
-                  const millisecondsInDay = 24 * 60 * 60 * 1000
-                  const daysUntilExpiry = Math.floor((expiresAt.getTime() - now.getTime()) / millisecondsInDay)
-                  
-                  if (daysUntilExpiry <= 7) {
-                    return 'expiring'
-                  }
-                  
-                  return 'valid'
                 })()}
-                timeUntilExpiry={(() => {
-                  const now = new Date()
-                  const expiresAt = instagramConnection?.expires_at ? new Date(instagramConnection.expires_at) : null
-                  
-                  if (!expiresAt || expiresAt <= now) return undefined
-                  
-                  const diffMs = expiresAt.getTime() - now.getTime()
-                  const hours = Math.floor(diffMs / (1000 * 60 * 60))
-                  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-                  
-                  return { hours, minutes }
-                })()}
-                needsRefresh={false}
-                needsReconnect={false}
-              />
+              </div>
             </div>
           </div>
         </div>

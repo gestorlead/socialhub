@@ -5,10 +5,9 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
 import { useTikTokTokenStatus } from "@/hooks/use-tiktok-token-status"
 import { useTikTokLiveStats } from "@/hooks/use-tiktok-live-stats"
-import { TokenStatusIndicator } from "@/components/token-status-indicator"
 import { TikTokStatCard } from "@/components/tiktok-stat-card"
 import { useEffect, useState } from "react"
-import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Play, Heart, Clock, Unlink, Edit3, TrendingUp, Eye } from "lucide-react"
+import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Play, Heart, Clock, Unlink, Edit3, TrendingUp, Eye, AlertTriangle, CheckCircle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -388,26 +387,34 @@ export default function TikTokPage() {
               </div>
             </div>
 
-            {/* Token Status */}
-            {tokenStatus && (
-              <div className="md:col-span-full">
-                <p className="text-sm text-muted-foreground mb-2">Status do Token</p>
-                <TokenStatusIndicator
-                  status={tokenStatus.status}
-                  timeUntilExpiry={tokenStatus.time_until_expiry}
-                  needsRefresh={tokenStatus.needs_refresh}
-                  needsReconnect={tokenStatus.needs_reconnect}
-                  onRefresh={async () => {
-                    const result = await refreshTokenStatus()
-                    if (result?.success) {
-                      await refresh() // Refresh social connections
-                      await refetchStatus() // Refresh token status
-                    }
-                  }}
-                  refreshing={refreshingToken}
-                />
+            <div>
+              <p className="text-sm text-muted-foreground">Status do Token</p>
+              <div className="flex items-center gap-2 mt-1">
+                {(() => {
+                  const now = new Date()
+                  const expiresAt = tiktokConnection?.expires_at ? new Date(tiktokConnection.expires_at) : null
+                  const hasValidToken = tiktokConnection?.access_token && (!expiresAt || expiresAt > now)
+                  
+                  if (hasValidToken) {
+                    return (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-green-600 dark:text-green-400">Válido</span>
+                      </>
+                    )
+                  } else {
+                    return (
+                      <>
+                        <AlertTriangle className="w-4 h-4 text-red-500" />
+                        <span className="text-sm text-red-600 dark:text-red-400">
+                          {expiresAt && expiresAt <= now ? 'Expirado' : 'Inválido'}
+                        </span>
+                      </>
+                    )
+                  }
+                })()}
               </div>
-            )}
+            </div>
 
           </div>
         </div>
