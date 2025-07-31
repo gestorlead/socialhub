@@ -178,10 +178,18 @@ export async function GET(request: NextRequest) {
     
     // Get user info from Instagram Graph API for Business
     const userInfoResponse = await fetch(
-      `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${access_token}`
+      `https://graph.instagram.com/me?fields=id,username,account_type,media_count,followers_count,follows_count,biography&access_token=${access_token}`
     )
 
-    let userInfo = { id: user_id, username: null, account_type: null, media_count: 0 }
+    let userInfo = { 
+      id: user_id, 
+      username: null, 
+      account_type: null, 
+      media_count: 0,
+      followers_count: 0,
+      follows_count: 0,
+      biography: null
+    }
     
     if (userInfoResponse.ok) {
       const instagramUserInfo = await userInfoResponse.json()
@@ -189,7 +197,10 @@ export async function GET(request: NextRequest) {
         id: instagramUserInfo.id,
         username: instagramUserInfo.username,
         account_type: instagramUserInfo.account_type,
-        media_count: instagramUserInfo.media_count || 0
+        media_count: instagramUserInfo.media_count || 0,
+        followers_count: instagramUserInfo.followers_count || 0,
+        follows_count: instagramUserInfo.follows_count || 0,
+        biography: instagramUserInfo.biography || null
       }
       console.log('✅ Instagram user info:', userInfo)
     } else {
@@ -302,7 +313,10 @@ export async function GET(request: NextRequest) {
         id: userInfo.id,
         username: userInfo.username,
         account_type: userInfo.account_type,
-        media_count: userInfo.media_count
+        media_count: userInfo.media_count,
+        followers_count: userInfo.followers_count,
+        follows_count: userInfo.follows_count,
+        biography: userInfo.biography
       },
       updated_at: new Date().toISOString()
     }

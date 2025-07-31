@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch updated user info from Instagram Graph API
     const userInfoResponse = await fetch(
-      `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${connection.access_token}`
+      `https://graph.instagram.com/me?fields=id,username,account_type,media_count,followers_count,follows_count,biography&access_token=${connection.access_token}`
     )
 
     if (!userInfoResponse.ok) {
@@ -55,7 +55,10 @@ export async function POST(request: NextRequest) {
           id: userInfo.id,
           username: userInfo.username,
           account_type: userInfo.account_type,
-          media_count: userInfo.media_count || 0
+          media_count: userInfo.media_count || 0,
+          followers_count: userInfo.followers_count || 0,
+          follows_count: userInfo.follows_count || 0,
+          biography: userInfo.biography || null
         },
         updated_at: new Date().toISOString()
       })
@@ -72,7 +75,10 @@ export async function POST(request: NextRequest) {
         id: userInfo.id,
         username: userInfo.username,
         account_type: userInfo.account_type,
-        media_count: userInfo.media_count || 0
+        media_count: userInfo.media_count || 0,
+        followers_count: userInfo.followers_count || 0,
+        follows_count: userInfo.follows_count || 0,
+        biography: userInfo.biography || null
       }
     })
 
