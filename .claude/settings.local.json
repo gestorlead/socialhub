@@ -61,7 +61,8 @@
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
       "Bash(node:*)",
-      "WebFetch(domain:developers.facebook.com)"
+      "WebFetch(domain:developers.facebook.com)",
+      "mcp__shadcn__list_components"
     ],
     "deny": []
   }

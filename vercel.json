@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/collect-daily-stats",
       "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/collect-instagram-daily-stats", 
+      "schedule": "15 23 * * *"
     }
   ],
   "env": {

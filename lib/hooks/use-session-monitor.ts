@@ -21,7 +21,8 @@ export function useSessionMonitor({
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        const session = user ? { user } : null;
         const hasSession = !!session && !error;
 
         // Log session state changes
@@ -90,7 +91,8 @@ export function useSessionMonitor({
 
   return {
     checkSession: async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { user }, error } = await supabase.auth.getUser();
+      const session = user ? { user } : null;
       return { session, error };
     }
   };

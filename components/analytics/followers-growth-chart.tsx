@@ -1,6 +1,6 @@
 "use client"
 
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { DailyStats } from '@/hooks/use-analytics-data'
 import { formatNumber } from '@/lib/utils'
@@ -49,8 +49,13 @@ export function FollowersGrowthChart({ data, period, loading }: FollowersGrowthC
   }))
 
   return (
-    <ChartContainer config={chartConfig} className="h-[300px]">
-      <AreaChart data={chartData}>
+    <ChartContainer config={chartConfig} className="h-[300px] w-full">
+      <AreaChart 
+        data={chartData}
+        width="100%"
+        height="100%"
+        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+      >
         <defs>
           <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="hsl(220, 91%, 60%)" stopOpacity={0.8}/>

@@ -25,7 +25,7 @@ export function InstagramStatCard({
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
     }
-    if (num >= 1000) {
+    if (num >= 10000) {
       return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
     }
     return num.toLocaleString('pt-BR')
@@ -67,7 +67,12 @@ export function InstagramStatCard({
       </div>
       
       <div className="space-y-1">
-        <p className="text-2xl font-bold">{formatNumber(value)}</p>
+        <p 
+          className="text-2xl font-bold cursor-help" 
+          title={`Valor exato: ${value.toLocaleString('pt-BR')}`}
+        >
+          {formatNumber(value)}
+        </p>
         
         {change && difference !== undefined && (
           <div className="flex items-center gap-1">

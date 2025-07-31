@@ -177,7 +177,8 @@ export function FacebookIntegrationForm() {
 
   const getAuthToken = async () => {
     try {
-      const { data: { session }, error } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
+      const { data: { user }, error } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser())
+      const session = user ? { user } : null
       if (error) {
         console.error('Session error:', error)
         setErrorMessage('Authentication error. Please refresh and try again.')

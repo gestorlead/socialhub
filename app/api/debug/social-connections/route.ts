@@ -12,8 +12,9 @@ export async function GET(request: NextRequest) {
     
     const supabase = createClient()
     
-    // Check current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Check current user (secure method)
+    const { data: { user }, error: sessionError } = await supabase.auth.getUser()
+    const session = user ? { user } : null
     
     // Get social connections
     const { data: connections, error: connectionsError } = await supabase

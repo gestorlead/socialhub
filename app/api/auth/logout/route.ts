@@ -11,15 +11,16 @@ export async function POST(req: NextRequest) {
     
     const supabase = createClient()
     
-    // Get current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Get current user (more secure than getSession)
+    const { data: { user }, error: sessionError } = await supabase.auth.getUser()
+    const session = user ? { user } : null
     
     if (sessionError) {
       console.error('Error getting session for logout:', sessionError)
     }
     
     if (session) {
-      console.log(`Logging out user: ${session.user.email}`)
+      console.log(`Logging out user: ${user.email}`)
       
       // Sign out from Supabase
       const { error: signOutError } = await supabase.auth.signOut()

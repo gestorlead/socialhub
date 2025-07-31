@@ -100,7 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const setData = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      const session = user ? { user } : null
       
       if (error) {
         throw error

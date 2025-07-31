@@ -70,9 +70,9 @@ export async function middleware(req: NextRequest) {
       return supabaseResponse
     }
 
-    // Get the session using Supabase SSR
-    const { data: { session } } = await supabase.auth.getSession()
-    const user = session?.user
+    // Get the user using Supabase SSR (more secure than getSession)
+    const { data: { user }, error } = await supabase.auth.getUser()
+    const session = user ? { user } : null
 
     // Redirect unauthenticated users to login
     if (!session || !user) {

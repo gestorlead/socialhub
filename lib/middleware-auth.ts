@@ -15,8 +15,8 @@ export async function validateAuthentication(req: NextRequest, res?: NextRespons
     const response = res || NextResponse.next()
     const supabase = createMiddlewareClient({ req, res: response })
     
-    const { data, error } = await supabase.auth.getSession()
-    session = data.session
+    const { data: { user }, error } = await supabase.auth.getUser()
+    session = user ? { user } : null
     sessionError = error
   } catch (e) {
     sessionError = e

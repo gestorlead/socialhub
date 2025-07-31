@@ -22,7 +22,8 @@ export function useAuthSession() {
         // Wait a bit for potential session recovery
         await new Promise(resolve => setTimeout(resolve, 100))
         
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession()
+        const { data: { user }, error } = await supabase.auth.getUser()
+        const currentSession = user ? { user } : null
         
         if (mounted) {
           setSession(currentSession)

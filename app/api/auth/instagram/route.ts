@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     
     const permissions = settings?.permissions || 
       process.env.INSTAGRAM_PERMISSIONS?.split(',') || 
-      ['instagram_business_basic']
+      ['instagram_business_basic', 'instagram_business_manage_insights']
 
     if (!appId) {
       return NextResponse.json({ error: 'Instagram App ID not configured' }, { status: 500 })

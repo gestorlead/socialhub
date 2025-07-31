@@ -9,12 +9,12 @@ import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Heart, Cloc
 import Image from "next/image"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { TokenStatusIndicator } from "@/components/token-status-indicator"
 
 export default function InstagramPage() {
   const { user, loading } = useAuth()
   const { isConnected, connectInstagram, getConnection, refresh, disconnect } = useSocialConnections()
   const [refreshing, setRefreshing] = useState(false)
-  const [disconnecting, setDisconnecting] = useState(false)
   const [connectError, setConnectError] = useState<string | null>(null)
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null)
 
@@ -56,7 +56,7 @@ export default function InstagramPage() {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
     }
-    if (num >= 1000) {
+    if (num >= 10000) {
       return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
     }
     return num.toLocaleString('pt-BR')
@@ -248,32 +248,21 @@ export default function InstagramPage() {
                   )}
                 </div>
 
-                {profile?.biography && (
-                  <p className="text-white/80 text-sm">
-                    {profile.biography}
-                  </p>
-                )}
-
                 <div className="flex justify-center">
                   <button
                     onClick={async () => {
-                      if (disconnecting) return
-                      setDisconnecting(true)
                       try {
                         await disconnect('instagram')
                         // Redirect to dashboard after disconnect
                         window.location.href = '/'
                       } catch (error) {
                         alert('Erro ao desconectar conta. Tente novamente.')
-                      } finally {
-                        setDisconnecting(false)
                       }
                     }}
-                    disabled={disconnecting}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-200 border border-red-400/30 rounded-lg hover:bg-red-500/30 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-200 border border-red-400/30 rounded-lg hover:bg-red-500/30 transition-colors text-sm mt-2"
                   >
-                    <Unlink className={`w-4 h-4 ${disconnecting ? 'animate-spin' : ''}`} />
-                    {disconnecting ? 'Desconectando...' : 'Desconectar Conta'}
+                    <Unlink className="w-4 h-4" />
+                    Desconectar Conta
                   </button>
                 </div>
               </div>
@@ -382,21 +371,50 @@ export default function InstagramPage() {
               </p>
             </div>
 
-            <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <div className="flex items-center gap-2 mt-1">
-                {instagramConnection?.is_active ? (
-                  <>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-600 dark:text-green-400">Ativo</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="w-4 h-4 text-red-500" />
-                    <span className="text-sm text-red-600 dark:text-red-400">Inativo</span>
-                  </>
-                )}
-              </div>
+            <div className="md:col-span-full">
+              <p className="text-sm text-muted-foreground mb-2">Status do Token</p>
+              <TokenStatusIndicator
+                status={(() => {
+                  const now = new Date()
+                  const expiresAt = instagramConnection?.expires_at ? new Date(instagramConnection.expires_at) : null
+                  
+                  if (!instagramConnection?.access_token) {
+                    return 'not_found'
+                  }
+                  
+                  if (!expiresAt) {
+                    return 'valid' // Instagram tokens that don't expire
+                  }
+                  
+                  if (expiresAt <= now) {
+                    return 'expired'
+                  }
+                  
+                  // Check if expiring soon (within 7 days)
+                  const millisecondsInDay = 24 * 60 * 60 * 1000
+                  const daysUntilExpiry = Math.floor((expiresAt.getTime() - now.getTime()) / millisecondsInDay)
+                  
+                  if (daysUntilExpiry <= 7) {
+                    return 'expiring'
+                  }
+                  
+                  return 'valid'
+                })()}
+                timeUntilExpiry={(() => {
+                  const now = new Date()
+                  const expiresAt = instagramConnection?.expires_at ? new Date(instagramConnection.expires_at) : null
+                  
+                  if (!expiresAt || expiresAt <= now) return undefined
+                  
+                  const diffMs = expiresAt.getTime() - now.getTime()
+                  const hours = Math.floor(diffMs / (1000 * 60 * 60))
+                  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+                  
+                  return { hours, minutes }
+                })()}
+                needsRefresh={false}
+                needsReconnect={false}
+              />
             </div>
           </div>
         </div>

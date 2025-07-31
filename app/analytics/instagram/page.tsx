@@ -3,12 +3,14 @@
 import { useAuth } from "@/lib/supabase-auth-helpers"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
+import { useInstagramInsights } from "@/hooks/use-instagram-insights"
+import { useInstagramDailyStats } from "@/hooks/use-instagram-daily-stats"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -17,15 +19,16 @@ import {
   Image as ImageIcon, 
   UserPlus,
   Download,
-  BarChart3,
-  LineChart as LineChartIcon,
-  PieChart,
   Instagram,
   AlertTriangle,
   RefreshCw
 } from "lucide-react"
 import { formatNumber } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { InstagramGrowthChart } from "@/components/analytics/instagram-growth-chart"
+import { InstagramMediaInsights } from "@/components/analytics/instagram-media-insights"
+import { InstagramAudienceInsights } from "@/components/analytics/instagram-audience-insights"
+import { InstagramPermissionWarning } from "@/components/analytics/instagram-permission-warning"
 
 type Period = '7d' | '30d' | '60d' | '90d'
 
@@ -85,74 +88,76 @@ export default function InstagramAnalyticsPage() {
   const instagramConnection = getConnection('instagram')
   const profile = instagramConnection?.profile_data
 
-  // Mock analytics data - In a real app, you'd fetch this from Instagram Insights API
-  // Note: Instagram Basic Display API doesn't provide insights data
-  // You need Instagram Graph API with business permissions for insights
-  const mockAnalyticsData = useMemo(() => {
-    if (!profile) return null
+  // Use the Instagram Insights hook
+  const { 
+    accountInsights, 
+    mediaInsights, 
+    loading: insightsLoading, 
+    error: insightsError,
+    hasMinimumFollowers,
+    refetch: refetchInsights
+  } = useInstagramInsights(selectedPeriod)
 
-    // Generate some mock historical data for demonstration
-    const baseFollowers = profile.followers_count || 0
-    const basePosts = profile.media_count || 0
-    const baseFollowing = profile.follows_count || 0
-
-    return {
-      current: {
-        followers: baseFollowers,
-        posts: basePosts,
-        following: baseFollowing,
-        reach: Math.floor(baseFollowers * 0.6), // Mock reach data
-        impressions: Math.floor(baseFollowers * 1.2), // Mock impressions
-        profile_visits: Math.floor(baseFollowers * 0.1) // Mock profile visits
-      },
-      previous: {
-        followers: Math.max(0, baseFollowers - Math.floor(Math.random() * 100)),
-        posts: Math.max(0, basePosts - Math.floor(Math.random() * 5)),
-        following: Math.max(0, baseFollowing - Math.floor(Math.random() * 20)),
-        reach: Math.floor(baseFollowers * 0.5),
-        impressions: Math.floor(baseFollowers * 1.0),
-        profile_visits: Math.floor(baseFollowers * 0.08)
-      }
-    }
-  }, [profile])
+  // Use the Instagram Daily Stats hook for historical data
+  const { 
+    dailyStats, 
+    growth, 
+    loading: statsLoading, 
+    error: statsError,
+    refetch: refetchStats
+  } = useInstagramDailyStats(selectedPeriod)
 
   const metrics = useMemo(() => {
-    if (!mockAnalyticsData) return null
-
-    const current = mockAnalyticsData.current
-    const previous = mockAnalyticsData.previous
-
-    return {
-      followers: {
-        current: current.followers,
-        change: current.followers - previous.followers,
-        changePercent: previous.followers > 0 
-          ? ((current.followers - previous.followers) / previous.followers) * 100 
-          : 0
-      },
-      posts: {
-        current: current.posts,
-        change: current.posts - previous.posts,
-        changePercent: previous.posts > 0 
-          ? ((current.posts - previous.posts) / previous.posts) * 100 
-          : 0
-      },
-      following: {
-        current: current.following,
-        change: current.following - previous.following,
-        changePercent: previous.following > 0 
-          ? ((current.following - previous.following) / previous.following) * 100 
-          : 0
-      },
-      reach: {
-        current: current.reach,
-        change: current.reach - previous.reach,
-        changePercent: previous.reach > 0 
-          ? ((current.reach - previous.reach) / previous.reach) * 100 
-          : 0
+    // Use real historical data if available, otherwise fallback to current profile data
+    if (growth) {
+      return {
+        followers: growth.followers,
+        posts: growth.media,
+        following: growth.following,
+        reach: growth.reach,
+        impressions: growth.impressions,
+        profileViews: growth.profileViews
       }
     }
-  }, [mockAnalyticsData])
+
+    // Fallback to current profile data with no growth
+    if (profile) {
+      return {
+        followers: {
+          current: profile.followers_count || 0,
+          change: 0,
+          changePercent: 0
+        },
+        posts: {
+          current: profile.media_count || 0,
+          change: 0,
+          changePercent: 0
+        },
+        following: {
+          current: profile.follows_count || 0,
+          change: 0,
+          changePercent: 0
+        },
+        reach: {
+          current: accountInsights?.reach || 0,
+          change: 0,
+          changePercent: 0
+        },
+        impressions: {
+          current: accountInsights?.impressions || 0,
+          change: 0,
+          changePercent: 0
+        },
+        profileViews: {
+          current: accountInsights?.profile_views || 0,
+          change: 0,
+          changePercent: 0
+        }
+      }
+    }
+
+    return null
+  }, [profile, accountInsights, growth])
 
   const handleRefresh = async () => {
     if (!user) return
@@ -165,6 +170,8 @@ export default function InstagramAnalyticsPage() {
       })
       if (response.ok) {
         await refresh()
+        await refetchStats()
+        await refetchInsights()
       }
     } catch (error) {
       console.error('Error refreshing:', error)
@@ -244,14 +251,11 @@ export default function InstagramAnalyticsPage() {
           </div>
         </div>
 
-        {/* Instagram API Limitation Notice */}
-        <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
-          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-          <AlertDescription className="text-amber-700 dark:text-amber-300">
-            <strong>Limitações da API do Instagram:</strong> Os dados de análise mostrados são baseados nas informações básicas do perfil. 
-            Para métricas detalhadas de insights (alcance, impressões, etc.), é necessário acesso à Instagram Graph API com permissões de Business.
-          </AlertDescription>
-        </Alert>
+        {/* Permission Warning */}
+        <InstagramPermissionWarning 
+          error={insightsError} 
+          onReconnect={() => window.location.href = '/networks/instagram'} 
+        />
 
         {/* Metrics Overview */}
         {metrics && (
@@ -343,86 +347,38 @@ export default function InstagramAnalyticsPage() {
               </CardContent>
             </Card>
 
-            {/* Growth Metrics */}
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Crescimento de Seguidores</CardTitle>
-                  <CardDescription>
-                    Evolução baseada nos dados disponíveis
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-center h-40 text-muted-foreground">
-                    <div className="text-center">
-                      <BarChart3 className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">Gráfico disponível com Instagram Graph API</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Distribuição de Conteúdo</CardTitle>
-                  <CardDescription>
-                    Análise dos tipos de posts publicados
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-center h-40 text-muted-foreground">
-                    <div className="text-center">
-                      <PieChart className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">Análise disponível com API de Insights</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Growth Charts */}
+            <InstagramGrowthChart 
+              data={dailyStats.map(stat => ({
+                date: stat.date,
+                followers: stat.follower_count,
+                impressions: stat.impressions,
+                reach: stat.reach,
+                engagement: stat.profile_views // Using profile views as engagement proxy
+              }))} 
+              loading={statsLoading || insightsLoading} 
+              period={selectedPeriod} 
+            />
           </TabsContent>
 
           <TabsContent value="audience" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações da Audiência</CardTitle>
-                <CardDescription>
-                  Dados demográficos e comportamentais dos seus seguidores
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center h-60 text-muted-foreground">
-                  <div className="text-center">
-                    <Users className="w-12 h-12 mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">Insights de Audiência</h3>
-                    <p className="text-sm">Para visualizar dados detalhados da audiência,</p>
-                    <p className="text-sm">é necessário configurar o Instagram Graph API</p>
-                    <p className="text-sm">com permissões de Business Insights.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <InstagramAudienceInsights
+              accountInsights={accountInsights}
+              mediaInsights={mediaInsights || []}
+              dailyStats={dailyStats}
+              loading={insightsLoading || statsLoading}
+              error={insightsError}
+              hasMinimumFollowers={hasMinimumFollowers}
+            />
           </TabsContent>
 
           <TabsContent value="content" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance do Conteúdo</CardTitle>
-                <CardDescription>
-                  Análise detalhada dos seus posts mais recentes
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center h-60 text-muted-foreground">
-                  <div className="text-center">
-                    <ImageIcon className="w-12 h-12 mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">Análise de Posts</h3>
-                    <p className="text-sm">Para visualizar métricas de posts individuais</p>
-                    <p className="text-sm">(curtidas, comentários, alcance, impressões),</p>
-                    <p className="text-sm">é necessário integração com Instagram Graph API.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <InstagramMediaInsights 
+              mediaInsights={mediaInsights || []} 
+              loading={insightsLoading} 
+              error={insightsError} 
+              onRefresh={refetchInsights} 
+            />
           </TabsContent>
         </Tabs>
 

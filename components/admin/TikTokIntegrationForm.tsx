@@ -79,8 +79,9 @@ export function TikTokIntegrationForm() {
   const getAuthToken = async () => {
     try {
       console.log('Getting auth token...')
-      // Get token from Supabase client
-      const { data: { session } } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession())
+      // Get token from Supabase client (using secure getUser method)
+      const { data: { user } } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser())
+      const session = user ? { user } : null
       console.log('Session exists:', !!session)
       console.log('Access token exists:', !!session?.access_token)
       return session?.access_token || ''

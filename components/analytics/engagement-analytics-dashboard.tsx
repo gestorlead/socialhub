@@ -188,8 +188,13 @@ export function EngagementAnalyticsDashboard({ data, loading }: EngagementAnalyt
             <CardDescription>Evolução da taxa de engajamento ao longo do tempo</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-[250px]">
-              <AreaChart data={chartData}>
+            <ChartContainer config={{}} className="h-[250px] w-full">
+              <AreaChart 
+                data={chartData}
+                width="100%"
+                height="100%"
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="date" 
@@ -235,8 +240,13 @@ export function EngagementAnalyticsDashboard({ data, loading }: EngagementAnalyt
             <CardDescription>Percentual de crescimento por período</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-[250px]">
-              <BarChart data={chartData}>
+            <ChartContainer config={{}} className="h-[250px] w-full">
+              <BarChart 
+                data={chartData}
+                width="100%"
+                height="100%"
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="date" 
@@ -280,8 +290,13 @@ export function EngagementAnalyticsDashboard({ data, loading }: EngagementAnalyt
             <CardDescription>Média de curtidas por vídeo</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="h-[250px]">
-              <LineChart data={chartData}>
+            <ChartContainer config={{}} className="h-[250px] w-full">
+              <LineChart 
+                data={chartData}
+                width="100%"
+                height="100%"
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="date" 

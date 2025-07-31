@@ -1,6 +1,6 @@
 "use client"
 
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, ReferenceLine } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, ReferenceLine } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { GrowthData } from '@/hooks/use-analytics-data'
 
@@ -57,8 +57,13 @@ export function GrowthRateChart({ data, loading }: GrowthRateChartProps) {
   }))
 
   return (
-    <ChartContainer config={chartConfig} className="h-[300px]">
-      <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+    <ChartContainer config={chartConfig} className="h-[300px] w-full">
+      <LineChart 
+        data={chartData} 
+        width="100%"
+        height="100%"
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+      >
         <XAxis 
           dataKey="date" 
           tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}

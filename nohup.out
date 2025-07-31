@@ -7712,3 +7712,246 @@ TikTok API error: {
 }
  GET /api/social/tiktok/videos?platform_user_id=-000HHOGDTU1jpaMpp3BaNQzkz0UFh7if_0y&max_count=20 400 in 601ms
 [?25h
+
+> socialhub@0.1.0 dev
+> next dev --turbopack --port 3001
+
+   ▲ Next.js 15.4.2 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://192.99.35.46:3001
+   - Environments: .env
+
+ ✓ Starting...
+Slow filesystem detected. The benchmark took 569ms. If /root/projetos/social_hub/socialhub/.next is a network drive, consider moving it to a local folder. If you have an antivirus enabled, consider excluding your project directory.
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 1024ms
+ ✓ Ready in 4.1s
+User level: 3 Path: /
+ ○ Compiling / ...
+ ✓ Compiled / in 10.9s
+ GET / 200 in 12127ms
+ ⚠ Cross origin request detected from socialhub.gestorlead.com.br to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+User level: 3 Path: /
+ GET / 200 in 244ms
+User level: 3 Path: /networks/instagram
+ ○ Compiling /networks/instagram ...
+ ✓ Compiled /networks/instagram in 1871ms
+ GET /networks/instagram 200 in 2060ms
+ ✓ Compiled in 946ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+User level: 3 Path: /networks/instagram
+ GET /networks/instagram 200 in 1079ms
+ ✓ Compiled in 770ms
+ ✓ Compiled in 593ms
+ ✓ Compiled in 586ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+User level: 3 Path: /networks/instagram
+ GET /networks/instagram 200 in 869ms
+ ✓ Compiled in 838ms
+🚫 Redirecting to login - no session found { hasSession: false, hasUser: false, pathname: '/' }
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1034ms
+ GET /login?redirectTo=%2F 200 in 1293ms
+ ✓ Compiled in 1271ms
+ ✓ Compiled in 798ms
+ ✓ Compiled in 674ms
+User level: 3 Path: /networks/tiktok
+ ○ Compiling /networks/tiktok ...
+ ✓ Compiled /networks/tiktok in 1981ms
+ GET /networks/tiktok 200 in 2125ms
+ ○ Compiling /api/auth/tiktok/status ...
+ ✓ Compiled /api/auth/tiktok/status in 1372ms
+[TikTok Token Manager] Getting valid access token for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Found connection, expires at: 2025-07-31T23:13:19.347+00:00
+[TikTok Token Manager] Token is valid, 156 minutes remaining
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 1854ms
+ GET /api/social/tiktok/live-stats?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 2057ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 170ms
+[TikTok Token Manager] Getting valid access token for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Found connection, expires at: 2025-07-31T23:13:19.347+00:00
+[TikTok Token Manager] Token is valid, 156 minutes remaining
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 189ms
+ GET /api/social/tiktok/live-stats?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 390ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 254ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 164ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 177ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 137ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 150ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 179ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 146ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 131ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 177ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 139ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 138ms
+User level: 3 Path: /networks/instagram
+ GET /networks/instagram 200 in 300ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 174ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 164ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 156ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 151ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 163ms
+[TikTok Status API] Getting status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Token Manager] Getting token status for user: 7587fa9a-3a62-433c-b658-45d25358d493
+[TikTok Status API] Status for user 7587fa9a-3a62-433c-b658-45d25358d493: {
+  status: 'valid',
+  needs_refresh: false,
+  needs_reconnect: false,
+  time_until_expiry: { hours: 2, minutes: 36 }
+}
+ GET /api/auth/tiktok/status?user_id=7587fa9a-3a62-433c-b658-45d25358d493 200 in 263ms
+ ✓ Compiled in 590ms
+ ✓ Compiled in 657ms
+ ✓ Compiled in 717ms
