@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { NextIntlClientProvider } from 'next-intl';
 import { getUserLocale } from '@/lib/locale-server';
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,8 +60,10 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <AuthProvider>
-              {children}
-              <Toaster />
+              <TooltipProvider>
+                {children}
+                <Toaster />
+              </TooltipProvider>
             </AuthProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
