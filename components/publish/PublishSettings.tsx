@@ -1,21 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, Lock, MessageCircle, Users, Copy, Scissors } from 'lucide-react'
+import { Settings, Lock, MessageCircle, Users, Copy, Scissors, Clock } from 'lucide-react'
+import { findNetworkOption } from '@/lib/network-configs'
 
 interface PublishSettingsProps {
-  selectedNetworks: string[]
-  settings: {
-    tiktok?: {
-      privacy: 'PUBLIC_TO_EVERYONE' | 'MUTUAL_FOLLOW_FRIENDS' | 'FOLLOWER_OF_CREATOR' | 'SELF_ONLY'
-      allowComments: boolean
-      allowDuet: boolean
-      allowStitch: boolean
-      coverTimestamp: number
-    }
-  }
-  onSettingsChange: (settings: PublishSettingsProps['settings']) => void
-  mediaFile: File | null
+  selectedOptions: string[]
+  settings: Record<string, any>
+  onSettingsChange: (settings: Record<string, any>) => void
+  mediaFiles: File[]
 }
 
 const PRIVACY_OPTIONS = [
@@ -46,28 +39,34 @@ const PRIVACY_OPTIONS = [
 ]
 
 export function PublishSettings({ 
-  selectedNetworks, 
+  selectedOptions, 
   settings, 
   onSettingsChange, 
-  mediaFile 
+  mediaFiles 
 }: PublishSettingsProps) {
-  const [selectedNetwork, setSelectedNetwork] = useState<string>(
-    selectedNetworks.find(n => n === 'tiktok') || selectedNetworks[0] || 'tiktok'
+  const [selectedOption, setSelectedOption] = useState<string>(
+    selectedOptions.find(opt => opt === 'tiktok_video') || selectedOptions[0] || ''
   )
 
-  const updateTikTokSettings = (updates: Partial<NonNullable<typeof settings.tiktok>>) => {
+  const updateOptionSettings = (optionId: string, updates: any) => {
     onSettingsChange({
       ...settings,
-      tiktok: {
-        ...settings.tiktok,
+      [optionId]: {
+        ...settings[optionId],
         ...updates
-      } as NonNullable<typeof settings.tiktok>
+      }
     })
   }
 
-  const isVideo = mediaFile?.type.startsWith('video/')
+  const isVideo = mediaFiles.some(file => file.type.startsWith('video/'))
+  const hasMultipleFiles = mediaFiles.length > 1
 
-  if (selectedNetworks.length === 0) {
+  // Obter configurações da opção atual
+  const getCurrentOptionConfig = () => {
+    return findNetworkOption(selectedOption)
+  }
+
+  if (selectedOptions.length === 0) {
     return (
       <div className="bg-card border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -75,7 +74,7 @@ export function PublishSettings({
           <h3 className="text-lg font-semibold">Configurações</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Selecione uma rede social para ver as configurações disponíveis.
+          Selecione um destino de publicação para ver as configurações disponíveis.
         </p>
       </div>
     )
@@ -88,33 +87,55 @@ export function PublishSettings({
         <h3 className="text-lg font-semibold">Configurações</h3>
       </div>
 
-      {/* Network Selector */}
-      {selectedNetworks.length > 1 && (
+      {/* Option Selector */}
+      {selectedOptions.length > 1 && (
         <div className="mb-6">
           <label className="text-sm font-medium mb-2 block">
             Configurações para:
           </label>
-          <div className="flex gap-2">
-            {selectedNetworks.map((network) => (
-              <button
-                key={network}
-                onClick={() => setSelectedNetwork(network)}
-                className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
-                  selectedNetwork === network
-                    ? 'border-primary bg-primary/5'
-                    : 'border-muted hover:border-primary/50'
-                }`}
-              >
-                {network === 'tiktok' ? 'TikTok' : network}
-              </button>
-            ))}
+          <div className="flex gap-2 flex-wrap">
+            {selectedOptions.map((optionId) => {
+              const result = findNetworkOption(optionId)
+              if (!result) return null
+              
+              return (
+                <button
+                  key={optionId}
+                  onClick={() => setSelectedOption(optionId)}
+                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                    selectedOption === optionId
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted hover:border-primary/50'
+                  }`}
+                >
+                  {result.option.name}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
 
-      {/* TikTok Settings */}
-      {selectedNetwork === 'tiktok' && (
+      {/* Settings for Current Option */}
+      {selectedOption && getCurrentOptionConfig() && (
         <div className="space-y-6">
+          {/* General Settings Available for All Options */}
+          <div>
+            <label className="text-sm font-medium mb-3 block flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Programação de Publicação
+            </label>
+            <div className="p-3 border rounded-lg bg-muted/30">
+              <p className="text-sm text-muted-foreground">
+                Agendamento será implementado em versão futura. 
+                Por enquanto, as publicações são feitas imediatamente.
+              </p>
+            </div>
+          </div>
+
+          {/* TikTok-specific Settings */}
+          {selectedOption === 'tiktok_video' && (
+            <div className="space-y-6">
           {/* Privacy Settings */}
           <div>
             <label className="text-sm font-medium mb-3 block flex items-center gap-2">
@@ -136,16 +157,16 @@ export function PublishSettings({
                   >
                     <input
                       type="radio"
-                      name="privacy"
+                      name={`privacy-${selectedOption}`}
                       value={option.value}
-                      checked={settings.tiktok?.privacy === option.value}
-                      onChange={(e) => updateTikTokSettings({ 
+                      checked={settings[selectedOption]?.privacy === option.value}
+                      onChange={(e) => updateOptionSettings(selectedOption, { 
                         privacy: e.target.value as 'PUBLIC_TO_EVERYONE' | 'MUTUAL_FOLLOW_FRIENDS' | 'FOLLOWER_OF_CREATOR' | 'SELF_ONLY'
                       })}
                       className="sr-only"
                     />
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      settings.tiktok?.privacy === option.value
+                      settings[selectedOption]?.privacy === option.value
                         ? 'bg-primary/20 text-primary'
                         : 'bg-muted text-muted-foreground'
                     }`}>
@@ -182,8 +203,8 @@ export function PublishSettings({
                 </div>
                 <input
                   type="checkbox"
-                  checked={settings.tiktok?.allowComments || false}
-                  onChange={(e) => updateTikTokSettings({ allowComments: e.target.checked })}
+                  checked={settings[selectedOption]?.allowComments || false}
+                  onChange={(e) => updateOptionSettings(selectedOption, { allowComments: e.target.checked })}
                   className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20"
                 />
               </label>
@@ -204,8 +225,8 @@ export function PublishSettings({
                     </div>
                     <input
                       type="checkbox"
-                      checked={settings.tiktok?.allowDuet || false}
-                      onChange={(e) => updateTikTokSettings({ allowDuet: e.target.checked })}
+                      checked={settings[selectedOption]?.allowDuet || false}
+                      onChange={(e) => updateOptionSettings(selectedOption, { allowDuet: e.target.checked })}
                       className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20"
                     />
                   </label>
@@ -224,8 +245,8 @@ export function PublishSettings({
                     </div>
                     <input
                       type="checkbox"
-                      checked={settings.tiktok?.allowStitch || false}
-                      onChange={(e) => updateTikTokSettings({ allowStitch: e.target.checked })}
+                      checked={settings[selectedOption]?.allowStitch || false}
+                      onChange={(e) => updateOptionSettings(selectedOption, { allowStitch: e.target.checked })}
                       className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20"
                     />
                   </label>
@@ -243,27 +264,50 @@ export function PublishSettings({
               <div className="flex items-center gap-2">
                 <Lock className="w-3 h-3" />
                 Privacidade: {
-                  PRIVACY_OPTIONS.find(p => p.value === settings.tiktok?.privacy)?.label || 'Público'
+                  PRIVACY_OPTIONS.find(p => p.value === settings[selectedOption]?.privacy)?.label || 'Público'
                 }
               </div>
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-3 h-3" />
-                Comentários: {settings.tiktok?.allowComments ? 'Permitidos' : 'Desabilitados'}
+                Comentários: {settings[selectedOption]?.allowComments ? 'Permitidos' : 'Desabilitados'}
               </div>
               {isVideo && (
                 <>
                   <div className="flex items-center gap-2">
                     <Copy className="w-3 h-3" />
-                    Duet: {settings.tiktok?.allowDuet ? 'Permitido' : 'Desabilitado'}
+                    Duet: {settings[selectedOption]?.allowDuet ? 'Permitido' : 'Desabilitado'}
                   </div>
                   <div className="flex items-center gap-2">
                     <Scissors className="w-3 h-3" />
-                    Stitch: {settings.tiktok?.allowStitch ? 'Permitido' : 'Desabilitado'}
+                    Stitch: {settings[selectedOption]?.allowStitch ? 'Permitido' : 'Desabilitado'}
                   </div>
                 </>
               )}
             </div>
           </div>
+            </div>
+          )}
+
+          {/* Instagram Settings - placeholder for future */}
+          {(selectedOption === 'instagram_feed' || selectedOption === 'instagram_story' || selectedOption === 'instagram_reels') && (
+            <div className="p-4 border rounded-lg bg-muted/30">
+              <h4 className="text-sm font-medium mb-2">Configurações do Instagram</h4>
+              <p className="text-xs text-muted-foreground">
+                Configurações específicas para Instagram serão implementadas em versão futura.
+                Por enquanto, as publicações usam configurações padrão.
+              </p>
+            </div>
+          )}
+
+          {/* Other platforms placeholder */}
+          {!selectedOption.startsWith('tiktok_') && !selectedOption.startsWith('instagram_') && (
+            <div className="p-4 border rounded-lg bg-muted/30">
+              <h4 className="text-sm font-medium mb-2">Configurações Específicas</h4>
+              <p className="text-xs text-muted-foreground">
+                Configurações específicas para {getCurrentOptionConfig()?.option.name} serão implementadas em versão futura.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

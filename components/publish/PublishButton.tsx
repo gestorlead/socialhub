@@ -5,39 +5,30 @@ import { Send, Upload, CheckCircle, AlertTriangle, Clock, Stethoscope } from 'lu
 import { useAuth } from '@/lib/supabase-auth-helpers'
 import { TikTokUploadInfo } from './TikTokUploadInfo'
 import { TikTokSandboxGuide } from './TikTokSandboxGuide'
+import { findNetworkOption } from '@/lib/network-configs'
 
 interface PublishState {
-  selectedNetworks: string[]
-  mediaFile: File | null
-  mediaPreview: string | null
+  selectedOptions: string[]
+  mediaFiles: File[]
+  mediaPreviews: string[]
   captions: {
     universal: string
-    specific: {
-      tiktok: string
-    }
+    specific: Record<string, string>
   }
-  settings: {
-    tiktok?: {
-      privacy: 'PUBLIC_TO_EVERYONE' | 'MUTUAL_FOLLOW_FRIENDS' | 'FOLLOWER_OF_CREATOR' | 'SELF_ONLY'
-      allowComments: boolean
-      allowDuet: boolean
-      allowStitch: boolean
-      coverTimestamp: number
-    }
-  }
+  settings: Record<string, any>
   isPublishing: boolean
 }
 
 interface PublishButtonProps {
   publishState: PublishState
   onPublish: () => void
-  getEffectiveCaption: (network: string) => string
+  getEffectiveCaption: (optionId: string) => string
 }
 
 interface ValidationIssue {
   type: 'error' | 'warning'
   message: string
-  network?: string
+  optionId?: string
 }
 
 export function PublishButton({ publishState, onPublish, getEffectiveCaption }: PublishButtonProps) {
@@ -60,8 +51,8 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       setShowValidationErrors(false)
     }
   }, [
-    publishState.mediaFile,
-    publishState.selectedNetworks,
+    publishState.mediaFiles,
+    publishState.selectedOptions,
     publishState.captions
   ])
   
@@ -82,41 +73,53 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
   const validatePublish = (): ValidationIssue[] => {
     const issues: ValidationIssue[] = []
     
-    // Check if networks are selected
-    if (publishState.selectedNetworks.length === 0) {
+    // Check if options are selected
+    if (publishState.selectedOptions.length === 0) {
       issues.push({
         type: 'error',
-        message: 'Selecione pelo menos uma rede social'
+        message: 'Selecione pelo menos um destino de publicação'
       })
     }
     
     // Check if media is uploaded
-    if (!publishState.mediaFile) {
+    if (publishState.mediaFiles.length === 0) {
       issues.push({
         type: 'error',
-        message: 'Adicione uma mídia para publicar'
+        message: 'Adicione pelo menos uma mídia para publicar'
       })
     }
     
-    // Check captions for each network
-    publishState.selectedNetworks.forEach(network => {
-      const caption = getEffectiveCaption(network)
+    // Check captions for each option
+    publishState.selectedOptions.forEach(optionId => {
+      const caption = getEffectiveCaption(optionId)
+      const result = findNetworkOption(optionId)
       
       if (!caption.trim()) {
         issues.push({
           type: 'warning',
           message: 'Legenda vazia pode afetar o alcance',
-          network
+          optionId
         })
       }
       
       // TikTok specific validations
-      if (network === 'tiktok') {
+      if (optionId === 'tiktok_video') {
         if (caption.length > 2200) {
           issues.push({
             type: 'error',
             message: 'Legenda muito longa para TikTok (máx: 2200 caracteres)',
-            network: 'tiktok'
+            optionId: 'tiktok_video'
+          })
+        }
+      }
+      
+      // Instagram specific validations
+      if (optionId.startsWith('instagram_')) {
+        if (caption.length > 2200) {
+          issues.push({
+            type: 'error',
+            message: 'Legenda muito longa para Instagram (máx: 2200 caracteres)',
+            optionId
           })
         }
       }
@@ -139,8 +142,8 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     
     // Reset publish status and errors
     const initialStatus: { [key: string]: 'pending' | 'uploading' | 'success' | 'error' } = {}
-    publishState.selectedNetworks.forEach(network => {
-      initialStatus[network] = 'pending'
+    publishState.selectedOptions.forEach(optionId => {
+      initialStatus[optionId] = 'pending'
     })
     setPublishStatus(initialStatus)
     setPublishErrors({})
@@ -148,41 +151,44 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     // Call the parent's publish handler
     onPublish()
     
-    // Process each network
-    for (const network of publishState.selectedNetworks) {
-      setPublishStatus(prev => ({ ...prev, [network]: 'uploading' }))
+    // Process each option
+    for (const optionId of publishState.selectedOptions) {
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
       
       try {
-        if (network === 'tiktok') {
-          await publishToTikTok(network)
+        if (optionId === 'tiktok_video') {
+          await publishToTikTok(optionId)
         } else {
-          // For other networks, mark as error for now
-          setPublishStatus(prev => ({ ...prev, [network]: 'error' }))
+          // For other options, mark as error for now
+          const result = findNetworkOption(optionId)
+          const optionName = result?.option.name || optionId
+          
+          setPublishStatus(prev => ({ ...prev, [optionId]: 'error' }))
           setPublishErrors(prev => ({ 
             ...prev, 
-            [network]: 'Network not implemented yet' 
+            [optionId]: `${optionName} não implementado ainda` 
           }))
         }
       } catch (error) {
-        setPublishStatus(prev => ({ ...prev, [network]: 'error' }))
+        setPublishStatus(prev => ({ ...prev, [optionId]: 'error' }))
         setPublishErrors(prev => ({ 
           ...prev, 
-          [network]: error instanceof Error ? error.message : 'Unknown error' 
+          [optionId]: error instanceof Error ? error.message : 'Unknown error' 
         }))
       }
     }
   }
 
-  const publishToTikTok = async (network: string) => {
-    if (!user || !publishState.mediaFile) return
+  const publishToTikTok = async (optionId: string) => {
+    if (!user || publishState.mediaFiles.length === 0) return
 
     try {
       // Step 1: Upload file to our server
-      setPublishStatus(prev => ({ ...prev, [network]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [network]: 'Enviando arquivo para servidor...' }))
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando arquivo para servidor...' }))
       
       const formData = new FormData()
-      formData.append('file', publishState.mediaFile)
+      formData.append('file', publishState.mediaFiles[0]) // Use first file for TikTok
       formData.append('userId', user.id)
       
       const uploadResponse = await fetch('/api/upload', {
@@ -198,14 +204,14 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       const uploadResult = await uploadResponse.json()
       
       // Step 2: Submit to TikTok using PULL_FROM_URL
-      setUploadProgress(prev => ({ ...prev, [network]: 'Enviando para o TikTok...' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando para o TikTok...' }))
       
       const publishPayload = {
         userId: user.id,
         mediaUrl: uploadResult.data.url,
-        mediaType: publishState.mediaFile.type,
-        caption: getEffectiveCaption(network),
-        settings: publishState.settings.tiktok || {
+        mediaType: publishState.mediaFiles[0].type,
+        caption: getEffectiveCaption(optionId),
+        settings: publishState.settings[optionId] || {
           privacy: 'PUBLIC_TO_EVERYONE',
           allowComments: true,
           allowDuet: true,
@@ -229,7 +235,7 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       
       // Step 3: Start checking status
       if (publishResult.data?.publish_id) {
-        setUploadProgress(prev => ({ ...prev, [network]: 'Processando no TikTok...' }))
+        setUploadProgress(prev => ({ ...prev, [optionId]: 'Processando no TikTok...' }))
         const publishId = publishResult.data.publish_id
         
         // Check status every 3 seconds, up to 10 times (30 seconds total)
@@ -251,7 +257,7 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
           const statusResult = await statusResponse.json()
           
           if (statusResult.data?.status === 'PUBLISH_COMPLETE') {
-            setPublishStatus(prev => ({ ...prev, [network]: 'success' }))
+            setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
             return true
           } else if (statusResult.data?.status === 'FAILED') {
             throw new Error(`TikTok publish failed: ${statusResult.data.fail_reason || 'Unknown reason'}`)
@@ -281,7 +287,7 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         }
       }
       
-      setPublishStatus(prev => ({ ...prev, [network]: 'success' }))
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
       
     } catch (error) {
       throw error
@@ -289,13 +295,9 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
   }
 
   
-  const getNetworkName = (network: string) => {
-    switch (network) {
-      case 'tiktok': return 'TikTok'
-      case 'instagram': return 'Instagram'
-      case 'youtube': return 'YouTube'
-      default: return network
-    }
+  const getOptionName = (optionId: string) => {
+    const result = findNetworkOption(optionId)
+    return result?.option.name || optionId
   }
   
   const getStatusIcon = (status: string) => {
@@ -348,9 +350,9 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
               <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
               <div className="text-sm">
                 <span className="text-red-800 dark:text-red-200">{error.message}</span>
-                {error.network && (
+                {error.optionId && (
                   <span className="text-red-600 dark:text-red-400 ml-1">
-                    ({getNetworkName(error.network)})
+                    ({getOptionName(error.optionId)})
                   </span>
                 )}
               </div>
@@ -362,9 +364,9 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
               <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
               <div className="text-sm">
                 <span className="text-yellow-800 dark:text-yellow-200">{warning.message}</span>
-                {warning.network && (
+                {warning.optionId && (
                   <span className="text-yellow-600 dark:text-yellow-400 ml-1">
-                    ({getNetworkName(warning.network)})
+                    ({getOptionName(warning.optionId)})
                   </span>
                 )}
               </div>
@@ -378,20 +380,20 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         <div className="mb-4">
           <h4 className="text-sm font-medium mb-2">Status da Publicação:</h4>
           <div className="space-y-2">
-            {publishState.selectedNetworks.map(network => {
-              const status = publishStatus[network]
-              const error = publishErrors[network]
+            {publishState.selectedOptions.map(optionId => {
+              const status = publishStatus[optionId]
+              const error = publishErrors[optionId]
               return (
-                <div key={network} className="border rounded">
+                <div key={optionId} className="border rounded">
                   <div className="flex items-center justify-between p-2">
-                    <span className="text-sm font-medium">{getNetworkName(network)}</span>
+                    <span className="text-sm font-medium">{getOptionName(optionId)}</span>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(status)}
                       <div className="text-right">
                         <div className="text-sm">{getStatusText(status)}</div>
-                        {uploadProgress[network] && status === 'uploading' && (
+                        {uploadProgress[optionId] && status === 'uploading' && (
                           <div className="text-xs text-muted-foreground">
-                            {uploadProgress[network]}
+                            {uploadProgress[optionId]}
                           </div>
                         )}
                       </div>
@@ -411,7 +413,7 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
                           ✓ Processo concluído com sucesso
                         </p>
                         <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          Verifique o TikTok para confirmar a publicação
+                          Verifique a plataforma para confirmar a publicação
                         </p>
                       </div>
                     </div>
@@ -425,18 +427,18 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       
       
       {/* Publish Summary */}
-      {canPublish && publishState.selectedNetworks.length > 0 && (
+      {canPublish && publishState.selectedOptions.length > 0 && (
         <div className="mb-4 p-3 bg-muted/30 rounded-lg">
           <h4 className="text-sm font-medium mb-2">Resumo da Publicação:</h4>
           <div className="space-y-1 text-xs text-muted-foreground">
-            <div>• Redes: {publishState.selectedNetworks.map(getNetworkName).join(', ')}</div>
-            <div>• Mídia: {publishState.mediaFile?.name}</div>
-            <div>• Tipo: {publishState.mediaFile?.type.startsWith('video/') ? 'Vídeo' : 'Imagem'}</div>
-            {publishState.selectedNetworks.map(network => {
-              const caption = getEffectiveCaption(network)
+            <div>• Destinos: {publishState.selectedOptions.map(getOptionName).join(', ')}</div>
+            <div>• Mídia: {publishState.mediaFiles.length > 1 ? `${publishState.mediaFiles.length} arquivos` : publishState.mediaFiles[0]?.name}</div>
+            <div>• Tipo: {publishState.mediaFiles.length > 1 ? 'Carrossel' : publishState.mediaFiles[0]?.type.startsWith('video/') ? 'Vídeo' : 'Imagem'}</div>
+            {publishState.selectedOptions.map(optionId => {
+              const caption = getEffectiveCaption(optionId)
               return (
-                <div key={network}>
-                  • Legenda {getNetworkName(network)}: {
+                <div key={optionId}>
+                  • Legenda {getOptionName(optionId)}: {
                     caption.length > 50 
                       ? `${caption.substring(0, 50)}... (${caption.length} chars)`
                       : caption || 'Sem legenda'
@@ -466,8 +468,8 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         ) : (
           <>
             <Send className="w-4 h-4" />
-            Publicar em {publishState.selectedNetworks.length} 
-            {publishState.selectedNetworks.length === 1 ? ' rede' : ' redes'}
+            Publicar em {publishState.selectedOptions.length} 
+            {publishState.selectedOptions.length === 1 ? ' destino' : ' destinos'}
           </>
         )}
       </button>
@@ -485,7 +487,7 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       )}
       
       {/* Diagnostics Button */}
-      {publishState.selectedNetworks.includes('tiktok') && (
+      {publishState.selectedOptions.includes('tiktok_video') && (
         <div className="mt-4 pt-4 border-t">
           <button
             onClick={runDiagnostics}

@@ -6,19 +6,129 @@ import { MessageSquare, Hash, AtSign, Globe, Target, Info } from 'lucide-react'
 interface CaptionManagerProps {
   captions: {
     universal: string
-    specific: {
-      tiktok: string
-    }
+    specific: Record<string, string>
   }
-  selectedNetworks: string[]
+  selectedOptions: string[]
   onCaptionChange: (captions: CaptionManagerProps['captions']) => void
 }
 
-const NETWORK_CONFIGS = {
-  tiktok: {
-    name: 'TikTok',
+import { findNetworkOption } from '@/lib/network-configs'
+
+const OPTION_CONFIGS = {
+  tiktok_video: {
+    name: 'TikTok Video',
     color: 'from-pink-500 to-rose-600',
     maxLength: 2200,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  instagram_feed: {
+    name: 'Instagram Feed',
+    color: 'from-purple-500 to-pink-500',
+    maxLength: 2200,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  instagram_story: {
+    name: 'Instagram Stories',
+    color: 'from-purple-500 to-pink-500',
+    maxLength: 2200,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  instagram_reels: {
+    name: 'Instagram Reels',
+    color: 'from-purple-500 to-pink-500',
+    maxLength: 2200,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  youtube_video: {
+    name: 'YouTube Video',
+    color: 'from-red-500 to-red-600',
+    maxLength: 5000,
+    features: {
+      hashtags: true,
+      mentions: false,
+      emojis: true
+    }
+  },
+  youtube_shorts: {
+    name: 'YouTube Shorts',
+    color: 'from-red-500 to-red-600',
+    maxLength: 100,
+    features: {
+      hashtags: true,
+      mentions: false,
+      emojis: true
+    }
+  },
+  facebook_post: {
+    name: 'Facebook Post',
+    color: 'from-blue-500 to-blue-600',
+    maxLength: 63206,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  facebook_story: {
+    name: 'Facebook Stories',
+    color: 'from-blue-500 to-blue-600',
+    maxLength: 2200,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  facebook_reels: {
+    name: 'Facebook Reels',
+    color: 'from-blue-500 to-blue-600',
+    maxLength: 2200,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  linkedin_post: {
+    name: 'LinkedIn Post',
+    color: 'from-blue-600 to-blue-700',
+    maxLength: 3000,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  linkedin_article: {
+    name: 'LinkedIn Article',
+    color: 'from-blue-600 to-blue-700',
+    maxLength: 125000,
+    features: {
+      hashtags: false,
+      mentions: true,
+      emojis: true
+    }
+  },
+  threads_post: {
+    name: 'Threads Post',
+    color: 'from-gray-800 to-black',
+    maxLength: 500,
     features: {
       hashtags: true,
       mentions: true,
@@ -27,29 +137,29 @@ const NETWORK_CONFIGS = {
   }
 }
 
-export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: CaptionManagerProps) {
+export function CaptionManager({ captions, selectedOptions, onCaptionChange }: CaptionManagerProps) {
   const [activeTab, setActiveTab] = useState<'universal' | 'specific'>('universal')
-  const [selectedNetwork, setSelectedNetwork] = useState<string>(selectedNetworks[0] || 'tiktok')
+  const [selectedOption, setSelectedOption] = useState<string>(selectedOptions[0] || '')
 
-  const updateCaption = (type: 'universal' | 'specific', value: string, network?: string) => {
+  const updateCaption = (type: 'universal' | 'specific', value: string, optionId?: string) => {
     if (type === 'universal') {
       onCaptionChange({
         ...captions,
         universal: value
       })
-    } else if (network) {
+    } else if (optionId) {
       onCaptionChange({
         ...captions,
         specific: {
           ...captions.specific,
-          [network]: value
+          [optionId]: value
         }
       })
     }
   }
 
-  const getCharacterCount = (text: string, network: string) => {
-    const config = NETWORK_CONFIGS[network as keyof typeof NETWORK_CONFIGS]
+  const getCharacterCount = (text: string, optionId: string) => {
+    const config = OPTION_CONFIGS[optionId as keyof typeof OPTION_CONFIGS]
     if (!config) return { count: text.length, limit: 2200, percentage: 0 }
     
     const count = text.length
@@ -59,8 +169,8 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
     return { count, limit, percentage }
   }
 
-  const getEffectiveCaption = (network: string): string => {
-    const specificCaption = captions.specific[network as keyof typeof captions.specific]
+  const getEffectiveCaption = (optionId: string): string => {
+    const specificCaption = captions.specific[optionId]
     return (specificCaption && specificCaption.trim() !== '') 
       ? specificCaption 
       : captions.universal
@@ -103,7 +213,7 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
           }`}
         >
           <Target className="w-4 h-4" />
-          Específica por Rede
+          Específica por Destino
         </button>
       </div>
 
@@ -117,7 +227,7 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
               </h4>
             </div>
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              Esta legenda será usada em todas as redes selecionadas, a menos que uma legenda específica seja definida.
+              Esta legenda será usada em todos os destinos selecionados, a menos que uma legenda específica seja definida.
             </p>
           </div>
 
@@ -125,7 +235,7 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
             <textarea
               value={captions.universal}
               onChange={(e) => updateCaption('universal', e.target.value)}
-              placeholder="Escreva uma legenda que funcione bem em todas as redes sociais..."
+              placeholder="Escreva uma legenda que funcione bem em todos os destinos selecionados..."
               className="w-full h-32 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
             
@@ -144,17 +254,19 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
             </div>
           </div>
 
-          {/* Preview for each network */}
-          {selectedNetworks.length > 0 && (
+          {/* Preview for each option */}
+          {selectedOptions.length > 0 && (
             <div>
-              <h4 className="font-medium mb-2">Como ficará nas redes:</h4>
+              <h4 className="font-medium mb-2">Como ficará em cada destino:</h4>
               <div className="space-y-2">
-                {selectedNetworks.map((network) => {
-                  const config = NETWORK_CONFIGS[network as keyof typeof NETWORK_CONFIGS]
-                  const { count, limit, percentage } = getCharacterCount(captions.universal, network)
+                {selectedOptions.map((optionId) => {
+                  const config = OPTION_CONFIGS[optionId as keyof typeof OPTION_CONFIGS]
+                  const { count, limit, percentage } = getCharacterCount(captions.universal, optionId)
+                  
+                  if (!config) return null
                   
                   return (
-                    <div key={network} className="flex items-center justify-between p-2 border rounded text-sm">
+                    <div key={optionId} className="flex items-center justify-between p-2 border rounded text-sm">
                       <div className="flex items-center gap-2">
                         <div className={`w-4 h-4 bg-gradient-to-br ${config.color} rounded`}></div>
                         <span className="font-medium">{config.name}</span>
@@ -182,21 +294,23 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Network Selector */}
-          {selectedNetworks.length > 1 && (
+          {/* Option Selector */}
+          {selectedOptions.length > 1 && (
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Selecione a rede social:
+                Selecione o destino:
               </label>
-              <div className="flex gap-2">
-                {selectedNetworks.map((network) => {
-                  const config = NETWORK_CONFIGS[network as keyof typeof NETWORK_CONFIGS]
+              <div className="flex gap-2 flex-wrap">
+                {selectedOptions.map((optionId) => {
+                  const config = OPTION_CONFIGS[optionId as keyof typeof OPTION_CONFIGS]
+                  if (!config) return null
+                  
                   return (
                     <button
-                      key={network}
-                      onClick={() => setSelectedNetwork(network)}
+                      key={optionId}
+                      onClick={() => setSelectedOption(optionId)}
                       className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
-                        selectedNetwork === network
+                        selectedOption === optionId
                           ? 'border-primary bg-primary/5'
                           : 'border-muted hover:border-primary/50'
                       }`}
@@ -210,34 +324,34 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
             </div>
           )}
 
-          {selectedNetworks.length > 0 && selectedNetwork && (
+          {selectedOptions.length > 0 && selectedOption && (
             <div>
               <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Info className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                   <h4 className="font-medium text-yellow-900 dark:text-yellow-100">
-                    Legenda Específica para {NETWORK_CONFIGS[selectedNetwork as keyof typeof NETWORK_CONFIGS]?.name}
+                    Legenda Específica para {OPTION_CONFIGS[selectedOption as keyof typeof OPTION_CONFIGS]?.name}
                   </h4>
                 </div>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Se definida, esta legenda terá prioridade sobre a universal para esta rede.
-                  {!captions.specific[selectedNetwork as keyof typeof captions.specific] && 
+                  Se definida, esta legenda terá prioridade sobre a universal para este destino.
+                  {!captions.specific[selectedOption] && 
                     ' Atualmente usando a legenda universal.'}
                 </p>
               </div>
 
               <div>
                 <textarea
-                  value={captions.specific[selectedNetwork as keyof typeof captions.specific] || ''}
-                  onChange={(e) => updateCaption('specific', e.target.value, selectedNetwork)}
-                  placeholder={`Legenda específica para ${NETWORK_CONFIGS[selectedNetwork as keyof typeof NETWORK_CONFIGS]?.name}... \n\nDeixe vazio para usar a legenda universal.`}
+                  value={captions.specific[selectedOption] || ''}
+                  onChange={(e) => updateCaption('specific', e.target.value, selectedOption)}
+                  placeholder={`Legenda específica para ${OPTION_CONFIGS[selectedOption as keyof typeof OPTION_CONFIGS]?.name}... \n\nDeixe vazio para usar a legenda universal.`}
                   className="w-full h-32 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
                 
                 {(() => {
-                  const config = NETWORK_CONFIGS[selectedNetwork as keyof typeof NETWORK_CONFIGS]
-                  const effectiveCaption = getEffectiveCaption(selectedNetwork)
-                  const { count, limit, percentage } = getCharacterCount(effectiveCaption, selectedNetwork)
+                  const config = OPTION_CONFIGS[selectedOption as keyof typeof OPTION_CONFIGS]
+                  const effectiveCaption = getEffectiveCaption(selectedOption)
+                  const { count, limit, percentage } = getCharacterCount(effectiveCaption, selectedOption)
                   
                   return (
                     <div className="flex items-center justify-between mt-2 text-sm">
@@ -274,10 +388,10 @@ export function CaptionManager({ captions, selectedNetworks, onCaptionChange }: 
               <div className="mt-4 p-3 border rounded-lg bg-muted/30">
                 <h4 className="text-sm font-medium mb-2">Preview da Legenda Final:</h4>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {getEffectiveCaption(selectedNetwork) || 'Nenhuma legenda definida'}
+                  {getEffectiveCaption(selectedOption) || 'Nenhuma legenda definida'}
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {captions.specific[selectedNetwork as keyof typeof captions.specific] 
+                  {captions.specific[selectedOption] 
                     ? 'Usando legenda específica' 
                     : 'Usando legenda universal'
                   }
