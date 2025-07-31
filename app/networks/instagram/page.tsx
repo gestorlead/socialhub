@@ -406,7 +406,7 @@ export default function InstagramPage() {
           <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <AlertDescription className="text-blue-700 dark:text-blue-300">
             <strong>Limites de Publicação:</strong> O Instagram permite até 100 posts por período de 24 horas por conta. 
-            Apenas imagens JPEG são suportadas. Vídeos e outros formatos devem ser convertidos antes da publicação.
+            Suporta imagens (JPEG, PNG), vídeos (MP4, MOV) e carrosséis com múltiplas mídias. Cada post pode ter até 10 itens em carrossel.
           </AlertDescription>
         </Alert>
 
@@ -422,10 +422,10 @@ export default function InstagramPage() {
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg group-hover:bg-purple-200 dark:group-hover:bg-purple-800 transition-colors">
                   <Edit3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h4 className="font-medium">Publicar Fotos</h4>
+                <h4 className="font-medium">Publicar Conteúdo</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Publique fotos diretamente no Instagram com legendas personalizadas
+                Publique fotos, vídeos e carrosséis no Instagram com legendas personalizadas
               </p>
             </Link>
             

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     const hasVideoPublish = scopes.includes('video.publish') || scopes.includes('video.upload')
     
     // 5. Test TikTok API connectivity (if we have a token)
-    let apiTest = { success: false, error: null as any }
+    const apiTest = { success: false, error: null as any }
     if (accessToken) {
       try {
         const testResponse = await fetch('https://open.tiktokapis.com/v2/user/info/', {
