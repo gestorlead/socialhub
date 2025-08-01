@@ -11,7 +11,7 @@ import Link from "next/link"
 
 export default function Home() {
   const { user, profile, userRole, loading } = useAuth()
-  const { isConnected, connectTikTok, getConnection, refresh } = useSocialConnections()
+  const { isConnected, connectTikTok, connectInstagram, getConnection, refresh } = useSocialConnections()
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null)
   const [updatingStats, setUpdatingStats] = useState(false)
 
@@ -60,6 +60,30 @@ export default function Home() {
       }
     } catch (error) {
       setConnectionStatus('Erro ao atualizar perfil')
+    } finally {
+      setUpdatingStats(false)
+    }
+  }
+
+  const updateInstagramStats = async () => {
+    if (!user) return
+    
+    setUpdatingStats(true)
+    try {
+      const response = await fetch(`/api/social/instagram/refresh?user_id=${user.id}`, {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        await refresh() // Refresh connections to show updated data
+        setConnectionStatus('Perfil do Instagram atualizado com sucesso!')
+        setTimeout(() => setConnectionStatus(null), 3000)
+      } else {
+        const error = await response.json()
+        setConnectionStatus('Erro ao atualizar perfil do Instagram')
+      }
+    } catch (error) {
+      setConnectionStatus('Erro ao atualizar perfil do Instagram')
     } finally {
       setUpdatingStats(false)
     }
@@ -176,160 +200,158 @@ export default function Home() {
           <div className="rounded-lg border bg-card p-6">
             <h3 className="text-lg font-semibold mb-4">Redes Sociais</h3>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {/* TikTok */}
-              {isConnected('tiktok') ? (
-                <Link href="/networks/tiktok" className="relative overflow-hidden rounded-lg border bg-gradient-to-br from-gray-900 to-black p-4 text-white hover:shadow-lg transition-shadow cursor-pointer group">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center p-2 group-hover:bg-white/30 transition-colors">
-                        <img 
-                          src="/images/social-icons/tiktok.png" 
-                          alt="TikTok" 
-                          className="w-6 h-6 object-contain"
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-medium flex items-center gap-1 group-hover:text-white/90 transition-colors">
-                          @{getConnection('tiktok')?.profile_data?.username || getConnection('tiktok')?.profile_data?.display_name || 'TikTok User'}
-                        </h4>
-                        {getConnection('tiktok')?.profile_data?.display_name && (
-                          <p className="text-xs text-white/60">
-                            {getConnection('tiktok')?.profile_data?.display_name}
-                          </p>
+              {/* Renderizar dinamicamente todas as redes sociais */}
+              {[
+                { 
+                  id: 'tiktok', 
+                  name: 'TikTok', 
+                  icon: '/images/social-icons/tiktok.png',
+                  gradientColors: 'from-gray-900 to-black',
+                  connectPath: '/networks/tiktok',
+                  connectAction: connectTikTok
+                },
+                { 
+                  id: 'instagram', 
+                  name: 'Instagram', 
+                  icon: '/images/social-icons/instagram.png',
+                  gradientColors: 'from-purple-600 to-pink-600',
+                  connectPath: '/networks/instagram',
+                  connectAction: connectInstagram
+                },
+                { 
+                  id: 'facebook', 
+                  name: 'Facebook', 
+                  icon: '/images/social-icons/facebook.png',
+                  gradientColors: 'from-blue-600 to-blue-700',
+                  connectPath: '/networks/facebook',
+                  connectAction: () => window.location.href = '/networks/facebook'
+                },
+                { 
+                  id: 'linkedin', 
+                  name: 'LinkedIn', 
+                  icon: '/images/social-icons/linkedin.png',
+                  gradientColors: 'from-blue-700 to-blue-800',
+                  connectPath: '/networks/linkedin',
+                  connectAction: () => window.location.href = '/networks/linkedin'
+                },
+                { 
+                  id: 'youtube', 
+                  name: 'YouTube', 
+                  icon: '/images/social-icons/youtube.png',
+                  gradientColors: 'from-red-600 to-red-700',
+                  connectPath: '/networks/youtube',
+                  connectAction: () => window.location.href = '/networks/youtube'
+                },
+                { 
+                  id: 'threads', 
+                  name: 'Threads', 
+                  icon: '/images/social-icons/threads.png',
+                  gradientColors: 'from-gray-800 to-black',
+                  connectPath: '/networks/threads',
+                  connectAction: () => window.location.href = '/networks/threads'
+                }
+              ].map((network) => {
+                const connection = getConnection(network.id)
+                const isNetworkConnected = isConnected(network.id)
+
+                if (isNetworkConnected && connection) {
+                  // Card da rede conectada
+                  return (
+                    <Link 
+                      key={network.id}
+                      href={network.connectPath} 
+                      className={`relative overflow-hidden rounded-lg border bg-gradient-to-br ${network.gradientColors} p-4 text-white hover:shadow-lg transition-shadow cursor-pointer group`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center p-2 group-hover:bg-white/30 transition-colors">
+                            <img 
+                              src={network.icon} 
+                              alt={network.name} 
+                              className="w-6 h-6 object-contain"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="font-medium flex items-center gap-1 group-hover:text-white/90 transition-colors">
+                              @{connection.profile_data?.username || connection.profile_data?.display_name || `${network.name} User`}
+                            </h4>
+                            {connection.profile_data?.display_name && connection.profile_data?.username !== connection.profile_data?.display_name && (
+                              <p className="text-xs text-white/60">
+                                {connection.profile_data.display_name}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {/* Botão de refresh para TikTok e Instagram */}
+                        {(network.id === 'tiktok' || network.id === 'instagram') && (
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              if (network.id === 'tiktok') {
+                                updateTikTokStats()
+                              } else if (network.id === 'instagram') {
+                                updateInstagramStats()
+                              }
+                            }}
+                            disabled={updatingStats}
+                            className="text-white/80 hover:text-white disabled:opacity-50 transition-colors z-10"
+                            title="Atualizar estatísticas"
+                          >
+                            <RefreshCw className={`w-5 h-5 ${updatingStats ? 'animate-spin' : ''}`} />
+                          </button>
                         )}
                       </div>
-                    </div>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        updateTikTokStats()
-                      }}
-                      disabled={updatingStats}
-                      className="text-white/80 hover:text-white disabled:opacity-50 transition-colors z-10"
-                      title="Atualizar estatísticas"
-                    >
-                      <RefreshCw className={`w-5 h-5 ${updatingStats ? 'animate-spin' : ''}`} />
-                    </button>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex gap-4">
-                      <div>
-                        <p className="text-white/60 text-xs uppercase tracking-wider">Seguidores</p>
-                        <p className="font-bold text-xl">
-                          {getConnection('tiktok')?.profile_data?.follower_count?.toLocaleString('pt-BR') || '0'}
-                        </p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex gap-4">
+                          <div>
+                            <p className="text-white/60 text-xs uppercase tracking-wider">Seguidores</p>
+                            <p className="font-bold text-xl">
+                              {connection.profile_data?.follower_count?.toLocaleString('pt-BR') || 
+                               connection.profile_data?.followers_count?.toLocaleString('pt-BR') || '0'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-white/60 text-xs uppercase tracking-wider">Seguindo</p>
+                            <p className="font-medium">
+                              {connection.profile_data?.following_count?.toLocaleString('pt-BR') || 
+                               connection.profile_data?.follows_count?.toLocaleString('pt-BR') || '0'}
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-white/60 text-xs uppercase tracking-wider">Conectado em</p>
+                          <p className="text-xs">
+                            {connection.created_at 
+                              ? new Date(connection.created_at).toLocaleDateString('pt-BR')
+                              : 'Hoje'}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-white/60 text-xs uppercase tracking-wider">Seguindo</p>
-                        <p className="font-medium">
-                          {getConnection('tiktok')?.profile_data?.following_count?.toLocaleString('pt-BR') || '0'}
-                        </p>
+                    </Link>
+                  )
+                } else {
+                  // Card para conectar a rede
+                  return (
+                    <div key={network.id} className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
+                        <img 
+                          src={network.icon} 
+                          alt={network.name} 
+                          className="w-10 h-10 object-contain"
+                        />
                       </div>
+                      <h4 className="font-medium mb-1">{network.name}</h4>
+                      <button 
+                        onClick={network.connectAction}
+                        className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
+                      >
+                        Conectar
+                      </button>
                     </div>
-                    <div>
-                      <p className="text-white/60 text-xs uppercase tracking-wider">Conectado em</p>
-                      <p className="text-xs">
-                        {getConnection('tiktok')?.created_at 
-                          ? new Date(getConnection('tiktok')!.created_at).toLocaleDateString('pt-BR')
-                          : 'Hoje'}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ) : (
-                <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
-                    <img 
-                      src="/images/social-icons/tiktok.png" 
-                      alt="TikTok" 
-                      className="w-10 h-10 object-contain"
-                    />
-                  </div>
-                  <h4 className="font-medium mb-1">TikTok</h4>
-                  <button 
-                    onClick={connectTikTok}
-                    className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
-                  >
-                    Conectar
-                  </button>
-                </div>
-              )}
-
-              {/* Instagram */}
-              <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
-                  <img 
-                    src="/images/social-icons/instagram.png" 
-                    alt="Instagram" 
-                    className="w-10 h-10 object-contain"
-                  />
-                </div>
-                <h4 className="font-medium mb-1">Instagram</h4>
-                <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
-                  Conectar
-                </button>
-              </div>
-
-              {/* Facebook */}
-              <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
-                  <img 
-                    src="/images/social-icons/facebook.png" 
-                    alt="Facebook" 
-                    className="w-10 h-10 object-contain"
-                  />
-                </div>
-                <h4 className="font-medium mb-1">Facebook</h4>
-                <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
-                  Conectar
-                </button>
-              </div>
-
-              {/* LinkedIn */}
-              <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
-                  <img 
-                    src="/images/social-icons/linkedin.png" 
-                    alt="LinkedIn" 
-                    className="w-10 h-10 object-contain"
-                  />
-                </div>
-                <h4 className="font-medium mb-1">LinkedIn</h4>
-                <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
-                  Conectar
-                </button>
-              </div>
-
-              {/* YouTube */}
-              <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
-                  <img 
-                    src="/images/social-icons/youtube.png" 
-                    alt="YouTube" 
-                    className="w-10 h-10 object-contain"
-                  />
-                </div>
-                <h4 className="font-medium mb-1">YouTube</h4>
-                <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
-                  Conectar
-                </button>
-              </div>
-
-              {/* Threads */}
-              <div className="p-6 rounded-lg border bg-card hover:shadow-md transition-shadow flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-center mb-3">
-                  <img 
-                    src="/images/social-icons/threads.png" 
-                    alt="Threads" 
-                    className="w-10 h-10 object-contain"
-                  />
-                </div>
-                <h4 className="font-medium mb-1">Threads</h4>
-                <button className="mt-3 w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors">
-                  Conectar
-                </button>
-              </div>
+                  )
+                }
+              })}
             </div>
           </div>
         </div>
