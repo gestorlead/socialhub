@@ -158,6 +158,8 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       try {
         if (optionId === 'tiktok_video') {
           await publishToTikTok(optionId)
+        } else if (optionId === 'facebook_post') {
+          await publishToFacebook(optionId)
         } else {
           // For other options, mark as error for now
           const result = findNetworkOption(optionId)
@@ -295,6 +297,81 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
   }
 
   
+  const publishToFacebook = async (optionId: string) => {
+    if (!user || publishState.mediaFiles.length === 0) return
+
+    try {
+      // Step 1: Upload file to our server
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando arquivo para servidor...' }))
+      
+      const formData = new FormData()
+      publishState.mediaFiles.forEach((file, index) => {
+        formData.append(`file${index}`, file)
+      })
+      formData.append('userId', user.id)
+      
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!uploadResponse.ok) {
+        const uploadError = await uploadResponse.json()
+        throw new Error(uploadError.error || 'Failed to upload file')
+      }
+      
+      const uploadResult = await uploadResponse.json()
+      const mediaUrls = Array.isArray(uploadResult.data) 
+        ? uploadResult.data.map((item: any) => item.url)
+        : [uploadResult.data.url]
+      
+      // Step 2: Submit to Facebook
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando para o Facebook...' }))
+      
+      const firstFile = publishState.mediaFiles[0]
+      const mediaType = firstFile.type.startsWith('video/') ? 'video' : 'photo'
+      
+      const publishPayload = {
+        page_id: publishState.settings[optionId]?.page_id, // Get from settings
+        message: getEffectiveCaption(optionId),
+        media_urls: mediaUrls,
+        media_type: mediaType,
+        privacy: publishState.settings[optionId]?.privacy || { value: 'EVERYONE' },
+        scheduled_publish_time: publishState.settings[optionId]?.scheduled_publish_time
+      }
+
+      const authHeader = await user.getIdToken()
+      
+      const publishResponse = await fetch('/api/social/facebook/publish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authHeader}`
+        },
+        body: JSON.stringify(publishPayload)
+      })
+      
+      const publishResult = await publishResponse.json()
+      
+      if (!publishResponse.ok || publishResult.error) {
+        throw new Error(publishResult.error || publishResult.details || `HTTP ${publishResponse.status}`)
+      }
+      
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Publicado com sucesso!' }))
+      
+    } catch (error: any) {
+      console.error('Facebook publish error:', error)
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'error' }))
+      setPublishErrors(prev => ({ 
+        ...prev, 
+        [optionId]: error.message || 'Erro ao publicar no Facebook' 
+      }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Erro na publicação' }))
+    }
+  }
+
   const getOptionName = (optionId: string) => {
     const result = findNetworkOption(optionId)
     return result?.option.name || optionId

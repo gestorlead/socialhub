@@ -72,16 +72,23 @@ export async function POST(request: NextRequest) {
 
     // Get current settings
     const { data: dbSettings, error: dbError } = await supabase
-      .from('facebook_settings')
+      .from('integration_settings')
       .select('*')
-      .limit(1)
+      .eq('platform', 'facebook')
       .single()
 
     let settings
     let configSource = 'environment'
 
     if (!dbError && dbSettings) {
-      settings = dbSettings
+      // Map from integration_settings fields
+      settings = {
+        app_id: dbSettings.app_id,
+        app_secret: dbSettings.client_secret,
+        api_version: 'v23.0',
+        environment: dbSettings.environment || 'production',
+        pages: []
+      }
       configSource = 'database'
     } else {
       // Fallback to environment variables
@@ -89,7 +96,7 @@ export async function POST(request: NextRequest) {
         app_id: process.env.FACEBOOK_APP_ID,
         app_secret: process.env.FACEBOOK_APP_SECRET,
         access_token: process.env.FACEBOOK_ACCESS_TOKEN,
-        api_version: process.env.FACEBOOK_API_VERSION || 'v18.0',
+        api_version: process.env.FACEBOOK_API_VERSION || 'v23.0',
         environment: process.env.FACEBOOK_ENVIRONMENT || 'development',
         pages: []
       }

@@ -1,89 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { 
-  createOAuthState, 
-  checkOAuthRateLimit, 
-  logOAuthSecurityEvent,
-  createSecureRedirectUri 
-} from '@/lib/oauth-security'
+import { createClient } from '@supabase/supabase-js'
 
-// GET - Redirect to Facebook OAuth with security
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+// GET - Return Facebook OAuth URL
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting check
-    const clientIp = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
-    const rateLimitResult = checkOAuthRateLimit(clientIp, 10, 15 * 60 * 1000) // 10 requests per 15 minutes
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('user_id')
     
-    if (!rateLimitResult.allowed) {
-      await logOAuthSecurityEvent(
-        'rate_limit_exceeded',
-        { ip: clientIp, remaining: rateLimitResult.remaining },
-        request
-      )
-      
+    console.log('Facebook OAuth requested for user:', userId)
+
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { 
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': '10',
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
-            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString()
-          }
-        }
+        { error: 'User ID is required' },
+        { status: 400 }
       )
     }
 
     // Get settings from database or environment
     const { data: settings } = await supabase
-      .from('facebook_settings')
-      .select('app_id, oauth_redirect_uri, permissions, api_version')
-      .limit(1)
+      .from('integration_settings')
+      .select('app_id, callback_url')
+      .eq('platform', 'facebook')
       .single()
 
     const appId = settings?.app_id || process.env.FACEBOOK_APP_ID
-    const apiVersion = settings?.api_version || process.env.FACEBOOK_API_VERSION || 'v18.0'
+    const apiVersion = 'v23.0' // Always use v23.0 as per latest API
     
-    // Create secure redirect URI
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${request.headers.get('host')}`
-    const redirectUri = settings?.oauth_redirect_uri || 
+    const redirectUri = settings?.callback_url || 
       process.env.FACEBOOK_OAUTH_REDIRECT_URI ||
-      createSecureRedirectUri(baseUrl, 'facebook')
+      `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL}/api/auth/facebook/callback`
 
-    const permissions = settings?.permissions?.join(',') || 
-      'pages_show_list,pages_read_engagement,pages_manage_posts,pages_manage_metadata'
+    // Facebook Login for Business permissions
+    const permissions = 'pages_show_list,pages_read_engagement,pages_read_user_content,pages_manage_posts,pages_manage_engagement,business_management'
 
     if (!appId) {
-      await logOAuthSecurityEvent(
-        'invalid_configuration',
-        { error: 'Facebook App ID not configured' },
-        request
-      )
-      
+      console.error('Facebook App ID not configured')
       return NextResponse.json(
         { error: 'Facebook integration not configured' },
         { status: 500 }
       )
     }
 
-    // Create secure OAuth state with optional user context
-    const authHeader = request.headers.get('authorization')
-    let userId: string | undefined
-    
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      const { data: { user } } = await supabase.auth.getUser(token)
-      userId = user?.id
-    }
-
-    // Create and store OAuth state with PKCE support
-    const { state, codeChallenge } = await createOAuthState(
-      'facebook',
+    console.log('Facebook OAuth config:', {
+      appId: appId ? `${appId.substring(0, 6)}...` : 'NOT CONFIGURED',
       redirectUri,
-      userId,
-      false // Facebook doesn't support PKCE
-    )
+      permissions: permissions.split(',').length + ' permissions',
+      apiVersion,
+      settingsSource: settings ? 'database' : 'environment'
+    })
+
+    // Create state parameter with user info
+    const state = Buffer.from(JSON.stringify({
+      user_id: userId,
+      timestamp: Date.now()
+    })).toString('base64')
 
     // Build Facebook OAuth URL
     const authUrl = new URL(`https://www.facebook.com/${apiVersion}/dialog/oauth`)
@@ -93,39 +68,15 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('response_type', 'code')
     authUrl.searchParams.set('state', state)
 
-    // Log successful OAuth initiation
-    await logOAuthSecurityEvent(
-      'oauth_initiated',
-      { 
-        provider: 'facebook',
-        client_id: appId,
-        scope: permissions,
-        has_user: !!userId
-      },
-      request
-    )
+    console.log('Generated Facebook OAuth URL')
 
-    // Set security headers
-    const response = NextResponse.redirect(authUrl.toString())
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
-    response.headers.set('Pragma', 'no-cache')
-    response.headers.set('X-Frame-Options', 'DENY')
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    
-    return response
+    return NextResponse.json({
+      success: true,
+      auth_url: authUrl.toString()
+    })
 
   } catch (error) {
     console.error('Facebook OAuth initiation error:', error)
-    
-    await logOAuthSecurityEvent(
-      'oauth_error',
-      { 
-        provider: 'facebook',
-        error: error.message,
-        phase: 'initiation'
-      },
-      request
-    )
     
     return NextResponse.json(
       { error: 'Failed to initiate Facebook authentication' },

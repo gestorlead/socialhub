@@ -435,8 +435,8 @@ export function NetworkPreview({
     )
   }
 
-  // Facebook Feed Preview
-  if (optionId === 'facebook-feed') {
+  // Facebook Post Preview
+  if (optionId === 'facebook_post') {
     return (
       <div className="w-full h-full bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
         {/* Header */}

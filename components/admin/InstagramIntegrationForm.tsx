@@ -110,11 +110,18 @@ export function InstagramIntegrationForm() {
 
   // Load current settings
   useEffect(() => {
-    loadSettings()
-  }, [])
+    if (session) {
+      loadSettings()
+    }
+  }, [session])
 
   const getAuthToken = async () => {
-    return session?.access_token || ''
+    if (!session?.access_token) {
+      console.error('No valid session found')
+      setErrorMessage('No valid session. Please log in again.')
+      return ''
+    }
+    return session.access_token
   }
 
   const loadSettings = async () => {

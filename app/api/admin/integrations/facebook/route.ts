@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Use anon key to respect RLS policies instead of bypassing them
+// Use service role key for server-side authentication
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 interface FacebookPage {
@@ -16,33 +16,11 @@ interface FacebookPage {
 }
 
 interface FacebookSettings {
+  id?: string
   app_id?: string
   app_secret?: string
-  access_token?: string
-  api_version: string
-  environment: 'development' | 'production'
-  is_active: boolean
   oauth_redirect_uri?: string
-  webhook_url?: string
-  webhook_verify_token?: string
-  permissions?: string[]
-  pages?: FacebookPage[]
-  privacy_settings?: {
-    default_privacy: 'PUBLIC' | 'FRIENDS' | 'ONLY_ME' | 'CUSTOM'
-    allow_message_replies: boolean
-    restrict_location: boolean
-  }
-  scheduling?: {
-    enabled: boolean
-    max_scheduled_posts: number
-    min_schedule_minutes: number
-  }
-  audience_targeting?: {
-    enabled: boolean
-    default_age_min?: number
-    default_age_max?: number
-    default_countries?: string[]
-  }
+  is_active: boolean
 }
 
 // Verify Super Admin access
@@ -57,8 +35,11 @@ async function verifySuperAdmin(request: NextRequest) {
   try {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
+      console.error('Facebook API auth error:', authError)
       return { error: 'Invalid token', status: 401 }
     }
+    
+    console.log('Facebook API authenticated user:', user.id)
 
     // Check if user is Super Admin
     const { data: profile, error: profileError } = await supabase
@@ -73,10 +54,13 @@ async function verifySuperAdmin(request: NextRequest) {
       .single()
 
     if (profileError || !profile) {
+      console.error('Facebook API profile error:', profileError)
       return { error: 'Profile not found', status: 403 }
     }
 
     const userLevel = profile.roles?.level
+    console.log('Facebook API user level:', userLevel)
+    
     if (userLevel < 3) { // 3 = Super Admin
       return { error: 'Insufficient permissions. Super Admin access required.', status: 403 }
     }
@@ -98,50 +82,22 @@ export async function GET(request: NextRequest) {
 
     // Try to get settings from database first
     const { data: dbSettings, error: dbError } = await supabase
-      .from('facebook_settings')
+      .from('integration_settings')
       .select('*')
-      .limit(1)
+      .eq('platform', 'facebook')
       .single()
 
     let settings: FacebookSettings
     let source = 'environment'
 
     if (!dbError && dbSettings) {
-      // Use database settings
+      // Use database settings - map from integration_settings fields
       settings = {
         id: dbSettings.id,
         app_id: dbSettings.app_id,
-        app_secret: dbSettings.app_secret,
-        access_token: dbSettings.access_token,
-        api_version: dbSettings.api_version || 'v18.0',
-        environment: dbSettings.environment || 'development',
-        is_active: dbSettings.is_active ?? true,
-        oauth_redirect_uri: dbSettings.oauth_redirect_uri,
-        webhook_url: dbSettings.webhook_url,
-        webhook_verify_token: dbSettings.webhook_verify_token,
-        permissions: dbSettings.permissions || [],
-        pages: dbSettings.pages || [],
-        privacy_settings: dbSettings.privacy_settings || {
-          default_privacy: 'PUBLIC',
-          allow_message_replies: true,
-          restrict_location: false
-        },
-        scheduling: dbSettings.scheduling || {
-          enabled: true,
-          max_scheduled_posts: 50,
-          min_schedule_minutes: 10
-        },
-        audience_targeting: dbSettings.audience_targeting || {
-          enabled: false,
-          default_age_min: 18,
-          default_age_max: 65,
-          default_countries: []
-        },
-        config_data: {
-          source: 'database',
-          last_updated_by: dbSettings.updated_by,
-          last_updated_at: dbSettings.updated_at
-        }
+        app_secret: dbSettings.client_secret, // Note: field name is client_secret in integration_settings
+        oauth_redirect_uri: dbSettings.callback_url, // Note: field name is callback_url in integration_settings
+        is_active: dbSettings.is_active ?? true
       }
       source = 'database'
     } else {
@@ -149,35 +105,9 @@ export async function GET(request: NextRequest) {
       settings = {
         app_id: process.env.FACEBOOK_APP_ID,
         app_secret: process.env.FACEBOOK_APP_SECRET,
-        access_token: process.env.FACEBOOK_ACCESS_TOKEN,
-        api_version: process.env.FACEBOOK_API_VERSION || 'v18.0',
-        environment: (process.env.FACEBOOK_ENVIRONMENT as 'development' | 'production') || 'development',
-        is_active: process.env.FACEBOOK_IS_ACTIVE !== 'false',
-        oauth_redirect_uri: process.env.FACEBOOK_OAUTH_REDIRECT_URI,
-        webhook_url: process.env.FACEBOOK_WEBHOOK_URL,
-        webhook_verify_token: process.env.FACEBOOK_WEBHOOK_VERIFY_TOKEN,
-        permissions: process.env.FACEBOOK_PERMISSIONS?.split(',') || ['pages_show_list', 'pages_manage_posts'],
-        pages: [],
-        privacy_settings: {
-          default_privacy: (process.env.FACEBOOK_DEFAULT_PRIVACY as 'PUBLIC' | 'FRIENDS' | 'SELF') || 'PUBLIC',
-          allow_message_replies: process.env.FACEBOOK_ALLOW_MESSAGE_REPLIES !== 'false',
-          restrict_location: process.env.FACEBOOK_RESTRICT_LOCATION === 'true'
-        },
-        scheduling: {
-          enabled: process.env.FACEBOOK_SCHEDULING_ENABLED !== 'false',
-          max_scheduled_posts: parseInt(process.env.FACEBOOK_MAX_SCHEDULED_POSTS || '50'),
-          min_schedule_minutes: parseInt(process.env.FACEBOOK_MIN_SCHEDULE_MINUTES || '10')
-        },
-        audience_targeting: {
-          enabled: process.env.FACEBOOK_AUDIENCE_TARGETING_ENABLED === 'true',
-          default_age_min: parseInt(process.env.FACEBOOK_DEFAULT_AGE_MIN || '18'),
-          default_age_max: parseInt(process.env.FACEBOOK_DEFAULT_AGE_MAX || '65'),
-          default_countries: process.env.FACEBOOK_DEFAULT_COUNTRIES?.split(',') || []
-        },
-        config_data: {
-          source: 'environment'
-        }
-      } as FacebookSettings
+        oauth_redirect_uri: process.env.FACEBOOK_OAUTH_REDIRECT_URI || `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/facebook/callback`,
+        is_active: process.env.FACEBOOK_IS_ACTIVE !== 'false'
+      }
     }
 
     return NextResponse.json({
@@ -207,10 +137,15 @@ export async function PUT(request: NextRequest) {
     const { user } = authResult
 
     const body = await request.json()
-    const settings: FacebookSettings = body
+    console.log('Facebook API PUT body received:', {
+      has_app_id: !!body.app_id,
+      has_app_secret: !!body.app_secret,
+      has_oauth_redirect_uri: !!body.oauth_redirect_uri,
+      is_active: body.is_active
+    })
 
     // Validate required fields
-    if (!settings.app_id || !settings.app_secret) {
+    if (!body.app_id || !body.app_secret) {
       return NextResponse.json(
         { error: 'App ID and App Secret are required' },
         { status: 400 }
@@ -218,51 +153,132 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if settings already exist
-    const { data: existingSettings } = await supabase
-      .from('facebook_settings')
+    const existingCheck = await supabase
+      .from('integration_settings')
       .select('id')
-      .limit(1)
+      .eq('platform', 'facebook')
       .single()
+    
+    console.log('Facebook API existing settings check:', {
+      data: existingCheck.data,
+      error: existingCheck.error,
+      hasExisting: !!existingCheck.data
+    })
+    
+    const existingSettings = existingCheck.data
 
+    const now = new Date().toISOString()
     const settingsData = {
-      app_id: settings.app_id,
-      app_secret: settings.app_secret,
-      access_token: settings.access_token,
-      api_version: settings.api_version,
-      environment: settings.environment,
-      is_active: settings.is_active,
-      oauth_redirect_uri: settings.oauth_redirect_uri,
-      webhook_url: settings.webhook_url,
-      webhook_verify_token: settings.webhook_verify_token,
-      permissions: settings.permissions,
-      pages: settings.pages,
-      privacy_settings: settings.privacy_settings,
-      scheduling: settings.scheduling,
-      audience_targeting: settings.audience_targeting,
+      app_id: body.app_id,
+      app_secret: body.app_secret,
+      oauth_redirect_uri: body.oauth_redirect_uri || `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/facebook/callback`,
+      is_active: body.is_active !== undefined ? body.is_active : true,
       updated_by: user.id,
-      updated_at: new Date().toISOString()
+      updated_at: now
     }
+    
+    console.log('Facebook API settings data prepared:', {
+      ...settingsData,
+      app_secret: '[MASKED]'
+    })
 
     let result
     if (existingSettings) {
       // Update existing settings
       result = await supabase
-        .from('facebook_settings')
-        .update(settingsData)
+        .from('integration_settings')
+        .update({
+          platform: 'facebook',
+          app_id: settingsData.app_id,
+          client_secret: settingsData.app_secret, // Note: field name is client_secret in integration_settings
+          callback_url: settingsData.oauth_redirect_uri,
+          is_active: settingsData.is_active,
+          config_data: {},
+          updated_by: settingsData.updated_by,
+          updated_at: settingsData.updated_at
+        })
         .eq('id', existingSettings.id)
         .select()
         .single()
     } else {
-      // Create new settings
-      result = await supabase
-        .from('facebook_settings')
+      // Create new settings with default JSONB values
+      const insertData = {
+        ...settingsData,
+        api_version: 'v23.0', // Add api_version explicitly
+        environment: 'development', // Add environment explicitly
+        // Add default JSONB fields as defined in the database schema
+        permissions: ["pages_show_list", "pages_read_engagement", "pages_manage_posts"],
+        pages: [],
+        privacy_settings: {
+          default_privacy: "PUBLIC",
+          allow_message_replies: true,
+          restrict_location: false
+        },
+        scheduling: {
+          enabled: true,
+          max_scheduled_posts: 50,
+          min_schedule_minutes: 10
+        },
+        audience_targeting: {
+          enabled: false,
+          default_age_min: 18,
+          default_age_max: 65,
+          default_countries: []
+        },
+        created_by: user.id,
+        created_at: now
+      }
+      
+      console.log('Facebook API attempting insert with data:', {
+        ...insertData,
+        app_secret: '[MASKED]'
+      })
+      
+      // Try insert without single() first to get better error messages
+      const insertResult = await supabase
+        .from('integration_settings')
         .insert({
-          ...settingsData,
-          created_by: user.id,
-          created_at: new Date().toISOString()
+          platform: 'facebook',
+          app_id: settingsData.app_id,
+          client_secret: settingsData.app_secret, // Note: field name is client_secret in integration_settings
+          callback_url: settingsData.oauth_redirect_uri,
+          environment: 'production', // integration_settings uses sandbox/production
+          is_active: settingsData.is_active,
+          config_data: {},
+          created_by: settingsData.created_by,
+          created_at: settingsData.created_at,
+          updated_by: settingsData.updated_by,
+          updated_at: settingsData.updated_at
         })
         .select()
-        .single()
+      
+      console.log('Facebook API insert result:', {
+        data: insertResult.data,
+        error: insertResult.error,
+        count: insertResult.count,
+        status: insertResult.status,
+        statusText: insertResult.statusText
+      })
+      
+      if (insertResult.error) {
+        result = insertResult
+      } else if (insertResult.data && insertResult.data.length > 0) {
+        result = { 
+          data: insertResult.data[0], 
+          error: null,
+          count: insertResult.count,
+          status: insertResult.status,
+          statusText: insertResult.statusText
+        }
+      } else {
+        result = {
+          data: null,
+          error: { message: 'No data returned from insert' },
+          count: 0,
+          status: 500,
+          statusText: 'Internal Server Error'
+        }
+      }
     }
 
     if (result.error) {
@@ -274,13 +290,17 @@ export async function PUT(request: NextRequest) {
         hint: result.error.hint,
         user: user.id,
         timestamp: new Date().toISOString(),
-        operation: existingSettings ? 'update' : 'insert'
+        operation: existingSettings ? 'update' : 'insert',
+        settingsData: {
+          ...settingsData,
+          app_secret: settingsData.app_secret ? '[MASKED]' : undefined
+        }
       })
       
       return NextResponse.json(
         { 
           error: 'Failed to save settings',
-          details: result.error.message,
+          details: result.error.message || 'Unknown database error',
           code: result.error.code,
           hint: result.error.hint 
         },

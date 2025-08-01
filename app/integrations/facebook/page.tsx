@@ -28,7 +28,7 @@ export default function FacebookIntegrationPage() {
             <div className="p-6 border-b">
               <h2 className="text-lg font-semibold">Integration Settings</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Configure Facebook Page credentials and operation environment
+                Configure Facebook Pages API credentials and operation environment
               </p>
             </div>
             <div className="p-6">
@@ -41,7 +41,7 @@ export default function FacebookIntegrationPage() {
             <h3 className="font-semibold mb-3">Documentation and Useful Links</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <a
-                href="https://developers.facebook.com/docs/pages"
+                href="https://developers.facebook.com/docs/pages-api"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
@@ -49,28 +49,28 @@ export default function FacebookIntegrationPage() {
                 📚 Facebook Pages API
               </a>
               <a
-                href="https://developers.facebook.com/docs/pages/publishing"
+                href="https://developers.facebook.com/docs/pages-api/posts"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                📋 Publishing Guide
+                📋 Content Publishing Guide
               </a>
               <a
-                href="https://developers.facebook.com/docs/pages/access-tokens"
+                href="https://developers.facebook.com/docs/pages-api/insights"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                🔑 Access Tokens
+                📊 Page Insights API
               </a>
               <a
-                href="https://developers.facebook.com/docs/permissions/reference"
+                href="https://developers.facebook.com/docs/facebook-login/permissions"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                🛡️ Permissions Reference
+                🔐 Permissions Reference
               </a>
             </div>
           </div>

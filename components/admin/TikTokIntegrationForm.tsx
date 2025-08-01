@@ -45,7 +45,7 @@ interface TestResults {
 }
 
 export function TikTokIntegrationForm() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const [settings, setSettings] = useState<TikTokSettings>({
     environment: 'sandbox',
     is_audited: false,
@@ -73,20 +73,25 @@ export function TikTokIntegrationForm() {
 
   // Load current settings
   useEffect(() => {
-    loadSettings()
-  }, [])
+    if (session) {
+      loadSettings()
+    }
+  }, [session])
 
   const getAuthToken = async () => {
     try {
       console.log('Getting auth token...')
-      // Get token from Supabase client (using secure getUser method)
-      const { data: { user } } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser())
-      const session = user ? { user } : null
+      if (!session?.access_token) {
+        console.error('No valid session found')
+        setErrorMessage('No valid session. Please log in again.')
+        return ''
+      }
       console.log('Session exists:', !!session)
       console.log('Access token exists:', !!session?.access_token)
-      return session?.access_token || ''
+      return session.access_token
     } catch (error) {
       console.error('Error getting auth token:', error)
+      setErrorMessage('Failed to authenticate. Please refresh and try again.')
       return ''
     }
   }

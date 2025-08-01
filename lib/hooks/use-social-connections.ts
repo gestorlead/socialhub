@@ -104,6 +104,32 @@ export function useSocialConnections() {
     }
   }
 
+  const connectFacebook = async () => {
+    if (!user) {
+      throw new Error('User must be logged in to connect Facebook')
+    }
+
+    try {
+      // Get Facebook OAuth URL from the API
+      const response = await fetch(`/api/auth/facebook?user_id=${user.id}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initiate Facebook OAuth')
+      }
+
+      if (data.success && data.auth_url) {
+        // Redirect to Facebook OAuth
+        window.location.href = data.auth_url
+      } else {
+        throw new Error('Invalid response from Facebook OAuth endpoint')
+      }
+    } catch (error) {
+      console.error('Error connecting Facebook:', error)
+      throw error
+    }
+  }
+
   const disconnect = async (platform: string) => {
     if (!user) {
       throw new Error('User must be logged in')
@@ -135,6 +161,7 @@ export function useSocialConnections() {
     getConnection,
     connectTikTok,
     connectInstagram,
+    connectFacebook,
     disconnect,
     refresh: fetchConnections
   }
