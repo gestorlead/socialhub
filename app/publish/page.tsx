@@ -13,6 +13,8 @@ import { PublishSettings } from "@/components/publish/PublishSettings"
 import { PublishButton } from "@/components/publish/PublishButton"
 import { MultiNetworkSelector } from "@/components/ui/multi-network-selector"
 import { NETWORK_CONFIGS, findNetworkOption, getCompatibleOptions } from "@/lib/network-configs"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { MobilePreview } from "@/components/publish/MobilePreview"
 
 interface PublishState {
   selectedOptions: string[] // Mudou de selectedNetworks para selectedOptions
@@ -77,8 +79,8 @@ export default function PublishPage() {
   }
 
   // Função para determinar o tipo de mídia baseado nos arquivos selecionados
-  const getMediaType = (): 'image' | 'video' | 'carousel' => {
-    if (publishState.mediaFiles.length === 0) return 'image'
+  const getMediaType = (): 'image' | 'video' | 'carousel' | null => {
+    if (publishState.mediaFiles.length === 0) return null // Sem mídia selecionada
     if (publishState.mediaFiles.length > 1) return 'carousel'
     
     const file = publishState.mediaFiles[0]
@@ -88,6 +90,10 @@ export default function PublishPage() {
   // Obter opções compatíveis com o tipo de mídia atual
   const getCompatibleSelectedOptions = () => {
     const mediaType = getMediaType()
+    // Se não há mídia selecionada, retornar todas as opções selecionadas
+    if (mediaType === null) {
+      return publishState.selectedOptions
+    }
     return getCompatibleOptions(publishState.selectedOptions, mediaType)
   }
 
@@ -161,7 +167,7 @@ export default function PublishPage() {
         </div>
 
         {/* Alertas de compatibilidade */}
-        {publishState.selectedOptions.length > 0 && getCompatibleSelectedOptions().length < publishState.selectedOptions.length && (
+        {publishState.selectedOptions.length > 0 && publishState.mediaFiles.length > 0 && getCompatibleSelectedOptions().length < publishState.selectedOptions.length && (
           <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
             <div className="text-sm text-amber-700 dark:text-amber-300">
               <strong>Atenção:</strong> Algumas opções selecionadas podem não ser compatíveis com o tipo de mídia escolhido.
@@ -216,76 +222,59 @@ export default function PublishPage() {
 
             {/* Right Column - Preview */}
             <div className="space-y-6">
-              {/* Preview para cada opção selecionada */}
-              {getCompatibleSelectedOptions().map((optionId) => {
-                const result = findNetworkOption(optionId)
-                if (!result) return null
+              <div className="bg-card border rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">Preview das Publicações</h3>
+                
+                {getCompatibleSelectedOptions().length > 0 && (
+                  <Carousel className="w-full max-w-md mx-auto">
+                    <CarouselContent>
+                      {getCompatibleSelectedOptions().map((optionId) => {
+                        const result = findNetworkOption(optionId)
+                        if (!result) return null
 
-                const { network, option } = result
+                        const { network, option } = result
 
-                return (
-                  <div key={optionId} className="bg-card border rounded-lg p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <img 
-                        src={network.iconPath} 
-                        alt={network.name}
-                        className="w-5 h-5"
-                      />
-                      <h3 className="text-lg font-semibold">{option.name}</h3>
-                      <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                        {option.shortName}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {publishState.mediaPreviews.length > 0 && (
-                        <div className="grid gap-2">
-                          {option.maxFiles > 1 && publishState.mediaPreviews.length > 1 ? (
-                            <div className="grid grid-cols-2 gap-2">
-                              {publishState.mediaPreviews.slice(0, 4).map((preview, index) => (
-                                <div key={index} className="aspect-square bg-muted rounded-lg overflow-hidden">
-                                  <img 
-                                    src={preview} 
-                                    alt={`Media ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              ))}
-                              {publishState.mediaPreviews.length > 4 && (
-                                <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-                                  <span className="text-sm font-medium">+{publishState.mediaPreviews.length - 4}</span>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="aspect-square bg-muted rounded-lg overflow-hidden">
-                              <img 
-                                src={publishState.mediaPreviews[0]} 
-                                alt="Preview"
-                                className="w-full h-full object-cover"
+                        const connection = getConnection(network.id)
+                        const username = connection?.profile_data?.username || 'usuario'
+
+                        return (
+                          <CarouselItem key={optionId}>
+                            <div className="p-4">
+                              <MobilePreview
+                                optionId={optionId}
+                                mediaUrl={publishState.mediaPreviews[0] || ''}
+                                mediaType={getMediaType() || 'image'}
+                                caption={getEffectiveCaption(optionId)}
+                                username={username}
+                                multipleMedia={publishState.mediaPreviews.length > 1}
+                                mediaCount={publishState.mediaPreviews.length}
+                                allMediaUrls={publishState.mediaPreviews}
                               />
                             </div>
-                          )}
-                        </div>
-                      )}
-
-                      {getEffectiveCaption(optionId) && (
-                        <div className="text-sm">
-                          <div className="font-medium mb-1">Legenda:</div>
-                          <div className="text-muted-foreground whitespace-pre-wrap">
-                            {getEffectiveCaption(optionId)}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="text-xs text-muted-foreground">
-                        <div>Suporta: {option.mediaTypes.join(', ')}</div>
-                        <div>Máx. arquivos: {option.maxFiles}</div>
-                      </div>
-                    </div>
+                          </CarouselItem>
+                        )
+                      })}
+                    </CarouselContent>
+                    {getCompatibleSelectedOptions().length > 1 && (
+                      <>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                      </>
+                    )}
+                  </Carousel>
+                )}
+                
+                {getCompatibleSelectedOptions().length > 1 && (
+                  <div className="flex justify-center mt-4 gap-1">
+                    {getCompatibleSelectedOptions().map((_, index) => (
+                      <div 
+                        key={index}
+                        className="w-2 h-2 rounded-full bg-muted-foreground/20"
+                      />
+                    ))}
                   </div>
-                )
-              })}
+                )}
+              </div>
 
               <PublishButton
                 publishState={publishState}

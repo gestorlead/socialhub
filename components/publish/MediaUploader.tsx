@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { Upload, X, FileVideo, FileImage, AlertTriangle, CheckCircle2, Plus } from 'lucide-react'
+import { Upload, X, FileVideo, FileImage, AlertTriangle, CheckCircle2, Plus, GripVertical } from 'lucide-react'
 import { findNetworkOption, getMaxFilesForOption, optionSupportsMediaType } from '@/lib/network-configs'
 
 interface MediaUploaderProps {
@@ -36,6 +36,10 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
     errors: string[]
     warnings: string[]
   }>({ isValid: true, errors: [], warnings: [] })
+  
+  // Estados para reordenação
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -158,7 +162,7 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
     }
   }, [uploadedFiles, onFileSelect, selectedOptions])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDropFiles = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
     
@@ -168,12 +172,12 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
     }
   }, [handleFilesSelect])
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOverFiles = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
   }, [])
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeaveFiles = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
   }, [])
@@ -202,6 +206,78 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
+  }
+
+  // Função para reordenar arrays
+  const reorderArray = <T,>(array: T[], fromIndex: number, toIndex: number): T[] => {
+    const newArray = [...array]
+    const [removed] = newArray.splice(fromIndex, 1)
+    newArray.splice(toIndex, 0, removed)
+    return newArray
+  }
+
+  // Handlers para drag and drop de reordenação
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', index.toString())
+    
+    // Criar um elemento visual para o drag
+    const dragElement = e.currentTarget.cloneNode(true) as HTMLElement
+    dragElement.style.opacity = '0.5'
+    dragElement.style.transform = 'rotate(5deg)'
+    document.body.appendChild(dragElement)
+    e.dataTransfer.setDragImage(dragElement, 0, 0)
+    setTimeout(() => document.body.removeChild(dragElement), 0)
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDraggedOverIndex(index)
+  }
+
+  const handleDragEnter = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    setDraggedOverIndex(index)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    // Só remove o highlight se não estiver sobre um filho
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDraggedOverIndex(null)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null)
+      setDraggedOverIndex(null)
+      return
+    }
+
+    // Reordenar arquivos e previews
+    const newFiles = reorderArray(uploadedFiles, draggedIndex, dropIndex)
+    const newPreviews = reorderArray(previews, draggedIndex, dropIndex)
+    
+    setUploadedFiles(newFiles)
+    setPreviews(newPreviews)
+    onFileSelect(newFiles, newPreviews)
+    
+    // Revalidar após reordenação
+    const validation = validateFiles(newFiles)
+    setValidation(validation)
+    
+    setDraggedIndex(null)
+    setDraggedOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDraggedOverIndex(null)
   }
 
   const formatFileSize = (bytes: number) => {
@@ -251,9 +327,9 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
       {uploadedFiles.length === 0 ? (
         <>
           <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
+            onDrop={handleDropFiles}
+            onDragOver={handleDragOverFiles}
+            onDragLeave={handleDragLeaveFiles}
             className={`
               border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all
               ${isDragging 
@@ -288,44 +364,94 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
             multiple
             onChange={(e) => {
               const files = Array.from(e.target.files || [])
-              if (files.length > 0) handleFilesSelect(files)
+              if (files.length > 0) {
+                handleFilesSelect(files)
+                // Limpar o valor do input para permitir selecionar os mesmos arquivos novamente
+                e.target.value = ''
+              }
             }}
             className="hidden"
           />
         </>
       ) : (
-        <div className="space-y-4">
+        <div 
+          className="space-y-4"
+          onDrop={handleDropFiles}
+          onDragOver={handleDragOverFiles}
+          onDragLeave={handleDragLeaveFiles}
+        >
           {/* Files List */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-sm">
                 Arquivos Selecionados ({uploadedFiles.length}/{getMaxFilesAllowed()})
               </h4>
-              <button
-                onClick={removeAllFiles}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Remover todos
-              </button>
+              <div className="flex items-center gap-2">
+                {uploadedFiles.length > 1 && (
+                  <span className="text-xs text-muted-foreground">
+                    ↕️ Arraste para reordenar
+                  </span>
+                )}
+                <button
+                  onClick={removeAllFiles}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Remover todos
+                </button>
+              </div>
             </div>
             
             {uploadedFiles.map((file, index) => (
-              <div key={index} className="flex items-start gap-4 p-3 border rounded-lg bg-muted/30">
-                <div className="flex-shrink-0">
-                  {getFileIcon(file)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h5 className="font-medium truncate text-sm">{file.name}</h5>
-                  <p className="text-xs text-muted-foreground">
-                    {formatFileSize(file.size)} • {file.type}
-                  </p>
-                </div>
-                <button
-                  onClick={() => removeFile(index)}
-                  className="flex-shrink-0 p-1 text-muted-foreground hover:text-foreground transition-colors"
+              <div key={`file-${index}`} className="relative">
+                {/* Drop Indicator - Aparece quando algo está sendo arrastado sobre este item */}
+                {draggedOverIndex === index && draggedIndex !== null && draggedIndex !== index && (
+                  <div className="absolute -top-1 left-0 right-0 h-1 bg-primary/50 rounded-full z-10" />
+                )}
+                
+                <div 
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnter={(e) => handleDragEnter(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`
+                    flex items-start gap-4 p-3 border rounded-lg transition-all cursor-move relative
+                    ${draggedIndex === index 
+                      ? 'bg-primary/10 border-primary/30 opacity-50 scale-105 shadow-lg' 
+                      : draggedOverIndex === index && draggedIndex !== null && draggedIndex !== index
+                        ? 'bg-primary/5 border-primary/20 border-dashed transform translate-y-1'
+                        : 'bg-muted/30 hover:bg-muted/50 hover:shadow-sm'
+                    }
+                  `}
                 >
-                  <X className="w-4 h-4" />
-                </button>
+                  {/* Grip Handle */}
+                  <div className="flex-shrink-0 p-1 text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+                  
+                  <div className="flex-shrink-0">
+                    {getFileIcon(file)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-medium truncate text-sm">{file.name}</h5>
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(file.size)} • {file.type}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="flex-shrink-0 p-1 text-muted-foreground hover:text-foreground transition-colors z-10"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Dragging overlay */}
+                  {draggedIndex === index && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg pointer-events-none" />
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -343,15 +469,22 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
           {/* Preview Grid */}
           {previews.length > 0 && (
             <div>
-              <h4 className="font-medium text-sm mb-2">Preview</h4>
+              <h4 className="font-medium text-sm mb-2">Preview (ordem de publicação)</h4>
               <div className={`grid gap-2 ${previews.length === 1 ? 'max-w-sm mx-auto' : previews.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 {previews.map((preview, index) => (
-                  <div key={index} className="relative rounded-lg overflow-hidden bg-muted">
+                  <div 
+                    key={index} 
+                    className={`
+                      relative rounded-lg overflow-hidden bg-muted transition-all
+                      ${draggedIndex === index ? 'ring-2 ring-primary/30' : ''}
+                    `}
+                  >
                     {uploadedFiles[index]?.type.startsWith('video/') ? (
                       <video
                         src={preview}
                         controls
                         className="w-full h-32 object-cover"
+                        onContextMenu={(e) => e.preventDefault()} // Previne menu de contexto no video
                       >
                         Seu navegador não suporta vídeos.
                       </video>
@@ -360,11 +493,19 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
                         src={preview}
                         alt={`Preview ${index + 1}`}
                         className="w-full h-32 object-cover"
+                        draggable={false} // Previne arrastar a imagem
                       />
                     )}
-                    <div className="absolute top-1 right-1 bg-black/50 text-white text-xs px-1 py-0.5 rounded">
+                    <div className="absolute top-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded font-medium">
                       {index + 1}
                     </div>
+                    {draggedIndex === index && (
+                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                        <div className="bg-primary/80 text-white text-xs px-2 py-1 rounded font-medium">
+                          Arrastando...
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -405,15 +546,24 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
             </div>
           )}
 
-          {/* Add More Files Button */}
+          {/* Add More Files Button/Drop Zone */}
           {uploadedFiles.length < getMaxFilesAllowed() && (
-            <button
+            <div
+              className={`
+                w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg transition-all cursor-pointer text-sm
+                ${isDragging 
+                  ? 'border-primary bg-primary/10 text-primary' 
+                  : 'border-muted-foreground/25 hover:border-primary hover:bg-primary/5'
+                }
+              `}
               onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-muted rounded-lg hover:bg-muted/50 transition-colors text-sm"
             >
               <Plus className="w-4 h-4" />
-              Adicionar mais arquivos ({uploadedFiles.length}/{getMaxFilesAllowed()})
-            </button>
+              {isDragging 
+                ? 'Solte os arquivos aqui para adicionar' 
+                : `Adicionar mais arquivos (${uploadedFiles.length}/${getMaxFilesAllowed()})`
+              }
+            </div>
           )}
           
           <input
@@ -423,7 +573,11 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
             multiple
             onChange={(e) => {
               const files = Array.from(e.target.files || [])
-              if (files.length > 0) handleFilesSelect(files)
+              if (files.length > 0) {
+                handleFilesSelect(files)
+                // Limpar o valor do input para permitir selecionar os mesmos arquivos novamente
+                e.target.value = ''
+              }
             }}
             className="hidden"
           />
