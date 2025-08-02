@@ -89,6 +89,30 @@ export default function Home() {
     }
   }
 
+  const updateFacebookStats = async () => {
+    if (!user) return
+    
+    setUpdatingStats(true)
+    try {
+      const response = await fetch(`/api/social/facebook/refresh?user_id=${user.id}`, {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        await refresh() // Refresh connections to show updated data
+        setConnectionStatus('Perfil do Facebook atualizado com sucesso!')
+        setTimeout(() => setConnectionStatus(null), 3000)
+      } else {
+        const error = await response.json()
+        setConnectionStatus('Erro ao atualizar perfil do Facebook')
+      }
+    } catch (error) {
+      setConnectionStatus('Erro ao atualizar perfil do Facebook')
+    } finally {
+      setUpdatingStats(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -273,17 +297,23 @@ export default function Home() {
                           </div>
                           <div>
                             <h4 className="font-medium flex items-center gap-1 group-hover:text-white/90 transition-colors">
-                              @{connection.profile_data?.username || connection.profile_data?.display_name || `${network.name} User`}
+                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.name || `${network.name} Page` : connection.profile_data?.username || connection.profile_data?.display_name || `${network.name} User`}
                             </h4>
-                            {connection.profile_data?.display_name && connection.profile_data?.username !== connection.profile_data?.display_name && (
+                            {network.id === 'facebook' ? (
                               <p className="text-xs text-white/60">
-                                {connection.profile_data.display_name}
+                                {connection.profile_data?.selected_page?.category}
                               </p>
+                            ) : (
+                              connection.profile_data?.display_name && connection.profile_data?.username !== connection.profile_data?.display_name && (
+                                <p className="text-xs text-white/60">
+                                  {connection.profile_data.display_name}
+                                </p>
+                              )
                             )}
                           </div>
                         </div>
                         {/* Botão de refresh para TikTok e Instagram */}
-                        {(network.id === 'tiktok' || network.id === 'instagram') && (
+                        {(network.id === 'tiktok' || network.id === 'instagram' || network.id === 'facebook') && (
                           <button 
                             onClick={(e) => {
                               e.preventDefault()
@@ -292,6 +322,8 @@ export default function Home() {
                                 updateTikTokStats()
                               } else if (network.id === 'instagram') {
                                 updateInstagramStats()
+                              } else if (network.id === 'facebook') {
+                                updateFacebookStats()
                               }
                             }}
                             disabled={updatingStats}
@@ -305,16 +337,16 @@ export default function Home() {
                       <div className="space-y-2 text-sm">
                         <div className="flex gap-4">
                           <div>
-                            <p className="text-white/60 text-xs uppercase tracking-wider">Seguidores</p>
+                            <p className="text-white/60 text-xs uppercase tracking-wider">{network.id === 'facebook' ? 'Curtidas' : 'Seguidores'}</p>
                             <p className="font-bold text-xl">
-                              {connection.profile_data?.follower_count?.toLocaleString('pt-BR') || 
+                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.fan_count?.toLocaleString('pt-BR') || '0' : connection.profile_data?.follower_count?.toLocaleString('pt-BR') || 
                                connection.profile_data?.followers_count?.toLocaleString('pt-BR') || '0'}
                             </p>
                           </div>
                           <div>
-                            <p className="text-white/60 text-xs uppercase tracking-wider">Seguindo</p>
+                            <p className="text-white/60 text-xs uppercase tracking-wider">{network.id === 'facebook' ? 'Seguidores' : 'Seguindo'}</p>
                             <p className="font-medium">
-                              {connection.profile_data?.following_count?.toLocaleString('pt-BR') || 
+                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.followers_count?.toLocaleString('pt-BR') || '0' : connection.profile_data?.following_count?.toLocaleString('pt-BR') || 
                                connection.profile_data?.follows_count?.toLocaleString('pt-BR') || '0'}
                             </p>
                           </div>
