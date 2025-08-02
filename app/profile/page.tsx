@@ -47,6 +47,11 @@ export default function EditProfilePage() {
   const [fullName, setFullName] = useState("")
   const [language, setLanguage] = useState("pt")
 
+  // Password change state
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [isPasswordChanging, setIsPasswordChanging] = useState(false)
+
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -166,6 +171,54 @@ export default function EditProfilePage() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!user) return
+
+    setIsPasswordChanging(true)
+    try {
+      if (newPassword.length < 6) {
+        toast({
+          title: "Erro",
+          description: "A nova senha deve ter pelo menos 6 caracteres.",
+          variant: "destructive"
+        })
+        return
+      }
+
+      if (newPassword !== confirmNewPassword) {
+        toast({
+          title: "Erro",
+          description: "As senhas não coincidem.",
+          variant: "destructive"
+        })
+        return
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) throw error
+
+      toast({
+        title: "Senha atualizada",
+        description: "Sua senha foi alterada com sucesso."
+      })
+
+      setNewPassword("")
+      setConfirmNewPassword("")
+    } catch (error) {
+      console.error('Error updating password:', error)
+      toast({
+        title: "Erro ao atualizar senha",
+        description: "Não foi possível alterar sua senha. Tente novamente.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsPasswordChanging(false)
     }
   }
 
@@ -344,25 +397,55 @@ export default function EditProfilePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <h4 className="font-medium mb-2">Autenticação de dois fatores</h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Adicione uma camada extra de segurança à sua conta
-                    </p>
-                    <Button variant="outline" disabled>
-                      Em breve
-                    </Button>
-                  </div>
+                  
 
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <h4 className="font-medium mb-2">Sessões ativas</h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Gerencie os dispositivos conectados à sua conta
-                    </p>
-                    <Button variant="outline" disabled>
-                      Em breve
-                    </Button>
-                  </div>
+                  <Card className="mt-4">
+                    <CardHeader>
+                      <CardTitle>Alterar Senha</CardTitle>
+                      <CardDescription>
+                        Atualize sua senha de acesso à plataforma
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">Nova Senha</Label>
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Sua nova senha"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
+                        <Input
+                          id="confirmNewPassword"
+                          type="password"
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          placeholder="Confirme sua nova senha"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handleChangePassword}
+                        disabled={isPasswordChanging}
+                      >
+                        {isPasswordChanging ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Salvar Nova Senha
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </CardContent>
               </Card>
             </TabsContent>
