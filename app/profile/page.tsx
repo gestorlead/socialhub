@@ -191,7 +191,7 @@ export default function EditProfilePage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
-              href="/dashboard"
+              href="/"
               className="p-2 hover:bg-accent rounded-lg transition-colors"
             >
               <ChevronLeft className="h-5 w-5" />

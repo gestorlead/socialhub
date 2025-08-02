@@ -1,6 +1,32 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+### User Menu Implementation Plan
+
+To enhance user experience, a dropdown menu has been added to the sidebar, providing easy access to profile, settings, and logout functions.
+
+**1. Component Structure:**
+
+- **`components/user-menu.tsx`**: The main component that orchestrates the dropdown functionality. It uses `DropdownMenu` from `shadcn/ui` and integrates `UserMenuTrigger` and `UserMenuContent`.
+- **`components/user-menu-trigger.tsx`**: Displays the user's avatar, name, and role. Clicking this component opens the dropdown menu.
+- **`components/user-menu-content.tsx`**: Contains the menu items: Profile, Settings, Support, and Log out. Each item is a `DropdownMenuItem` that links to the respective page or triggers an action.
+
+**2. Integration with Sidebar:**
+
+- The `UserMenu` component is placed in the `SidebarHeader` of `components/app-sidebar.tsx`.
+- The previous static user information and logout button in the `SidebarFooter` have been removed to avoid redundancy.
+
+**3. Authentication and Data Flow:**
+
+- The `useAuth` hook provides user data (profile, role, etc.) to the menu components.
+- The `signOut` function from `useAuth` is used for the logout action, ensuring a clean session termination.
+
+**4. Styling and UX:**
+
+- The menu follows the `shadcn/ui` design system, ensuring a consistent look and feel with the rest of the application.
+- The trigger is a visually appealing element showing user context at a glance.
+- The dropdown provides a clean and organized way to access user-specific actions.
+
+
 
 ## Development Commands
 

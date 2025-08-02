@@ -20,34 +20,34 @@ import dynamic from 'next/dynamic'
 export const LazyComponents = {
   // Analytics components
   AnalyticsDashboard: dynamic(() => import('@/components/analytics/dashboard'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-96 rounded-lg" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-96 rounded-lg" />),
     ssr: false
   }),
 
   CommentsAnalytics: dynamic(() => import('@/components/analytics/comments-analytics'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-64 rounded-lg" />),
     ssr: false
   }),
 
   // Chart components (heavy recharts imports)
   LineChart: dynamic(() => import('@/components/charts/line-chart'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-48 rounded-md" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-48 rounded-md" />),
     ssr: false
   }),
 
   BarChart: dynamic(() => import('@/components/charts/bar-chart'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-48 rounded-md" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-48 rounded-md" />),
     ssr: false
   }),
 
   PieChart: dynamic(() => import('@/components/charts/pie-chart'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-48 rounded-md" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-48 rounded-md" />),
     ssr: false
   }),
 
   // Admin components
   AdminPanel: dynamic(() => import('@/components/admin/admin-panel'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-screen" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-screen" />),
     ssr: false
   }),
 
@@ -58,17 +58,17 @@ export const LazyComponents = {
 
   // Social platform components
   TikTokIntegration: dynamic(() => import('@/components/integrations/tiktok'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-64 rounded-lg" />),
     ssr: false
   }),
 
   InstagramIntegration: dynamic(() => import('@/components/integrations/instagram'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-64 rounded-lg" />),
     ssr: false
   }),
 
   FacebookIntegration: dynamic(() => import('@/components/integrations/facebook'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-64 rounded-lg" />),
     ssr: false
   }),
 
@@ -84,7 +84,7 @@ export const LazyComponents = {
   }),
 
   CommentsModeration: dynamic(() => import('@/components/comments/moderation'), {
-    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg" />,
+    loading: () => (<div className="animate-pulse bg-gray-200 h-64 rounded-lg" />),
     ssr: false
   })
 }
