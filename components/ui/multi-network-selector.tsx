@@ -50,7 +50,7 @@ export function MultiNetworkSelector({
     const connected = isNetworkConnected(networkId)
     const selected = isOptionSelected(optionId)
 
-    let baseClasses = 'inline-flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all duration-200'
+    const baseClasses = 'inline-flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all duration-200'
 
     if (!connected) {
       return `${baseClasses} bg-muted/30 text-muted-foreground hover:bg-muted/50`

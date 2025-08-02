@@ -224,7 +224,7 @@ class OpenAIModerationClient {
       const openaiResult = moderationResponse.results[0]
       
       // Build moderation result
-      let result: ModerationResult = {
+      const result: ModerationResult = {
         flagged: openaiResult.flagged,
         categories: openaiResult.categories as any,
         categoryScores: openaiResult.category_scores as any,

@@ -200,7 +200,7 @@ class SentimentAnalysisEngine {
       const confidence = this.calculateConfidence(processedContent, contextAdjustedScore, magnitude)
       
       // Build result object
-      let result: SentimentResult = {
+      const result: SentimentResult = {
         score: Math.max(-1.0, Math.min(1.0, contextAdjustedScore)),
         magnitude: Math.max(0.0, Math.min(1.0, magnitude)),
         confidence: Math.max(0.0, Math.min(1.0, confidence)),

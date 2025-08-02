@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare update data based on action
-    let updateData: any = {
+    const updateData: any = {
       updated_at: new Date().toISOString(),
       moderated_by: user.id,
       moderated_at: new Date().toISOString()

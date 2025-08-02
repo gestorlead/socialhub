@@ -65,7 +65,8 @@
       "WebFetch(domain:developers.facebook.com)",
       "mcp__shadcn__list_components",
       "Bash(npx eslint:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "mcp__supabase__get_project"
     ],
     "deny": []
   }

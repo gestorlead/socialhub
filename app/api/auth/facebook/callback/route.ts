@@ -259,6 +259,9 @@ export async function GET(request: NextRequest) {
       console.log('✅ Facebook connection saved successfully')
     }
 
+    // Determine redirect URL based on page count
+    const redirectUrl = pages.length > 1 ? '/networks/facebook/select-page' : '/networks/facebook'
+    
     // Success page with auto-redirect
     return new Response(
       `<html>
@@ -313,6 +316,13 @@ export async function GET(request: NextRequest) {
               border-radius: 4px;
               font-size: 0.9rem;
             }
+            .next-step {
+              background: #e3f2fd;
+              padding: 1rem;
+              border-radius: 4px;
+              margin: 1rem 0;
+              color: #1976d2;
+            }
             a {
               display: inline-block;
               margin-top: 1rem;
@@ -330,7 +340,7 @@ export async function GET(request: NextRequest) {
             function updateCountdown() {
               document.getElementById('countdown').textContent = countdown;
               if (countdown <= 0) {
-                window.location.href = '/networks/facebook';
+                window.location.href = '${redirectUrl}';
               } else {
                 countdown--;
                 setTimeout(updateCountdown, 1000);
@@ -360,8 +370,17 @@ export async function GET(request: NextRequest) {
                 `).join('')}
               </div>
             ` : '<p><em>No pages found. Make sure you have admin access to Facebook pages.</em></p>'}
+            
+            ${pages.length > 1 ? `
+              <div class="next-step">
+                <strong>Próximo passo:</strong> Escolha qual página você deseja gerenciar no Social Hub.
+              </div>
+            ` : ''}
+            
             <p>Redirecionando em <span id="countdown" class="countdown">5</span> segundos...</p>
-            <a href="/networks/facebook">Ir para Minhas Redes Agora</a>
+            <a href="${redirectUrl}">
+              ${pages.length > 1 ? 'Escolher Página' : 'Ir para Minhas Redes Agora'}
+            </a>
           </div>
         </body>
       </html>`,

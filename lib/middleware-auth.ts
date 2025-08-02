@@ -128,7 +128,9 @@ export function isProtectedPath(pathname: string): boolean {
   const startupValidationRoutes = [
     '/api/admin/validate-environment',
     '/api/admin/integrations/test-crypto',
-    '/api/admin/auth/force-logout'
+    '/api/admin/auth/force-logout',
+    '/api/admin/generate-facebook-history',
+    '/api/admin/setup-facebook-table'
   ]
   
   // Static files

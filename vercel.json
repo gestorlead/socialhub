@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/collect-instagram-daily-stats", 
       "schedule": "15 23 * * *"
+    },
+    {
+      "path": "/api/cron/collect-facebook-daily-stats",
+      "schedule": "30 23 * * *"
     }
   ],
   "env": {

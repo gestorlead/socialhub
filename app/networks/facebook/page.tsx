@@ -9,6 +9,7 @@ import { RefreshCw, ExternalLink, Shield, User, Calendar, BarChart3, Heart, Cloc
 import Image from "next/image"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 export default function FacebookPage() {
   const { user, loading } = useAuth()
@@ -20,15 +21,38 @@ export default function FacebookPage() {
   const facebookConnection = getConnection('facebook')
   const profile = facebookConnection?.profile_data
   const pages = profile?.pages || []
+  const selectedPageFromProfile = profile?.selected_page
+  const selectedPageIdFromProfile = profile?.selected_page_id
   
-  // Select first page by default
+  // Use selected page from profile, or redirect to selection if multiple pages
   useEffect(() => {
-    if (pages.length > 0 && !selectedPageId) {
-      setSelectedPageId(pages[0].id)
+    if (pages.length > 1 && !selectedPageIdFromProfile) {
+      // Redirect to page selection if multiple pages and none selected
+      window.location.href = '/networks/facebook/select-page'
+    } else if (pages.length === 1 && !selectedPageIdFromProfile) {
+      // Auto-select single page
+      const singlePage = pages[0]
+      const updatedProfileData = {
+        ...profile,
+        selected_page_id: singlePage.id,
+        selected_page: singlePage
+      }
+      
+      // Save the auto-selection
+      fetch('/api/social/facebook/select-page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page_id: singlePage.id,
+          profile_data: updatedProfileData
+        })
+      }).then(() => {
+        refresh()
+      })
     }
-  }, [pages, selectedPageId])
+  }, [pages, selectedPageIdFromProfile, profile])
 
-  const selectedPage = pages.find(page => page.id === selectedPageId)
+  const selectedPage = selectedPageFromProfile || pages.find(page => page.id === selectedPageIdFromProfile)
   
   // Function to format large numbers elegantly
   const formatNumber = (num: number): string => {
@@ -174,22 +198,14 @@ export default function FacebookPage() {
           </div>
         </div>
 
-        {/* Page Selector */}
-        {pages.length > 1 && (
-          <div className="bg-card border rounded-lg p-4">
-            <label className="text-sm font-medium mb-2 block">Selecione uma página:</label>
-            <select
-              value={selectedPageId || ''}
-              onChange={(e) => setSelectedPageId(e.target.value)}
-              className="w-full p-2 border rounded-md bg-background"
-            >
-              {pages.map((page) => (
-                <option key={page.id} value={page.id}>
-                  {page.name} - {page.category}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Current Page Info */}
+        {selectedPage && (
+          <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <AlertDescription className="text-blue-700 dark:text-blue-300">
+              <strong>Página gerenciada:</strong> {selectedPage.name} - {selectedPage.category}
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Profile Overview */}
@@ -419,15 +435,6 @@ export default function FacebookPage() {
           </div>
         </div>
 
-        {/* Multiple Pages Info */}
-        {pages.length > 1 && (
-          <Alert>
-            <Info className="w-4 h-4" />
-            <AlertDescription>
-              Você tem {pages.length} páginas conectadas. Use o seletor acima para alternar entre elas.
-            </AlertDescription>
-          </Alert>
-        )}
 
       </div>
     </DashboardLayout>

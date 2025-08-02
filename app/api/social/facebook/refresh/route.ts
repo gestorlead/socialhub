@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       `https://graph.facebook.com/v23.0/me/accounts?fields=id,name,category,access_token,is_published,about,fan_count,followers_count,picture{url},engagement&access_token=${accessToken}`
     )
 
-    let pages = []
+    const pages = []
     if (pagesResponse.ok) {
       const pagesData = await pagesResponse.json()
       if (pagesData.data && Array.isArray(pagesData.data)) {

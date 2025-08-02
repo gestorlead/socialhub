@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Get Facebook connection
     const { data: connection, error } = await supabase
@@ -42,18 +42,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Define metrics to fetch based on request
+    // Updated to use only supported metrics as of API v23.0
+    // Many metrics were deprecated on November 1, 2025
     let metricsToFetch = []
     
     if (metric === 'all') {
       metricsToFetch = [
-        'page_engaged_users',
-        'page_post_engagements', 
-        'page_impressions',
-        'page_reach',
-        'page_video_views',
-        'page_fans',
-        'page_fan_adds',
-        'page_fan_removes'
+        // Core impressions metrics (confirmed supported)
+        'page_impressions_unique',
+        'page_impressions_paid',
+        
+        // Video Ad Break metrics (if applicable)
+        'page_daily_video_ad_break_ad_impressions_by_crosspost_status',
+        'total_video_ad_break_ad_impressions'
       ]
     } else {
       metricsToFetch = [metric]
@@ -61,7 +62,16 @@ export async function GET(request: NextRequest) {
 
     const insights = {}
     
-    // Fetch insights for each metric
+    // Try to fetch from daily stats first (for historical consistency)
+    const { data: dailyStats } = await supabase
+      .from('facebook_daily_stats')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('platform_user_id', targetPage.id)
+      .order('date', { ascending: false })
+      .limit(7) // Last 7 days for trends
+
+    // Fetch live insights for each metric
     for (const metricName of metricsToFetch) {
       try {
         const insightsResponse = await fetch(
@@ -87,9 +97,40 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Add daily stats summary if available
+    let dailyStatsSummary = null
+    if (dailyStats && dailyStats.length > 0) {
+      const latest = dailyStats[0]
+      const previous = dailyStats[1]
+      
+      const calculateChange = (current: number, prev: number) => {
+        if (!prev || prev === 0) return current > 0 ? 100 : 0
+        return Math.round(((current - prev) / prev) * 100 * 100) / 100
+      }
+
+      dailyStatsSummary = {
+        latest_date: latest.date,
+        current_metrics: {
+          // Using only available metrics from daily stats
+          impressions_unique: latest.page_impressions_unique || 0,
+          impressions_paid: latest.page_impressions_paid || 0,
+          video_ad_impressions: latest.page_daily_video_ad_break_ad_impressions_by_crosspost_status || 0,
+          total_video_ad_impressions: latest.total_video_ad_break_ad_impressions || 0
+        },
+        trends: previous ? {
+          impressions_unique_change: calculateChange(latest.page_impressions_unique || 0, previous.page_impressions_unique || 0),
+          impressions_paid_change: calculateChange(latest.page_impressions_paid || 0, previous.page_impressions_paid || 0),
+          video_ad_impressions_change: calculateChange(latest.page_daily_video_ad_break_ad_impressions_by_crosspost_status || 0, previous.page_daily_video_ad_break_ad_impressions_by_crosspost_status || 0),
+          total_video_ad_impressions_change: calculateChange(latest.total_video_ad_break_ad_impressions || 0, previous.total_video_ad_break_ad_impressions || 0)
+        } : null
+      }
+    }
+
     // Get recent posts performance
+    // Note: Simplified to avoid deprecation warnings in Facebook API v23.0
+    // Complex nested fields like likes.summary() may trigger deprecation errors
     const postsResponse = await fetch(
-      `https://graph.facebook.com/v23.0/${targetPage.id}/posts?fields=id,message,created_time,likes.summary(true),comments.summary(true),shares&limit=10&access_token=${targetPage.access_token}`
+      `https://graph.facebook.com/v23.0/${targetPage.id}/posts?fields=id,message,created_time&limit=10&access_token=${targetPage.access_token}`
     )
 
     let recentPosts = []
@@ -100,12 +141,10 @@ export async function GET(request: NextRequest) {
           id: post.id,
           message: post.message?.substring(0, 100) + (post.message?.length > 100 ? '...' : ''),
           created_time: post.created_time,
-          likes_count: post.likes?.summary?.total_count || 0,
-          comments_count: post.comments?.summary?.total_count || 0,
-          shares_count: post.shares?.count || 0,
-          engagement_rate: ((post.likes?.summary?.total_count || 0) + 
-                          (post.comments?.summary?.total_count || 0) + 
-                          (post.shares?.count || 0))
+          likes_count: 0, // Not available in simplified API call
+          comments_count: 0, // Not available in simplified API call
+          shares_count: 0, // Shares field deprecated in v23.0
+          engagement_rate: 0 // Cannot calculate without engagement data
         }))
       }
     }
@@ -130,6 +169,7 @@ export async function GET(request: NextRequest) {
       period: period,
       summary: summary,
       insights: insights,
+      daily_stats_summary: dailyStatsSummary,
       recent_posts: recentPosts,
       fetched_at: new Date().toISOString()
     })
