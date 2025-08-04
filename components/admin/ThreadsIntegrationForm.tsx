@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   Eye, 
@@ -17,27 +16,15 @@ import {
   RefreshCw, 
   CheckCircle, 
   AlertTriangle, 
-  Info,
-  Database,
-  FileText
+  Info
 } from 'lucide-react'
 
-interface InstagramSettings {
+interface ThreadsSettings {
   id?: string
   app_id?: string
   client_secret?: string
-  environment: 'sandbox' | 'production'
-  is_active: boolean
   callback_url?: string
-  webhook_url?: string
-  config_data?: {
-    source?: string
-    last_updated_by?: string
-    last_updated_at?: string
-    api_version?: string
-    permissions?: string[]
-    webhook_verify_token?: string
-  }
+  is_active: boolean
 }
 
 interface TestResult {
@@ -48,19 +35,13 @@ interface TestResult {
 
 interface TestResults {
   credentials: TestResult
-  permissions: TestResult
-  oauth_endpoints: TestResult
+  api_access: TestResult
 }
 
-export function InstagramIntegrationForm() {
+export function ThreadsIntegrationForm() {
   const { user, session } = useAuth()
-  const [settings, setSettings] = useState<InstagramSettings>({
-    environment: 'sandbox',
-    is_active: true,
-    config_data: {
-      api_version: 'v23.0',
-      permissions: ['instagram_business_basic']
-    }
+  const [settings, setSettings] = useState<ThreadsSettings>({
+    is_active: true
   })
   
   const [loading, setLoading] = useState(true)
@@ -80,15 +61,6 @@ export function InstagramIntegrationForm() {
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
-  const apiVersions = [
-    'v23.0',
-    'v22.0',
-    'v21.0',
-    'v20.0',
-    'v19.0',
-    'v18.0'
-  ]
-
   // Load current settings
   useEffect(() => {
     if (session) {
@@ -97,12 +69,16 @@ export function InstagramIntegrationForm() {
   }, [session])
 
   const getAuthToken = async () => {
-    if (!session?.access_token) {
-      console.error('No valid session found')
-      setErrorMessage('No valid session. Please log in again.')
+    try {
+      if (!session?.access_token) {
+        console.error('No valid session found')
+        return ''
+      }
+      return session.access_token
+    } catch (error) {
+      console.error('Error getting auth token:', error)
       return ''
     }
-    return session.access_token
   }
 
   const loadSettings = async () => {
@@ -116,7 +92,8 @@ export function InstagramIntegrationForm() {
         return
       }
       
-      const response = await fetch('/api/admin/integrations/instagram', {
+      console.log('Loading settings with token:', token.substring(0, 20) + '...')
+      const response = await fetch('/api/admin/integrations/threads', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -124,7 +101,14 @@ export function InstagramIntegrationForm() {
       
       if (response.ok) {
         const data = await response.json()
-        setSettings(data.data)
+        const loadedSettings = data.data
+        
+        // Set default callback_url if empty or undefined
+        if (!loadedSettings.callback_url || loadedSettings.callback_url === 'undefined/api/auth/threads/callback') {
+          loadedSettings.callback_url = 'https://socialhub.gestorlead.com.br/api/auth/threads/callback'
+        }
+        
+        setSettings(loadedSettings)
       } else {
         const error = await response.json()
         if (response.status !== 401) {
@@ -132,7 +116,7 @@ export function InstagramIntegrationForm() {
         }
       }
     } catch (error) {
-      // Silent fail on initial load
+      console.error('Error loading settings:', error)
     } finally {
       setLoading(false)
     }
@@ -152,13 +136,15 @@ export function InstagramIntegrationForm() {
       }
       
       const token = await getAuthToken()
+      
       if (!token) {
         setErrorMessage('Please sign in to save settings')
         setSaving(false)
         return
       }
       
-      const response = await fetch('/api/admin/integrations/instagram', {
+      console.log('Saving settings with token:', token.substring(0, 20) + '...')
+      const response = await fetch('/api/admin/integrations/threads', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -186,16 +172,19 @@ export function InstagramIntegrationForm() {
     try {
       setTesting(true)
       setTestResults(null)
-      setErrorMessage('')
       
       const token = await getAuthToken()
+      
       if (!token) {
-        setErrorMessage('Please sign in to test connection')
+        setTestResults({
+          success: false,
+          error: 'Please sign in to test connection'
+        })
         setTesting(false)
         return
       }
       
-      const response = await fetch('/api/admin/integrations/instagram/test', {
+      const response = await fetch('/api/admin/integrations/threads/test', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -221,14 +210,14 @@ export function InstagramIntegrationForm() {
     }))
   }
 
-  const handleInputChange = (field: keyof InstagramSettings, value: any) => {
+  const handleInputChange = (field: keyof ThreadsSettings, value: any) => {
     setSettings(prev => ({
       ...prev,
       [field]: value
     }))
   }
 
-  if (loading) {
+  if (loading || !session) {
     return (
       <div className="flex items-center justify-center py-8">
         <RefreshCw className="w-6 h-6 animate-spin mr-2" />
@@ -258,33 +247,19 @@ export function InstagramIntegrationForm() {
         </Alert>
       )}
 
-      {/* Configuration Source */}
-      {settings.config_data?.source && (
-        <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-          {settings.config_data.source === 'database' ? (
-            <Database className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          ) : (
-            <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          )}
-          <AlertDescription className="text-blue-700 dark:text-blue-300">
-            Current configuration: {settings.config_data.source === 'database' ? 'Database' : 'Environment file (fallback)'}
-          </AlertDescription>
-        </Alert>
-      )}
-
       <form onSubmit={(e) => { e.preventDefault(); saveSettings(); }} className="space-y-4">
         <Card>
           <CardContent className="pt-6 space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               {/* App ID */}
               <div>
-                <Label htmlFor="app_id">Instagram App ID</Label>
+                <Label htmlFor="app_id">Threads App ID</Label>
                 <Input
                   id="app_id"
                   type="text"
                   value={settings.app_id || ''}
                   onChange={(e) => handleInputChange('app_id', e.target.value)}
-                  placeholder="Enter Instagram App ID"
+                  placeholder="Enter Threads App ID"
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -294,7 +269,7 @@ export function InstagramIntegrationForm() {
 
               {/* App Secret */}
               <div>
-                <Label htmlFor="client_secret">Instagram App Secret</Label>
+                <Label htmlFor="client_secret">Threads App Secret</Label>
                 <div className="relative">
                   <Input
                     id="client_secret"
@@ -319,49 +294,6 @@ export function InstagramIntegrationForm() {
                 </p>
               </div>
 
-              {/* API Version */}
-              <div>
-                <Label htmlFor="api_version">API Version</Label>
-                <Select
-                  value={settings.config_data?.api_version || 'v23.0'}
-                  onValueChange={(value) => handleInputChange('config_data', {...settings.config_data, api_version: value})}
-                >
-                  <SelectTrigger id="api_version">
-                    <SelectValue placeholder="Select API version" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {apiVersions.map(version => (
-                      <SelectItem key={version} value={version}>
-                        {version}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Use the latest stable version
-                </p>
-              </div>
-
-              {/* Environment */}
-              <div>
-                <Label htmlFor="environment">Environment</Label>
-                <Select
-                  value={settings.environment}
-                  onValueChange={(value) => handleInputChange('environment', value)}
-                >
-                  <SelectTrigger id="environment">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sandbox">Sandbox</SelectItem>
-                    <SelectItem value="production">Production</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Select the appropriate environment
-                </p>
-              </div>
-
               {/* OAuth Redirect URI */}
               <div className="md:col-span-2">
                 <Label htmlFor="callback_url">OAuth Redirect URI</Label>
@@ -370,22 +302,11 @@ export function InstagramIntegrationForm() {
                   type="url"
                   value={settings.callback_url || ''}
                   onChange={(e) => handleInputChange('callback_url', e.target.value)}
-                  placeholder={`${process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com'}/api/auth/instagram/callback`}
+                  placeholder={`https://socialhub.gestorlead.com.br/api/auth/threads/callback`}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Add this URL to your Instagram App's Valid OAuth Redirect URIs
+                  Add this URL to your Threads App's Valid OAuth Redirect URIs
                 </p>
-              </div>
-
-              {/* Note about user connections */}
-              <div className="md:col-span-2">
-                <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <AlertDescription className="text-blue-700 dark:text-blue-300">
-                    <strong>App Configuration:</strong> Configure your Instagram App credentials here.<br/>
-                    <strong>User connections:</strong> Each user will connect their own Instagram account on the "Networks" page.
-                  </AlertDescription>
-                </Alert>
               </div>
 
               {/* Active Status */}
@@ -401,8 +322,17 @@ export function InstagramIntegrationForm() {
           </CardContent>
         </Card>
 
+        {/* Important Notice */}
+        <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="text-blue-700 dark:text-blue-300">
+            <strong>Note:</strong> Threads uses the same Meta App as Facebook and Instagram. 
+            Make sure your app has the required Threads permissions configured in the Meta Developer Dashboard.
+          </AlertDescription>
+        </Alert>
+
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4">
           <Button
             type="submit"
             disabled={saving}
