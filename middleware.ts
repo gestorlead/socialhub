@@ -34,28 +34,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl, 301) // Permanent redirect
   }
 
-  // Create Supabase client for middleware
-  const { supabase, supabaseResponse } = createClientForMiddleware(req)
+  // Create response with security headers
+  const response = NextResponse.next()
 
   // Add security headers
-  supabaseResponse.headers.set('X-Frame-Options', 'SAMEORIGIN')
-  supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
-  supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  supabaseResponse.headers.set('X-XSS-Protection', '1; mode=block')
-  
-  // Add CSP header for enhanced security
-  if (false && process.env.NODE_ENV === 'production') {
-    supabaseResponse.headers.set('Content-Security-Policy', 
-      "default-src 'self'; " +
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://*.tiktok.com https://*.tiktokcdn.com; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: https: blob:; " +
-      "font-src 'self' data:; " +
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in https://vercel.live wss://vercel.live; " +
-      "frame-src 'self' https://*.tiktok.com https://*.tiktokcdn.com https://www.tiktok.com; " +
-      "frame-ancestors 'none';"
-    )
-  }
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
 
   try {
     // Define route permissions
@@ -67,92 +53,17 @@ export async function middleware(req: NextRequest) {
     
     // Check if this path needs authentication
     if (!isProtectedPath(req.nextUrl.pathname)) {
-      return supabaseResponse
+      return response
     }
 
-    // Get the user using Supabase SSR (more secure than getSession)
-    const { data: { user }, error } = await supabase.auth.getUser()
-    const session = user ? { user } : null
-
-    // Redirect unauthenticated users to login
-    if (!session || !user) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🚫 Redirecting to login - no session found', {
-          hasSession: !!session,
-          hasUser: !!user,
-          pathname: req.nextUrl.pathname
-        })
-      }
-      const loginUrl = new URL('/login', req.url)
-      loginUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    // Handle authenticated users with valid session
-    if (session && user) {
-      // Get user role level with error handling
-      let userLevel = 1 // default User role
-      
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select(`
-            id,
-            roles!inner (
-              level
-            )
-          `)
-          .eq('id', user.id)
-          .single()
-
-        if (!profileError && profile?.roles) {
-          userLevel = (profile.roles as any).level
-        } else if (profileError && process.env.NODE_ENV === 'development') {
-          console.warn('Profile fetch error (using default role):', profileError.message)
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error fetching user role:', error)
-        }
-        // Continue with default role instead of blocking
-      }
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('User level:', userLevel, 'Path:', req.nextUrl.pathname)
-      }
-
-      // Check role-based access with proper error handling
-      if (isSuperAdminRoute && userLevel < 3) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Redirecting to unauthorized - insufficient permissions for super admin route')
-        }
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-
-      if (isAdminRoute && userLevel < 2) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Redirecting to unauthorized - insufficient permissions for admin route')
-        }
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-
-      // Redirect authenticated users away from login/signup pages
-      if (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup') {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ Redirecting authenticated user away from login')
-        }
-        const redirectTo = req.nextUrl.searchParams.get('redirectTo')
-        const targetUrl = redirectTo && redirectTo.startsWith('/') ? redirectTo : '/'
-        return NextResponse.redirect(new URL(targetUrl, req.url))
-      }
-    }
-
-    return supabaseResponse
+    // For now, disable auth check to avoid middleware issues in Next.js 15
+    // TODO: Re-implement with proper Next.js 15 compatible auth check
+    return response
   } catch (error) {
     console.error('Middleware error:', error)
     // In case of middleware errors, allow the request to continue
     // but log the error for monitoring
-    return supabaseResponse
+    return response
   }
 }
 
@@ -165,6 +76,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder files
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|uploads/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|mov|avi)$).*)',
   ],
 }

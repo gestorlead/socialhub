@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Send, Upload, CheckCircle, AlertTriangle, Clock, Stethoscope } from 'lucide-react'
+import { Send, Upload, CheckCircle, AlertTriangle, Clock } from 'lucide-react'
 import { useAuth } from '@/lib/supabase-auth-helpers'
 import { TikTokUploadInfo } from './TikTokUploadInfo'
 import { TikTokSandboxGuide } from './TikTokSandboxGuide'
@@ -39,8 +39,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
   const [publishErrors, setPublishErrors] = useState<{
     [key: string]: string
   }>({})
-  const [showDiagnostics, setShowDiagnostics] = useState(false)
-  const [diagnostics, setDiagnostics] = useState<any>(null)
   const [showTikTokInfo, setShowTikTokInfo] = useState(false)
   const [showSandboxGuide, setShowSandboxGuide] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
@@ -56,19 +54,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     publishState.captions
   ])
   
-  const runDiagnostics = async () => {
-    if (!user) return
-    
-    try {
-      const response = await fetch(`/api/social/tiktok/diagnose?user_id=${user.id}`)
-      const data = await response.json()
-      setDiagnostics(data)
-      setShowDiagnostics(true)
-    } catch (error) {
-      setDiagnostics({ error: 'Failed to run diagnostics' })
-      setShowDiagnostics(true)
-    }
-  }
   
   const validatePublish = (): ValidationIssue[] => {
     const issues: ValidationIssue[] = []
@@ -89,10 +74,11 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       })
     }
     
-    // Check captions for each option
+    // Check captions and settings for each option
     publishState.selectedOptions.forEach(optionId => {
       const caption = getEffectiveCaption(optionId)
       const result = findNetworkOption(optionId)
+      const settings = publishState.settings[optionId] || {}
       
       if (!caption.trim()) {
         issues.push({
@@ -100,6 +86,41 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
           message: 'Legenda vazia pode afetar o alcance',
           optionId
         })
+      }
+      
+      // YouTube specific validations - Título obrigatório
+      if (optionId === 'youtube_video' || optionId === 'youtube_shorts') {
+        if (!settings.title || !settings.title.trim()) {
+          issues.push({
+            type: 'error',
+            message: 'Título é obrigatório para YouTube',
+            optionId
+          })
+        } else if (settings.title.length > 100) {
+          issues.push({
+            type: 'error',
+            message: 'Título muito longo para YouTube (máx: 100 caracteres)',
+            optionId
+          })
+        }
+        
+        // A legenda do YouTube será usada como descrição
+        // YouTube permite até 5000 caracteres na descrição/legenda
+        if (caption.length > 5000) {
+          issues.push({
+            type: 'error',
+            message: 'Legenda muito longa para YouTube (máx: 5000 caracteres)',
+            optionId
+          })
+        }
+        
+        if (settings.tags && settings.tags.length > 500) {
+          issues.push({
+            type: 'error',
+            message: 'Tags muito longas para YouTube (máx: 500 caracteres)',
+            optionId
+          })
+        }
       }
       
       // TikTok specific validations
@@ -121,6 +142,112 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
             message: 'Legenda muito longa para Instagram (máx: 2200 caracteres)',
             optionId
           })
+        }
+        
+        // Instagram Story - limited to 1 media item
+        if (optionId === 'instagram_story') {
+          if (publishState.mediaFiles.length > 1) {
+            issues.push({
+              type: 'error',
+              message: 'Instagram Stories permite apenas 1 mídia por publicação',
+              optionId
+            })
+          }
+        }
+        
+        // Instagram Reels - requires video only
+        if (optionId === 'instagram_reels') {
+          if (publishState.mediaFiles.length !== 1) {
+            issues.push({
+              type: 'error',
+              message: 'Instagram Reels requer exatamente 1 vídeo',
+              optionId
+            })
+          } else if (!publishState.mediaFiles[0].type.startsWith('video/')) {
+            issues.push({
+              type: 'error',
+              message: 'Instagram Reels aceita apenas vídeos',
+              optionId
+            })
+          }
+        }
+        
+        // Instagram Feed - supports up to 10 items for carousel
+        if (optionId === 'instagram_feed') {
+          if (publishState.mediaFiles.length > 10) {
+            issues.push({
+              type: 'error',
+              message: 'Instagram Feed permite máximo de 10 mídias por carrossel',
+              optionId
+            })
+          }
+        }
+        
+        // All Instagram types - JPEG only for images
+        publishState.mediaFiles.forEach((file, index) => {
+          if (file.type.startsWith('image/') && !file.type.includes('jpeg')) {
+            issues.push({
+              type: 'warning',
+              message: `Instagram aceita apenas imagens JPEG (arquivo ${index + 1} é ${file.type})`,
+              optionId
+            })
+          }
+        })
+      }
+      
+      // Threads specific validations
+      if (optionId === 'threads_post') {
+        if (caption.length > 500) {
+          issues.push({
+            type: 'error',
+            message: 'Texto muito longo para Threads (máx: 500 caracteres)',
+            optionId
+          })
+        }
+      }
+      
+      // X (Twitter) specific validations
+      if (optionId === 'x_post') {
+        if (caption.length > 280) {
+          issues.push({
+            type: 'error',
+            message: 'Texto muito longo para X (máx: 280 caracteres)',
+            optionId
+          })
+        }
+      }
+      
+      // Facebook specific validations
+      if (optionId.startsWith('facebook_')) {
+        if (settings.publishTime === 'scheduled' && !settings.scheduledTime) {
+          issues.push({
+            type: 'error',
+            message: 'Data e hora de agendamento obrigatórias',
+            optionId
+          })
+        }
+        
+        if (settings.scheduledTime) {
+          const scheduledDate = new Date(settings.scheduledTime)
+          const now = new Date()
+          const minTime = new Date(now.getTime() + 10 * 60 * 1000) // 10 minutes
+          const maxTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
+          
+          if (scheduledDate < minTime) {
+            issues.push({
+              type: 'error',
+              message: 'Agendamento deve ser pelo menos 10 minutos no futuro',
+              optionId
+            })
+          }
+          
+          if (scheduledDate > maxTime) {
+            issues.push({
+              type: 'error',
+              message: 'Agendamento não pode ser mais de 30 dias no futuro',
+              optionId
+            })
+          }
         }
       }
     })
@@ -158,17 +285,27 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       try {
         if (optionId === 'tiktok_video') {
           await publishToTikTok(optionId)
-        } else if (optionId === 'facebook_post') {
+        } else if (optionId === 'facebook_post' || optionId === 'facebook_story' || optionId === 'facebook_reels') {
           await publishToFacebook(optionId)
+        } else if (optionId.startsWith('instagram_')) {
+          await publishToInstagram(optionId)
+        } else if (optionId.startsWith('youtube_')) {
+          await publishToYouTube(optionId)
+        } else if (optionId === 'threads_post') {
+          await publishToThreads(optionId)
+        } else if (optionId === 'x_post') {
+          await publishToX(optionId)
+        } else if (optionId.startsWith('linkedin_')) {
+          await publishToLinkedIn(optionId)
         } else {
-          // For other options, mark as error for now
+          // Opção não reconhecida
           const result = findNetworkOption(optionId)
           const optionName = result?.option.name || optionId
           
           setPublishStatus(prev => ({ ...prev, [optionId]: 'error' }))
           setPublishErrors(prev => ({ 
             ...prev, 
-            [optionId]: `${optionName} não implementado ainda` 
+            [optionId]: `${optionName} não reconhecido` 
           }))
         }
       } catch (error) {
@@ -372,6 +509,129 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     }
   }
 
+  const publishToInstagram = async (optionId: string) => {
+    if (!user || publishState.mediaFiles.length === 0) return
+
+    try {
+      // Step 1: Upload files to our server
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando arquivos para servidor...' }))
+      
+      const formData = new FormData()
+      publishState.mediaFiles.forEach((file, index) => {
+        formData.append(`file${index}`, file)
+      })
+      formData.append('userId', user.id)
+      
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!uploadResponse.ok) {
+        const uploadError = await uploadResponse.json()
+        throw new Error(uploadError.error || 'Failed to upload files')
+      }
+      
+      const uploadResult = await uploadResponse.json()
+      const mediaUrls = Array.isArray(uploadResult.data) 
+        ? uploadResult.data.map((item: any) => item.url)
+        : [uploadResult.data.url]
+      
+      // Step 2: Publish to Instagram
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Publicando no Instagram...' }))
+      
+      const publishPayload = {
+        userId: user.id,
+        optionId: optionId as 'instagram_feed' | 'instagram_story' | 'instagram_reels',
+        mediaUrls: mediaUrls,
+        caption: getEffectiveCaption(optionId),
+        settings: publishState.settings[optionId] || {}
+      }
+      
+      const publishResponse = await fetch('/api/social/instagram/publish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(publishPayload)
+      })
+      
+      const publishResult = await publishResponse.json()
+      
+      if (!publishResponse.ok || publishResult.error) {
+        throw new Error(publishResult.error || publishResult.details || `HTTP ${publishResponse.status}`)
+      }
+      
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Publicado com sucesso!' }))
+      
+    } catch (error: any) {
+      console.error('Instagram publish error:', error)
+      throw error
+    }
+  }
+
+  const publishToYouTube = async (optionId: string) => {
+    if (!user || publishState.mediaFiles.length === 0) return
+
+    try {
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para YouTube...' }))
+      
+      // TODO: Implementar API do YouTube
+      throw new Error('YouTube ainda não implementado')
+      
+    } catch (error: any) {
+      throw error
+    }
+  }
+
+  const publishToThreads = async (optionId: string) => {
+    if (!user || publishState.mediaFiles.length === 0) return
+
+    try {
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para Threads...' }))
+      
+      // TODO: Implementar API do Threads
+      throw new Error('Threads ainda não implementado')
+      
+    } catch (error: any) {
+      throw error
+    }
+  }
+
+  const publishToX = async (optionId: string) => {
+    if (!user || publishState.mediaFiles.length === 0) return
+
+    try {
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para X...' }))
+      
+      // TODO: Implementar API do X
+      throw new Error('X ainda não implementado')
+      
+    } catch (error: any) {
+      throw error
+    }
+  }
+
+  const publishToLinkedIn = async (optionId: string) => {
+    if (!user || publishState.mediaFiles.length === 0) return
+
+    try {
+      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
+      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para LinkedIn...' }))
+      
+      // TODO: Implementar API do LinkedIn
+      throw new Error('LinkedIn ainda não implementado')
+      
+    } catch (error: any) {
+      throw error
+    }
+  }
+
   const getOptionName = (optionId: string) => {
     const result = findNetworkOption(optionId)
     return result?.option.name || optionId
@@ -502,31 +762,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         </div>
       )}
       
-      
-      {/* Publish Summary */}
-      {canPublish && publishState.selectedOptions.length > 0 && (
-        <div className="mb-4 p-3 bg-muted/30 rounded-lg">
-          <h4 className="text-sm font-medium mb-2">Resumo da Publicação:</h4>
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <div>• Destinos: {publishState.selectedOptions.map(getOptionName).join(', ')}</div>
-            <div>• Mídia: {publishState.mediaFiles.length > 1 ? `${publishState.mediaFiles.length} arquivos` : publishState.mediaFiles[0]?.name}</div>
-            <div>• Tipo: {publishState.mediaFiles.length > 1 ? 'Carrossel' : publishState.mediaFiles[0]?.type.startsWith('video/') ? 'Vídeo' : 'Imagem'}</div>
-            {publishState.selectedOptions.map(optionId => {
-              const caption = getEffectiveCaption(optionId)
-              return (
-                <div key={optionId}>
-                  • Legenda {getOptionName(optionId)}: {
-                    caption.length > 50 
-                      ? `${caption.substring(0, 50)}... (${caption.length} chars)`
-                      : caption || 'Sem legenda'
-                  }
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-      
       {/* Publish Button */}
       <button
         onClick={handlePublish}
@@ -561,75 +796,6 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         <p className="text-xs text-red-600 dark:text-red-400 text-center mt-2">
           Corrija os erros acima para continuar
         </p>
-      )}
-      
-      {/* Diagnostics Button */}
-      {publishState.selectedOptions.includes('tiktok_video') && (
-        <div className="mt-4 pt-4 border-t">
-          <button
-            onClick={runDiagnostics}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm border rounded-lg hover:bg-muted/50 transition-colors"
-          >
-            <Stethoscope className="w-4 h-4" />
-            Diagnosticar Conexão TikTok
-          </button>
-        </div>
-      )}
-      
-      {/* Diagnostics Results */}
-      {showDiagnostics && diagnostics && (
-        <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-medium">Diagnóstico TikTok</h4>
-            <button
-              onClick={() => setShowDiagnostics(false)}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Fechar
-            </button>
-          </div>
-          
-          {diagnostics.error ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{diagnostics.error}</p>
-          ) : diagnostics.diagnosis ? (
-            <div className="space-y-2 text-xs">
-              <div>
-                <strong>Token:</strong> {diagnostics.diagnosis.token.status}
-                {diagnostics.diagnosis.token.error && (
-                  <span className="text-red-500"> - {diagnostics.diagnosis.token.error}</span>
-                )}
-              </div>
-              <div>
-                <strong>Permissões:</strong> 
-                {diagnostics.diagnosis.permissions.hasVideoPublish ? (
-                  <span className="text-green-500"> ✓ video.publish</span>
-                ) : (
-                  <span className="text-red-500"> ✗ video.publish ausente</span>
-                )}
-              </div>
-              <div>
-                <strong>API TikTok:</strong> 
-                {diagnostics.diagnosis.api.testPassed ? (
-                  <span className="text-green-500"> ✓ Conectado</span>
-                ) : (
-                  <span className="text-red-500"> ✗ Falha na conexão</span>
-                )}
-              </div>
-              {diagnostics.diagnosis.summary.issues.length > 0 && (
-                <div className="mt-2 p-2 bg-red-50 dark:bg-red-950 rounded">
-                  <strong>Problemas encontrados:</strong>
-                  <ul className="mt-1">
-                    {diagnostics.diagnosis.summary.issues.map((issue: string, i: number) => (
-                      <li key={i}>• {issue}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Sem dados de diagnóstico</p>
-          )}
-        </div>
       )}
       
       {/* TikTok Upload Info */}

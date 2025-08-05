@@ -68,7 +68,7 @@ const OPTION_CONFIGS = {
   youtube_shorts: {
     name: 'YouTube Shorts',
     color: 'from-red-500 to-red-600',
-    maxLength: 100,
+    maxLength: 5000,
     features: {
       hashtags: true,
       mentions: false,
@@ -129,6 +129,16 @@ const OPTION_CONFIGS = {
     name: 'Threads Post',
     color: 'from-gray-800 to-black',
     maxLength: 500,
+    features: {
+      hashtags: true,
+      mentions: true,
+      emojis: true
+    }
+  },
+  x_post: {
+    name: 'X Post',
+    color: 'from-gray-900 to-black',
+    maxLength: 280,
     features: {
       hashtags: true,
       mentions: true,
@@ -272,14 +282,14 @@ export function CaptionManager({ captions, selectedOptions, onCaptionChange }: C
                         <span className="font-medium">{config.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs ${percentage > 90 ? 'text-red-500' : percentage > 70 ? 'text-yellow-500' : 'text-green-500'}`}>
+                        <span className={`text-xs ${count > limit ? 'text-red-500 font-medium' : percentage > 85 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                           {count}/{limit}
                         </span>
                         <div className={`w-12 h-2 bg-muted rounded-full overflow-hidden`}>
                           <div 
                             className={`h-full transition-all ${
-                              percentage > 90 ? 'bg-red-500' : 
-                              percentage > 70 ? 'bg-yellow-500' : 'bg-green-500'
+                              count > limit ? 'bg-red-500' : 
+                              percentage > 85 ? 'bg-yellow-500' : 'bg-green-500'
                             }`}
                             style={{ width: `${Math.min(percentage, 100)}%` }}
                           />
@@ -366,14 +376,14 @@ export function CaptionManager({ captions, selectedOptions, onCaptionChange }: C
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs ${percentage > 90 ? 'text-red-500' : percentage > 70 ? 'text-yellow-500' : 'text-green-500'}`}>
+                        <span className={`text-xs ${count > limit ? 'text-red-500 font-medium' : percentage > 85 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                           {count}/{limit}
                         </span>
                         <div className={`w-16 h-2 bg-muted rounded-full overflow-hidden`}>
                           <div 
                             className={`h-full transition-all ${
-                              percentage > 90 ? 'bg-red-500' : 
-                              percentage > 70 ? 'bg-yellow-500' : 'bg-green-500'
+                              count > limit ? 'bg-red-500' : 
+                              percentage > 85 ? 'bg-yellow-500' : 'bg-green-500'
                             }`}
                             style={{ width: `${Math.min(percentage, 100)}%` }}
                           />
