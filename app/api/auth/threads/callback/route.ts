@@ -155,9 +155,9 @@ export async function GET(request: NextRequest) {
       console.warn('Failed to get long-lived token, using short-lived token')
     }
 
-    // Get user profile - Using Threads API endpoint
+    // Get user profile - Using Threads API endpoint with all available fields
     console.log('Fetching user profile...')
-    const profileUrl = `https://graph.threads.net/v1.0/me?fields=id,username,name,threads_profile_picture_url,threads_biography`
+    const profileUrl = `https://graph.threads.net/v1.0/me?fields=id,username,name,threads_profile_picture_url,threads_biography,is_verified`
     const profileResponse = await fetch(profileUrl, {
       headers: {
         'Authorization': `Bearer ${accessToken}`
@@ -167,7 +167,57 @@ export async function GET(request: NextRequest) {
     let profileData = {}
     if (profileResponse.ok) {
       profileData = await profileResponse.json()
-      console.log('Profile fetched successfully')
+      console.log('Profile fetched successfully:', profileData)
+
+      // Try to get additional metrics/insights
+      try {
+        const insightsUrl = `https://graph.threads.net/v1.0/${profileData.id}/threads_insights?metric=views,likes,replies,reposts,quotes&period=day`
+        const insightsResponse = await fetch(insightsUrl, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        })
+
+        if (insightsResponse.ok) {
+          const insights = await insightsResponse.json()
+          console.log('Insights fetched:', insights)
+          
+          // Process insights into profile data
+          if (insights.data) {
+            const processedInsights = insights.data.reduce((acc: any, item: any) => {
+              acc[item.name] = item.values?.[0]?.value || 0
+              return acc
+            }, {})
+            
+            profileData = {
+              ...profileData,
+              ...processedInsights,
+              replies_count: processedInsights.replies || 0
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch insights during connection:', error)
+      }
+
+      // Try to get user's threads count
+      try {
+        const threadsUrl = `https://graph.threads.net/v1.0/${profileData.id}/threads?fields=id&limit=1`
+        const threadsResponse = await fetch(threadsUrl, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        })
+        
+        if (threadsResponse.ok) {
+          const threadsData = await threadsResponse.json()
+          console.log('Threads data sample:', threadsData)
+          // Note: This is just a sample, we can't get total count easily from API
+          profileData.posts_count = 0 // Will be updated on refresh
+        }
+      } catch (error) {
+        console.warn('Failed to fetch threads count during connection:', error)
+      }
     } else {
       console.warn('Failed to fetch profile data')
     }

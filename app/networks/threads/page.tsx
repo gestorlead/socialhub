@@ -16,6 +16,7 @@ export default function ThreadsPage() {
   const { isConnected, connectThreads, getConnection, refresh, disconnect } = useSocialConnections()
   const [refreshing, setRefreshing] = useState(false)
   const [connectError, setConnectError] = useState<string | null>(null)
+  const [insightsData, setInsightsData] = useState<any>(null)
 
   const threadsConnection = getConnection('threads')
   const profile = threadsConnection?.profile_data
@@ -36,12 +37,27 @@ export default function ThreadsPage() {
     
     setRefreshing(true)
     try {
-      // Refresh profile data
-      const response = await fetch(`/api/social/threads/refresh?user_id=${user.id}`, {
-        method: 'POST'
-      })
-      if (response.ok) {
+      // Get comprehensive metrics
+      const metricsResponse = await fetch(`/api/social/threads/metrics?user_id=${user.id}`)
+      if (metricsResponse.ok) {
+        const metricsData = await metricsResponse.json()
+        console.log('Metrics updated:', metricsData.updated_profile)
+        
+        // Update insights data if available
+        if (metricsData.data?.insights) {
+          setInsightsData(metricsData.data.insights)
+        }
+        
+        // Refresh the connection data
         await refresh()
+      } else {
+        // Fallback to basic refresh
+        const response = await fetch(`/api/social/threads/refresh?user_id=${user.id}`, {
+          method: 'POST'
+        })
+        if (response.ok) {
+          await refresh()
+        }
       }
     } catch (error) {
       console.error('Error refreshing:', error)
@@ -142,6 +158,12 @@ export default function ThreadsPage() {
                   Atualizado {new Date(threadsConnection.updated_at).toLocaleDateString('pt-BR')}
                 </span>
               )}
+              {profile?.last_metrics_update && (
+                <span className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-950 rounded-full">
+                  <BarChart3 className="w-3 h-3" />
+                  Métricas: {new Date(profile.last_metrics_update).toLocaleDateString('pt-BR')}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -211,37 +233,58 @@ export default function ThreadsPage() {
 
           {/* Stats Cards */}
           <div className="md:col-span-2 grid gap-4 sm:grid-cols-2">
-            <ThreadsStatCard
-              icon={<Users className="w-6 h-6 text-white" />}
-              title="Seguidores"
-              value={profile?.followers_count || 0}
-              colorClass="hover:border-gray-400 dark:hover:border-gray-600"
-            />
-            
-            <ThreadsStatCard
-              icon={<Edit3 className="w-6 h-6 text-white" />}
-              title="Posts"
-              value={profile?.posts_count || 0}
-              colorClass="hover:border-emerald-200 dark:hover:border-emerald-800"
-            />
-            
-            <ThreadsStatCard
-              icon={<MessageCircle className="w-6 h-6 text-white" />}
-              title="Respostas"
-              value={profile?.replies_count || 0}
-              colorClass="hover:border-purple-200 dark:hover:border-purple-800"
-            />
-
-            <div className="bg-card border rounded-lg p-4 hover:border-gray-600 transition-all duration-200">
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2 bg-black rounded-lg text-white">
-                  <User className="w-6 h-6 text-white" />
+            <div className="relative">
+              <ThreadsStatCard
+                icon={<Users className="w-6 h-6 text-white" />}
+                title="Seguidores"
+                value={profile?.followers_count || profile?.follower_count || 0}
+                colorClass="hover:border-blue-200 dark:hover:border-blue-800"
+              />
+              {(profile?.followers_count || profile?.follower_count) ? (
+                <div className="absolute top-2 right-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" title="Dados disponíveis via Insights API" />
                 </div>
-                <span className="text-xs text-muted-foreground">User ID</span>
+              ) : (
+                <div className="absolute top-2 right-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" title="Aguardando dados da API" />
+                </div>
+              )}
+            </div>
+            
+            <div className="relative">
+              <ThreadsStatCard
+                icon={<Edit3 className="w-6 h-6 text-white" />}
+                title="Posts"
+                value={profile?.posts_count || 0}
+                colorClass="hover:border-emerald-200 dark:hover:border-emerald-800"
+              />
+              <div className="absolute top-2 right-2">
+                <CheckCircle className="w-4 h-4 text-green-500" title="Calculado com precisão via API" />
               </div>
-              <div className="space-y-1">
-                <p className="text-lg font-mono text-sm">{profile?.id || 'N/A'}</p>
-                <p className="text-xs text-muted-foreground">Threads User ID</p>
+            </div>
+            
+            <div className="relative">
+              <ThreadsStatCard
+                icon={<Heart className="w-6 h-6 text-white" />}
+                title="Curtidas"
+                value={profile?.insights_likes || profile?.total_likes || profile?.likes_count || 0}
+                colorClass="hover:border-red-200 dark:hover:border-red-800"
+              />
+              <div className="absolute top-2 right-2">
+                <CheckCircle className="w-4 h-4 text-green-500" title="Dados via Insights API" />
+              </div>
+            </div>
+
+
+            <div className="relative">
+              <ThreadsStatCard
+                icon={<Repeat className="w-6 h-6 text-white" />}
+                title="Reposts"
+                value={profile?.insights_reposts || profile?.total_reposts || profile?.reposts_count || 0}
+                colorClass="hover:border-green-200 dark:hover:border-green-800"
+              />
+              <div className="absolute top-2 right-2">
+                <CheckCircle className="w-4 h-4 text-green-500" title="Dados via Insights API" />
               </div>
             </div>
           </div>
@@ -309,6 +352,8 @@ export default function ThreadsPage() {
           </div>
         </div>
 
+
+
         {/* Publishing Limits Info */}
         <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
           <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -348,7 +393,7 @@ export default function ThreadsPage() {
                 <h4 className="font-medium">Análise de Performance</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Veja insights detalhados e métricas de engajamento
+                Acesse insights detalhados, views por dia, curtidas totais e métricas de engajamento
               </p>
             </Link>
             

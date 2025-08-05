@@ -13,16 +13,19 @@ import {
   Play,
   Calendar,
   ExternalLink,
-  ArrowRight
+  ArrowRight,
+  MessageCircle
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { formatNumber } from "@/lib/utils"
 
 export default function AnalyticsPage() {
   const { user, loading } = useAuth()
   const { getConnection, isConnected } = useSocialConnections()
 
   const tiktokConnection = getConnection('tiktok')
+  const threadsConnection = getConnection('threads')
 
   if (loading) {
     return (
@@ -62,7 +65,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {[isConnected('tiktok')].filter(Boolean).length}
+                {[isConnected('tiktok'), isConnected('threads'), isConnected('instagram'), isConnected('facebook')].filter(Boolean).length}
               </div>
               <p className="text-xs text-muted-foreground">
                 de 6 redes disponíveis
@@ -214,6 +217,87 @@ export default function AnalyticsPage() {
             </Card>
           )}
 
+          {/* Threads Analytics */}
+          {isConnected('threads') ? (
+            <Card className="group hover:shadow-md transition-all duration-200">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Threads</CardTitle>
+                      <CardDescription>
+                        @{threadsConnection?.profile_data?.username || 'username'}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Link
+                    href="/analytics/threads"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Button variant="ghost" size="sm">
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Posts</span>
+                    <span className="font-medium">
+                      {threadsConnection?.profile_data?.posts_count?.toLocaleString('pt-BR') || '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Curtidas</span>
+                    <span className="font-medium">
+                      {(threadsConnection?.profile_data?.insights_likes || threadsConnection?.profile_data?.total_likes || 0).toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Views</span>
+                    <span className="font-medium">
+                      {(threadsConnection?.profile_data?.insights_views || threadsConnection?.profile_data?.total_views || 0).toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+                </div>
+                <Link href="/analytics/threads" className="block mt-4">
+                  <Button className="w-full" variant="outline">
+                    Ver Análise Completa
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-dashed">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                    <MessageCircle className="w-6 h-6 opacity-50" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg text-muted-foreground">Threads</CardTitle>
+                    <CardDescription>Não conectado</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Conecte sua conta do Threads para ver análises detalhadas
+                </p>
+                <Link href="/networks/threads">
+                  <Button className="w-full" variant="outline">
+                    Conectar Threads
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Instagram - Coming Soon */}
           <Card className="border-dashed opacity-60">
             <CardHeader>
@@ -270,36 +354,63 @@ export default function AnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isConnected('tiktok') ? (
+            {(isConnected('tiktok') || isConnected('threads')) ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                      <Image 
-                        src="/images/social-icons/tiktok.png" 
-                        alt="TikTok" 
-                        width={16} 
-                        height={16}
-                        className="brightness-0 invert"
-                      />
+                {isConnected('tiktok') && (
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                        <Image 
+                          src="/images/social-icons/tiktok.png" 
+                          alt="TikTok" 
+                          width={16} 
+                          height={16}
+                          className="brightness-0 invert"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium">TikTok Performance</p>
+                        <p className="text-sm text-muted-foreground">
+                          {tiktokConnection?.profile_data?.follower_count > 0 
+                            ? `${((tiktokConnection.profile_data.likes_count / tiktokConnection.profile_data.follower_count) * 100).toFixed(1)}% de engajamento`
+                            : 'Sem dados de engajamento'
+                          }
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">TikTok Performance</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tiktokConnection?.profile_data?.follower_count > 0 
-                          ? `${((tiktokConnection.profile_data.likes_count / tiktokConnection.profile_data.follower_count) * 100).toFixed(1)}% de engajamento`
-                          : 'Sem dados de engajamento'
-                        }
-                      </p>
-                    </div>
+                    <Link href="/analytics/tiktok">
+                      <Button variant="ghost" size="sm">
+                        Ver Detalhes
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href="/analytics/tiktok">
-                    <Button variant="ghost" size="sm">
-                      Ver Detalhes
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
+                )}
+                
+                {isConnected('threads') && (
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                        <MessageCircle className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Threads Performance</p>
+                        <p className="text-sm text-muted-foreground">
+                          {threadsConnection?.profile_data?.posts_count > 0 
+                            ? `${formatNumber(((threadsConnection.profile_data.insights_likes || 0) + (threadsConnection.profile_data.insights_replies || 0) + (threadsConnection.profile_data.insights_reposts || 0)) / threadsConnection.profile_data.posts_count)} engajamento por post`
+                            : 'Dados completos via Insights API'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <Link href="/analytics/threads">
+                      <Button variant="ghost" size="sm">
+                        Ver Detalhes
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-8">

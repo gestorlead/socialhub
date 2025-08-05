@@ -130,6 +130,32 @@ export function useSocialConnections() {
     }
   }
 
+  const connectThreads = async () => {
+    if (!user) {
+      throw new Error('User must be logged in to connect Threads')
+    }
+
+    try {
+      // Get Threads OAuth URL from the API
+      const response = await fetch(`/api/auth/threads?user_id=${user.id}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initiate Threads OAuth')
+      }
+
+      if (data.success && data.auth_url) {
+        // Redirect to Threads OAuth
+        window.location.href = data.auth_url
+      } else {
+        throw new Error('Invalid response from Threads OAuth endpoint')
+      }
+    } catch (error) {
+      console.error('Error connecting Threads:', error)
+      throw error
+    }
+  }
+
   const disconnect = async (platform: string) => {
     if (!user) {
       throw new Error('User must be logged in')
@@ -162,6 +188,7 @@ export function useSocialConnections() {
     connectTikTok,
     connectInstagram,
     connectFacebook,
+    connectThreads,
     disconnect,
     refresh: fetchConnections
   }
