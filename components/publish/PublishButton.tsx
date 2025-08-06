@@ -219,6 +219,15 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       
       // Facebook specific validations
       if (optionId.startsWith('facebook_')) {
+        // Page ID is required for Facebook posts
+        if (!settings.page_id) {
+          issues.push({
+            type: 'error',
+            message: 'Página do Facebook deve ser selecionada',
+            optionId
+          })
+        }
+        
         if (settings.publishTime === 'scheduled' && !settings.scheduledTime) {
           issues.push({
             type: 'error',
@@ -260,6 +269,13 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
   const errors = validation.filter(v => v.type === 'error')
   const warnings = validation.filter(v => v.type === 'warning')
   const canPublish = errors.length === 0 && !publishState.isPublishing
+  
+  // Debug: Log validation errors and settings
+  if (errors.length > 0) {
+    console.log('[PublishButton] Validation errors preventing publish:', errors)
+    console.log('[PublishButton] Current settings:', publishState.settings)
+    console.log('[PublishButton] Selected options:', publishState.selectedOptions)
+  }
   
   const handlePublish = async () => {
     // Mostrar erros de validação quando tentar publicar
@@ -469,22 +485,29 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       const firstFile = publishState.mediaFiles[0]
       const mediaType = firstFile.type.startsWith('video/') ? 'video' : 'photo'
       
+      // Determine publication type based on optionId
+      let publication_type = 'post'
+      if (optionId === 'facebook_story') {
+        publication_type = 'story'
+      } else if (optionId === 'facebook_reels') {
+        publication_type = 'reels'
+      }
+      
       const publishPayload = {
+        userId: user.id, // Add userId like other integrations
         page_id: publishState.settings[optionId]?.page_id, // Get from settings
         message: getEffectiveCaption(optionId),
         media_urls: mediaUrls,
         media_type: mediaType,
+        publication_type: publication_type, // Add publication type
         privacy: publishState.settings[optionId]?.privacy || { value: 'EVERYONE' },
         scheduled_publish_time: publishState.settings[optionId]?.scheduled_publish_time
       }
 
-      const authHeader = await user.getIdToken()
-      
       const publishResponse = await fetch('/api/social/facebook/publish', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authHeader}`
         },
         body: JSON.stringify(publishPayload)
       })

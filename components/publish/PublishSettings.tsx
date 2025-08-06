@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Settings, Lock, MessageCircle, Users, Copy, Scissors, Clock, Video, Type, Globe, Eye } from 'lucide-react'
 import { findNetworkOption } from '@/lib/network-configs'
+import { useAuth } from '@/lib/supabase-auth-helpers'
 
 interface PublishSettingsProps {
   selectedOptions: string[]
@@ -44,18 +45,80 @@ export function PublishSettings({
   onSettingsChange, 
   mediaFiles 
 }: PublishSettingsProps) {
+  const { user } = useAuth()
   const [selectedOption, setSelectedOption] = useState<string>(
     selectedOptions.find(opt => opt === 'tiktok_video') || selectedOptions[0] || ''
   )
+  const [facebookPages, setFacebookPages] = useState<any[]>([])
+  const [loadingPages, setLoadingPages] = useState(false)
+
+  // Auto-set Facebook page from social connections (only once)
+  useEffect(() => {
+    const setFacebookPageFromConnection = async () => {
+      if (!user) return
+      
+      // Check if any Facebook option is selected
+      const hasFacebookOptions = selectedOptions.some(opt => opt.startsWith('facebook_'))
+      if (!hasFacebookOptions) return
+      
+      // Check if Facebook page_id is already set for any Facebook option
+      const facebookOptionsWithPageId = selectedOptions.filter(opt => 
+        opt.startsWith('facebook_') && settings[opt]?.page_id
+      )
+      
+      // If all Facebook options already have page_id set, skip
+      const facebookOptions = selectedOptions.filter(opt => opt.startsWith('facebook_'))
+      if (facebookOptionsWithPageId.length === facebookOptions.length) {
+        console.log('[PublishSettings] Facebook page_id already set, skipping auto-load')
+        return
+      }
+      
+      console.log('[PublishSettings] Auto-loading Facebook page_id for user:', user.id)
+      
+      try {
+        const response = await fetch('/api/social/facebook/pages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: user.id
+          })
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          const selectedPageId = data.selected_page_id
+          
+          if (selectedPageId) {
+            console.log('[PublishSettings] Auto-setting Facebook page_id:', selectedPageId)
+            // Set the page_id for Facebook options that don't have it yet
+            facebookOptions.forEach(optionId => {
+              if (!settings[optionId]?.page_id) {
+                updateOptionSettings(optionId, { page_id: selectedPageId })
+              }
+            })
+          }
+        }
+      } catch (error) {
+        console.error('[PublishSettings] Error loading Facebook connection:', error)
+      }
+    }
+    
+    setFacebookPageFromConnection()
+  }, [user, selectedOptions])
 
   const updateOptionSettings = (optionId: string, updates: any) => {
-    onSettingsChange({
+    console.log('[PublishSettings] Updating settings for', optionId, 'with:', updates)
+    const newSettings = {
       ...settings,
       [optionId]: {
         ...settings[optionId],
         ...updates
       }
-    })
+    }
+    console.log('[PublishSettings] New settings:', newSettings)
+    onSettingsChange(newSettings)
   }
 
   const isVideo = mediaFiles.some(file => file.type.startsWith('video/'))
@@ -401,6 +464,41 @@ export function PublishSettings({
           {/* Facebook Settings */}
           {(selectedOption === 'facebook_post' || selectedOption === 'facebook_story' || selectedOption === 'facebook_reels') && (
             <div className="space-y-6">
+              {/* Informação da Página Selecionada */}
+              <div>
+                <label className="text-sm font-medium mb-3 block flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Página do Facebook
+                </label>
+                
+                {settings[selectedOption]?.page_id ? (
+                  <div className="p-3 border rounded-lg bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <h4 className="text-sm font-medium text-green-900 dark:text-green-100">Página Configurada</h4>
+                    </div>
+                    <p className="text-xs text-green-700 dark:text-green-300">
+                      Publicará na página selecionada nas suas configurações de rede.
+                    </p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      ID da página: {settings[selectedOption].page_id}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Settings className="w-4 h-4 text-yellow-600" />
+                      <h4 className="text-sm font-medium text-yellow-900 dark:text-yellow-100">Configuração Necessária</h4>
+                    </div>
+                    <p className="text-xs text-yellow-700 dark:text-yellow-300 mb-2">
+                      Para publicar no Facebook, você precisa primeiro conectar sua conta e selecionar uma página.
+                    </p>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                      Vá para <strong>Redes Sociais → Facebook</strong> para configurar suas páginas.
+                    </p>
+                  </div>
+                )}
+              </div>
               {/* Agendamento */}
               <div>
                 <label className="text-sm font-medium mb-3 block flex items-center gap-2">

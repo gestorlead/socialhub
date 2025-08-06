@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/supabase-auth-helpers"
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { LoadingFallback } from "@/components/loading-fallback"
 import { getRoleName } from "@/lib/navigation"
 import { useSocialConnections } from "@/lib/hooks/use-social-connections"
 import { useEffect, useState } from "react"
@@ -113,11 +114,37 @@ export default function Home() {
     }
   }
 
+  const updateYouTubeStats = async () => {
+    if (!user) return
+    
+    setUpdatingStats(true)
+    try {
+      const response = await fetch(`/api/social/youtube/refresh?user_id=${user.id}`, {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        await refresh() // Refresh connections to show updated data
+        setConnectionStatus('Canal do YouTube atualizado com sucesso!')
+        setTimeout(() => setConnectionStatus(null), 3000)
+      } else {
+        const error = await response.json()
+        setConnectionStatus('Erro ao atualizar canal do YouTube')
+      }
+    } catch (error) {
+      setConnectionStatus('Erro ao atualizar canal do YouTube')
+    } finally {
+      setUpdatingStats(false)
+    }
+  }
+
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
-      </div>
+      <LoadingFallback 
+        isLoading={loading} 
+        onRetry={() => window.location.reload()}
+        timeoutMs={15000}
+      />
     )
   }
 
@@ -223,7 +250,7 @@ export default function Home() {
 
           <div className="rounded-lg border bg-card p-6">
             <h3 className="text-lg font-semibold mb-4">Redes Sociais</h3>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {/* Renderizar dinamicamente todas as redes sociais */}
               {[
                 { 
@@ -273,6 +300,14 @@ export default function Home() {
                   gradientColors: 'from-gray-800 to-black',
                   connectPath: '/networks/threads',
                   connectAction: () => window.location.href = '/networks/threads'
+                },
+                { 
+                  id: 'x', 
+                  name: 'X', 
+                  icon: '/images/social-icons/x_icon.png',
+                  gradientColors: 'from-gray-900 to-black',
+                  connectPath: '/networks/x',
+                  connectAction: () => window.location.href = '/networks/x'
                 }
               ].map((network) => {
                 const connection = getConnection(network.id)
@@ -297,12 +332,27 @@ export default function Home() {
                           </div>
                           <div>
                             <h4 className="font-medium flex items-center gap-1 group-hover:text-white/90 transition-colors">
-                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.name || `${network.name} Page` : connection.profile_data?.username || connection.profile_data?.display_name || `${network.name} User`}
+                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.name || `${network.name} Page` : 
+                               network.id === 'youtube' ? connection.profile_data?.title || `${network.name} Channel` :
+                               network.id === 'x' ? connection.profile_data?.name || connection.profile_data?.username || `${network.name} User` :
+                               connection.profile_data?.username || connection.profile_data?.display_name || `${network.name} User`}
                             </h4>
                             {network.id === 'facebook' ? (
                               <p className="text-xs text-white/60">
                                 {connection.profile_data?.selected_page?.category}
                               </p>
+                            ) : network.id === 'youtube' ? (
+                              connection.profile_data?.custom_url && (
+                                <p className="text-xs text-white/60">
+                                  {connection.profile_data.custom_url}
+                                </p>
+                              )
+                            ) : network.id === 'x' ? (
+                              connection.profile_data?.username && (
+                                <p className="text-xs text-white/60">
+                                  @{connection.profile_data.username}
+                                </p>
+                              )
                             ) : (
                               connection.profile_data?.display_name && connection.profile_data?.username !== connection.profile_data?.display_name && (
                                 <p className="text-xs text-white/60">
@@ -312,8 +362,8 @@ export default function Home() {
                             )}
                           </div>
                         </div>
-                        {/* Botão de refresh para TikTok e Instagram */}
-                        {(network.id === 'tiktok' || network.id === 'instagram' || network.id === 'facebook') && (
+                        {/* Botão de refresh para TikTok, Instagram, Facebook e YouTube */}
+                        {(network.id === 'tiktok' || network.id === 'instagram' || network.id === 'facebook' || network.id === 'youtube') && (
                           <button 
                             onClick={(e) => {
                               e.preventDefault()
@@ -324,6 +374,8 @@ export default function Home() {
                                 updateInstagramStats()
                               } else if (network.id === 'facebook') {
                                 updateFacebookStats()
+                              } else if (network.id === 'youtube') {
+                                updateYouTubeStats()
                               }
                             }}
                             disabled={updatingStats}
@@ -337,16 +389,30 @@ export default function Home() {
                       <div className="space-y-2 text-sm">
                         <div className="flex gap-4">
                           <div>
-                            <p className="text-white/60 text-xs uppercase tracking-wider">{network.id === 'facebook' ? 'Curtidas' : 'Seguidores'}</p>
+                            <p className="text-white/60 text-xs uppercase tracking-wider">
+                              {network.id === 'facebook' ? 'Curtidas' : 
+                               network.id === 'youtube' ? 'Inscritos' : 
+                               network.id === 'x' ? 'Seguidores' : 'Seguidores'}
+                            </p>
                             <p className="font-bold text-xl">
-                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.fan_count?.toLocaleString('pt-BR') || '0' : connection.profile_data?.follower_count?.toLocaleString('pt-BR') || 
+                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.fan_count?.toLocaleString('pt-BR') || '0' : 
+                               network.id === 'youtube' ? connection.profile_data?.subscriber_count?.toLocaleString('pt-BR') || '0' :
+                               network.id === 'x' ? connection.profile_data?.followers_count?.toLocaleString('pt-BR') || '0' :
+                               connection.profile_data?.follower_count?.toLocaleString('pt-BR') || 
                                connection.profile_data?.followers_count?.toLocaleString('pt-BR') || '0'}
                             </p>
                           </div>
                           <div>
-                            <p className="text-white/60 text-xs uppercase tracking-wider">{network.id === 'facebook' ? 'Seguidores' : 'Seguindo'}</p>
+                            <p className="text-white/60 text-xs uppercase tracking-wider">
+                              {network.id === 'facebook' ? 'Seguidores' : 
+                               network.id === 'youtube' ? 'Vídeos' : 
+                               network.id === 'x' ? 'Seguindo' : 'Seguindo'}
+                            </p>
                             <p className="font-medium">
-                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.followers_count?.toLocaleString('pt-BR') || '0' : connection.profile_data?.following_count?.toLocaleString('pt-BR') || 
+                              {network.id === 'facebook' ? connection.profile_data?.selected_page?.followers_count?.toLocaleString('pt-BR') || '0' : 
+                               network.id === 'youtube' ? connection.profile_data?.video_count?.toLocaleString('pt-BR') || '0' :
+                               network.id === 'x' ? connection.profile_data?.following_count?.toLocaleString('pt-BR') || '0' :
+                               connection.profile_data?.following_count?.toLocaleString('pt-BR') || 
                                connection.profile_data?.follows_count?.toLocaleString('pt-BR') || '0'}
                             </p>
                           </div>

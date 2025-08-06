@@ -12,6 +12,7 @@ export interface SocialConnection {
   refresh_token?: string
   scope?: string
   expires_at?: string
+  is_active: boolean
   profile_data: {
     display_name?: string
     username?: string
@@ -22,7 +23,7 @@ export interface SocialConnection {
   updated_at: string
 }
 
-export function useSocialConnections() {
+export function useSocialConnections(includeInactive = false) {
   const { user } = useAuth()
   const [connections, setConnections] = useState<SocialConnection[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,10 +37,17 @@ export function useSocialConnections() {
     }
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('social_connections')
-        .select('id, platform, platform_user_id, access_token, refresh_token, scope, expires_at, profile_data, created_at, updated_at')
+        .select('id, platform, platform_user_id, access_token, refresh_token, scope, expires_at, is_active, profile_data, created_at, updated_at')
         .eq('user_id', user.id)
+
+      // Filter only active connections unless explicitly requested to include inactive
+      if (!includeInactive) {
+        query = query.eq('is_active', true)
+      }
+
+      const { data, error } = await query
 
       if (error) {
         console.error('Error fetching social connections:', error)
@@ -48,6 +56,16 @@ export function useSocialConnections() {
 
       console.log('=== FETCHED SOCIAL CONNECTIONS ===')
       console.log('Raw data from Supabase:', JSON.stringify(data, null, 2))
+      
+      // Debug YouTube connection specifically
+      const youtubeConnection = data?.find(conn => conn.platform === 'youtube')
+      if (youtubeConnection) {
+        console.log('=== YOUTUBE CONNECTION DEBUG ===')
+        console.log('YouTube profile_data:', JSON.stringify(youtubeConnection.profile_data, null, 2))
+        console.log('Subscriber count:', youtubeConnection.profile_data?.subscriber_count)
+        console.log('Video count:', youtubeConnection.profile_data?.video_count)
+        console.log('View count:', youtubeConnection.profile_data?.view_count)
+      }
       
       setConnections(data || [])
     } catch (error) {
@@ -62,7 +80,7 @@ export function useSocialConnections() {
   }, [user])
 
   const isConnected = (platform: string) => {
-    return connections.some(conn => conn.platform === platform)
+    return connections.some(conn => conn.platform === platform && conn.is_active)
   }
 
   const getConnection = (platform: string) => {
@@ -156,6 +174,58 @@ export function useSocialConnections() {
     }
   }
 
+  const connectYouTube = async () => {
+    if (!user) {
+      throw new Error('User must be logged in to connect YouTube')
+    }
+
+    try {
+      // Get YouTube OAuth URL from the API
+      const response = await fetch(`/api/auth/youtube?user_id=${user.id}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initiate YouTube OAuth')
+      }
+
+      if (data.success && data.auth_url) {
+        // Redirect to YouTube OAuth
+        window.location.href = data.auth_url
+      } else {
+        throw new Error('Invalid response from YouTube OAuth endpoint')
+      }
+    } catch (error) {
+      console.error('Error connecting YouTube:', error)
+      throw error
+    }
+  }
+
+  const connectX = async () => {
+    if (!user) {
+      throw new Error('User must be logged in to connect X')
+    }
+
+    try {
+      // Get X OAuth URL from the API
+      const response = await fetch(`/api/auth/x?user_id=${user.id}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initiate X OAuth')
+      }
+
+      if (data.authorization_url) {
+        // Redirect to X OAuth
+        window.location.href = data.authorization_url
+      } else {
+        throw new Error('Invalid response from X OAuth endpoint')
+      }
+    } catch (error) {
+      console.error('Error connecting X:', error)
+      throw error
+    }
+  }
+
   const disconnect = async (platform: string) => {
     if (!user) {
       throw new Error('User must be logged in')
@@ -189,6 +259,8 @@ export function useSocialConnections() {
     connectInstagram,
     connectFacebook,
     connectThreads,
+    connectYouTube,
+    connectX,
     disconnect,
     refresh: fetchConnections
   }

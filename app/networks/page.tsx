@@ -56,8 +56,7 @@ const socialNetworks = [
     description: 'Conecte sua conta do Threads',
     icon: '/images/social-icons/threads.png',
     href: '/networks/threads',
-    gradient: 'from-gray-800 to-gray-900',
-    disabled: true
+    gradient: 'from-gray-800 to-gray-900'
   }
 ]
 

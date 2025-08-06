@@ -86,14 +86,16 @@ export async function POST(request: NextRequest) {
       // Fallback to environment variables
       settings = {
         app_id: process.env.INSTAGRAM_APP_ID,
-        app_secret: process.env.INSTAGRAM_APP_SECRET,
-        api_version: process.env.INSTAGRAM_API_VERSION || 'v23.0',
-        environment: process.env.INSTAGRAM_ENVIRONMENT || 'development',
-        permissions: process.env.INSTAGRAM_PERMISSIONS?.split(',') || ['instagram_business_basic']
+        client_secret: process.env.INSTAGRAM_APP_SECRET,
+        config_data: {
+          api_version: process.env.INSTAGRAM_API_VERSION || 'v23.0',
+          permissions: process.env.INSTAGRAM_PERMISSIONS?.split(',') || ['instagram_business_basic']
+        },
+        environment: process.env.INSTAGRAM_ENVIRONMENT || 'sandbox'
       }
     }
 
-    if (!settings.app_id || !settings.app_secret) {
+    if (!settings.app_id || !settings.client_secret) {
       return NextResponse.json({
         success: false,
         error: 'Instagram credentials not configured'
@@ -111,13 +113,13 @@ export async function POST(request: NextRequest) {
 
     // Test 1: Credentials validation
     try {
-      if (settings.app_id && settings.app_secret) {
+      if (settings.app_id && settings.client_secret) {
         results.credentials = {
           passed: true,
           message: 'App credentials are properly configured',
           details: {
             app_id_present: !!settings.app_id,
-            app_secret_present: !!settings.app_secret
+            app_secret_present: !!settings.client_secret
           }
         }
         passedTests++
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
     // Test 2: Permissions check
     try {
       const requiredPermissions = ['instagram_business_basic']
-      const configuredPermissions = settings.permissions || []
+      const configuredPermissions = settings.config_data?.permissions || []
       const hasRequiredPermissions = requiredPermissions.every(perm => 
         configuredPermissions.includes(perm)
       )
@@ -174,7 +176,7 @@ export async function POST(request: NextRequest) {
 
     // Test 3: OAuth Endpoints validation
     try {
-      const oauth_redirect_uri = settings.oauth_redirect_uri || process.env.INSTAGRAM_OAUTH_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
+      const oauth_redirect_uri = settings.callback_url || process.env.INSTAGRAM_OAUTH_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/instagram/callback`
       
       if (oauth_redirect_uri) {
         // Test if OAuth endpoints are reachable
@@ -212,7 +214,7 @@ export async function POST(request: NextRequest) {
         passed_tests: passedTests,
         total_tests: totalTests,
         environment: settings.environment,
-        api_version: settings.api_version,
+        api_version: settings.config_data?.api_version || 'v23.0',
         config_source: configSource
       }
     })

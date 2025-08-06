@@ -178,6 +178,25 @@ export const NETWORK_CONFIGS: NetworkConfig[] = [
         requirements: ['Até 500 caracteres', 'Até 10 imagens ou 1 vídeo']
       }
     ]
+  },
+  {
+    id: 'x',
+    name: 'X',
+    colors: 'from-gray-900 to-black',
+    iconPath: '/images/social-icons/x_icon.png',
+    iconDisabledPath: '/images/social-icons/x_icon_disabled.svg',
+    connectPath: '/networks/x',
+    options: [
+      {
+        id: 'x_post',
+        name: 'X Post',
+        shortName: 'Post',
+        description: 'Post no X (Twitter)',
+        mediaTypes: ['image', 'video'],
+        maxFiles: 4,
+        requirements: ['Até 280 caracteres', 'Até 4 imagens ou 1 vídeo']
+      }
+    ]
   }
 ]
 

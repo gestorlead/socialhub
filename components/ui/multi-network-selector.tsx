@@ -29,7 +29,6 @@ interface MultiNetworkSelectorProps {
   connectedNetworks: string[]
   selectedOptions: string[]
   onOptionToggle: (optionId: string) => void
-  onConnect: (networkId: string) => void
   getUsernames: (networkId: string) => string | undefined
   className?: string
 }
@@ -39,7 +38,6 @@ export function MultiNetworkSelector({
   connectedNetworks,
   selectedOptions,
   onOptionToggle,
-  onConnect,
   getUsernames,
   className
 }: MultiNetworkSelectorProps) {
@@ -47,47 +45,76 @@ export function MultiNetworkSelector({
   const isOptionSelected = (optionId: string) => selectedOptions.includes(optionId)
 
   const getItemClasses = (networkId: string, optionId: string) => {
-    const connected = isNetworkConnected(networkId)
     const selected = isOptionSelected(optionId)
-
     const baseClasses = 'inline-flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all duration-200'
-
-    if (!connected) {
-      return `${baseClasses} bg-muted/30 text-muted-foreground hover:bg-muted/50`
-    } 
     
     if (selected) {
-      return `${baseClasses} ring-2 ring-offset-1 ring-primary bg-primary/10`
+      // Redes com gradiente usam estilos inline, outras usam classes CSS
+      if (networkId === 'instagram' || networkId === 'tiktok' || networkId === 'threads') {
+        return `${baseClasses} shadow-sm border-0`
+      }
+      
+      // Map network colors to specific border colors
+      const borderColorMap: Record<string, string> = {
+        'youtube': 'border-red-500',
+        'facebook': 'border-blue-500',
+        'linkedin': 'border-blue-600',
+        'x': 'border-gray-900'
+      }
+      
+      const borderColor = borderColorMap[networkId] || 'border-primary'
+      return `${baseClasses} ${borderColor} border-2 bg-gray-50 dark:bg-gray-900/20 shadow-sm`
     } 
     
     return `${baseClasses} bg-card hover:bg-muted/40`
   }
 
-  const handleOptionClick = (networkId: string, optionId: string) => {
-    if (!isNetworkConnected(networkId)) {
-      onConnect(networkId)
-      return
+  const getNetworkSpecificStyle = (networkId: string, selected: boolean) => {
+    if (!selected) return {}
+    
+    // Retorna estilos inline para bordas com gradiente
+    const gradientBorders: Record<string, any> = {
+      'instagram': {
+        background: 'linear-gradient(#f9fafb, #f9fafb) padding-box, linear-gradient(45deg, #8b5cf6, #ec4899) border-box',
+        border: '2px solid transparent',
+        backgroundColor: '#f9fafb'
+      },
+      'tiktok': {
+        background: 'linear-gradient(#f9fafb, #f9fafb) padding-box, linear-gradient(45deg, #ec4899, #e11d48) border-box',
+        border: '2px solid transparent',
+        backgroundColor: '#f9fafb'
+      },
+      'threads': {
+        background: 'linear-gradient(#f9fafb, #f9fafb) padding-box, linear-gradient(45deg, #1f2937, #000000) border-box',
+        border: '2px solid transparent',
+        backgroundColor: '#f9fafb'
+      }
     }
+    
+    return gradientBorders[networkId] || {}
+  }
+
+  const handleOptionClick = (networkId: string, optionId: string) => {
+    // Como agora só mostramos redes conectadas, sempre fazemos toggle
     onOptionToggle(optionId)
   }
 
   const getNetworkIcon = (network: any, option: any) => {
-    const selected = isOptionSelected(option.id)
-    if (selected) {
-      return option.icon || network.iconPath
-    } else {
-      return option.iconDisabled || network.iconDisabledPath || option.icon || network.iconPath
-    }
+    // Como só mostramos redes conectadas, sempre usamos o ícone ativo
+    return option.icon || network.iconPath
   }
 
-  const allOptions = networks.flatMap(network =>
-    network.options.map(option => ({
-      ...option,
-      networkId: network.id,
-      networkName: network.name,
-      fullNetwork: network
-    }))
-  )
+  // Filtrar apenas redes conectadas
+  const allOptions = networks
+    .filter(network => isNetworkConnected(network.id))
+    .flatMap(network =>
+      network.options.map(option => ({
+        ...option,
+        networkId: network.id,
+        networkName: network.name,
+        fullNetwork: network
+      }))
+    )
 
   return (
     <div className={cn("flex flex-wrap gap-3", className)}>
@@ -96,6 +123,7 @@ export function MultiNetworkSelector({
           key={option.id}
           onClick={() => handleOptionClick(option.networkId, option.id)}
           className={cn(getItemClasses(option.networkId, option.id))}
+          style={getNetworkSpecificStyle(option.networkId, isOptionSelected(option.id))}
           title={option.name}
         >
           <Image
@@ -103,20 +131,14 @@ export function MultiNetworkSelector({
             alt={option.networkName}
             width={20}
             height={20}
-            className={cn(!isNetworkConnected(option.networkId) ? 'grayscale' : '')}
           />
-          
-          {!isNetworkConnected(option.networkId) && (
-             <span className="text-xs bg-blue-500/10 text-blue-600 px-1.5 py-0.5 rounded-full">
-                +
-              </span>
-          )}
         </div>
       ))}
       
       {connectedNetworks.length === 0 && (
         <div className="w-full text-sm text-muted-foreground text-center py-4">
-          Nenhuma rede conectada. Clique em uma opção para conectar sua conta.
+          Nenhuma rede conectada. <br />
+          <span className="text-xs">Conecte suas redes sociais primeiro para ver as opções de publicação.</span>
         </div>
       )}
     </div>

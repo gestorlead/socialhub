@@ -1,30 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 
 /**
  * Comprehensive authentication validation for middleware
  * Handles multiple session detection methods and fallbacks
  */
 export async function validateAuthentication(req: NextRequest, res?: NextResponse) {
-  // Method 1: Standard Supabase session with error handling
+  // Method 1: Cookie-based authentication check
   let session = null
   let sessionError = null
-  
-  try {
-    // Use provided response or create new one
-    const response = res || NextResponse.next()
-    const supabase = createMiddlewareClient({ req, res: response })
-    
-    const { data: { user }, error } = await supabase.auth.getUser()
-    session = user ? { user } : null
-    sessionError = error
-  } catch (e) {
-    sessionError = e
-    // Log error in development only to avoid spam
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Session fetch error:', e)
-    }
-  }
 
   // Method 2: Check for login success indicators
   const loginSuccess = req.cookies.get('sh-login-success')?.value

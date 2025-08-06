@@ -70,13 +70,6 @@ export default function PublishPage() {
     })
   }
 
-  // Função para conectar rede social
-  const handleConnect = (networkId: string) => {
-    const network = NETWORK_CONFIGS.find(n => n.id === networkId)
-    if (network) {
-      window.location.href = network.connectPath
-    }
-  }
 
   // Função para determinar o tipo de mídia baseado nos arquivos selecionados
   const getMediaType = (): 'image' | 'video' | 'carousel' | null => {
@@ -161,7 +154,6 @@ export default function PublishPage() {
             connectedNetworks={getConnectedNetworks()}
             selectedOptions={publishState.selectedOptions}
             onOptionToggle={handleOptionToggle}
-            onConnect={handleConnect}
             getUsernames={getUsernames}
           />
         </div>

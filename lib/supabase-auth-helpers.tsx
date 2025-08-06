@@ -18,6 +18,7 @@ interface AuthContextType {
   isAdmin: () => boolean
   isSuperAdmin: () => boolean
   refreshProfile: () => Promise<void>
+  forceRetry: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -27,66 +28,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [retryCount, setRetryCount] = useState(0)
   
   // Initialize Supabase client using SSR approach
   const supabase = createClient()
 
-  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+  const fetchProfile = async (userId: string, retryCount = 0): Promise<Profile | null> => {
     try {
+      // Timeout para evitar queries eternos
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
       
-      // Seguindo as melhores práticas do Supabase: sempre adicionar filtro
-      // Busca perfil com roles em uma única query otimizada
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          roles (
-            id,
-            name,
-            level,
-            description,
-            permissions
-          )
-        `)
-        .eq('id', userId)  // Filtro explícito conforme documentação
-        .single()
+      try {
+        // Seguindo as melhores práticas do Supabase: sempre adicionar filtro
+        // Busca perfil com roles em uma única query otimizada
+        const { data, error } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            roles (
+              id,
+              name,
+              level,
+              description,
+              permissions
+            )
+          `)
+          .eq('id', userId)  // Filtro explícito conforme documentação
+          .abortSignal(controller.signal)
+          .single()
 
-      if (error) {
-        // Se perfil não existe (código PGRST116), o trigger deve ter criado
-        // Aguarda um momento e tenta novamente
-        if (error.code === 'PGRST116') {
-          
-          // Aguarda 500ms para o trigger ter tempo de criar o perfil
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          // Tenta buscar novamente
-          const { data: retryData, error: retryError } = await supabase
-            .from('profiles')
-            .select(`
-              *,
-              roles (
-                id,
-                name,
-                level,
-                description,
-                permissions
-              )
-            `)
-            .eq('id', userId)
-            .single()
-            
-          if (retryError) {
-            return null
+        clearTimeout(timeoutId)
+
+        if (error) {
+          // Se perfil não existe (código PGRST116), o trigger deve ter criado
+          // Aguarda um momento e tenta novamente
+          if (error.code === 'PGRST116' && retryCount < 2) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            return fetchProfile(userId, retryCount + 1)
           }
           
-          return retryData as Profile
+          console.error('Profile fetch error:', error)
+          return null
         }
-        
-        return null
-      }
 
-      return data as Profile
+        return data as Profile
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+        throw fetchError
+      }
     } catch (error) {
+      console.error('Profile fetch failed:', error)
+      
+      // Se falhar e ainda temos tentativas, tenta novamente após delay
+      if (retryCount < 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        return fetchProfile(userId, retryCount + 1)
+      }
+      
       return null
     }
   }
@@ -98,55 +97,135 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const forceRetry = () => {
+    setRetryCount(prev => prev + 1)
+    setLoading(true)
+  }
+
   useEffect(() => {
-    const setData = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      const session = user ? { user } : null
-      
-      if (error) {
-        throw error
+    let mounted = true
+    let initializationComplete = false
+    let fallbackTimeoutId: NodeJS.Timeout | null = null
+
+    const initializeAuth = async () => {
+      try {
+        // Set a fallback timeout to prevent infinite loading
+        fallbackTimeoutId = setTimeout(() => {
+          if (mounted && !initializationComplete) {
+            console.warn('Auth initialization timeout - setting loading to false')
+            setLoading(false)
+            initializationComplete = true
+          }
+        }, 15000) // 15 second fallback
+
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('Error getting session:', error)
+          if (mounted && !initializationComplete) {
+            setSession(null)
+            setUser(null)
+            setProfile(null)
+            setLoading(false)
+            initializationComplete = true
+          }
+          return
+        }
+
+        if (mounted && !initializationComplete) {
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            try {
+              const profileData = await fetchProfile(session.user.id)
+              if (mounted && !initializationComplete) {
+                setProfile(profileData)
+              }
+            } catch (profileError) {
+              console.error('Profile fetch error during init:', profileError)
+              // Continue without profile data
+              if (mounted && !initializationComplete) {
+                setProfile(null)
+              }
+            }
+          } else {
+            if (mounted && !initializationComplete) {
+              setProfile(null)
+            }
+          }
+          
+          if (mounted && !initializationComplete) {
+            setLoading(false)
+            initializationComplete = true
+            if (fallbackTimeoutId) {
+              clearTimeout(fallbackTimeoutId)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error)
+        if (mounted && !initializationComplete) {
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          initializationComplete = true
+          if (fallbackTimeoutId) {
+            clearTimeout(fallbackTimeoutId)
+          }
+        }
       }
-      
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        const profileData = await fetchProfile(session.user.id)
-        setProfile(profileData)
-      } else {
-        setProfile(null)
-      }
-      
-      setLoading(false)
     }
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+      
+      // Skip initial session event to avoid duplicate initialization
+      if (event === 'INITIAL_SESSION') {
+        return
+      }
+      
+      console.log('Auth state change:', event)
       
       setSession(session)
       setUser(session?.user ?? null)
       
       if (session?.user) {
-        const profileData = await fetchProfile(session.user.id)
-        setProfile(profileData)
-        
-        // Remover refresh forçado que pode estar causando conflitos
-        // A sessão já está estabelecida adequadamente
+        try {
+          const profileData = await fetchProfile(session.user.id)
+          if (mounted) {
+            setProfile(profileData)
+          }
+        } catch (profileError) {
+          console.error('Profile fetch error during auth change:', profileError)
+          if (mounted) {
+            setProfile(null)
+          }
+        }
       } else {
-        setProfile(null)
+        if (mounted) {
+          setProfile(null)
+        }
       }
       
-      setLoading(false)
-      
-      // Let middleware handle redirects - removing client-side redirect to avoid conflicts
-      // This prevents race conditions between server and client-side navigation
+      if (mounted) {
+        setLoading(false)
+      }
     })
 
-    setData()
+    // Initialize auth state
+    initializeAuth()
 
     return () => {
+      mounted = false
+      if (fallbackTimeoutId) {
+        clearTimeout(fallbackTimeoutId)
+      }
       listener?.subscription.unsubscribe()
     }
-  }, [])
+  }, [retryCount])
 
   const userRole = (profile?.roles?.level || UserRole.USER) as UserRole
 
@@ -160,6 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAdmin: () => userRole >= UserRole.ADMIN,
     isSuperAdmin: () => userRole >= UserRole.SUPER_ADMIN,
     refreshProfile,
+    forceRetry,
     signIn: async (email: string, password: string) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       return { error }

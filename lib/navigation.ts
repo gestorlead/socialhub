@@ -65,6 +65,12 @@ export const networksGroup: MenuGroup = {
       label: 'Threads',
       href: '/networks/threads',
       requiredRole: UserRole.USER
+    },
+    {
+      id: 'x',
+      label: 'X',
+      href: '/networks/x',
+      requiredRole: UserRole.USER
     }
   ]
 }
@@ -149,6 +155,24 @@ export const integrationsGroup: MenuGroup = {
       id: 'google-integration',
       label: 'Google',
       href: '/integrations/google',
+      requiredRole: UserRole.SUPER_ADMIN
+    },
+    {
+      id: 'threads-integration',
+      label: 'Threads',
+      href: '/integrations/threads',
+      requiredRole: UserRole.SUPER_ADMIN
+    },
+    {
+      id: 'youtube-integration',
+      label: 'YouTube',
+      href: '/integrations/youtube',
+      requiredRole: UserRole.SUPER_ADMIN
+    },
+    {
+      id: 'x-integration',
+      label: 'X',
+      href: '/integrations/x',
       requiredRole: UserRole.SUPER_ADMIN
     }
   ]
