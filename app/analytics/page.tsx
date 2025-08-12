@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {tiktokConnection?.profile_data?.follower_count > 0 
+                {tiktokConnection?.profile_data?.follower_count && tiktokConnection.profile_data.follower_count > 0 
                   ? ((tiktokConnection.profile_data.likes_count / tiktokConnection.profile_data.follower_count) * 100).toFixed(1)
                   : '0'
                 }%
@@ -371,7 +371,7 @@ export default function AnalyticsPage() {
                       <div>
                         <p className="font-medium">TikTok Performance</p>
                         <p className="text-sm text-muted-foreground">
-                          {tiktokConnection?.profile_data?.follower_count > 0 
+                          {tiktokConnection?.profile_data?.follower_count && tiktokConnection.profile_data.follower_count > 0 
                             ? `${((tiktokConnection.profile_data.likes_count / tiktokConnection.profile_data.follower_count) * 100).toFixed(1)}% de engajamento`
                             : 'Sem dados de engajamento'
                           }
@@ -396,7 +396,7 @@ export default function AnalyticsPage() {
                       <div>
                         <p className="font-medium">Threads Performance</p>
                         <p className="text-sm text-muted-foreground">
-                          {threadsConnection?.profile_data?.posts_count > 0 
+                          {threadsConnection?.profile_data?.posts_count && threadsConnection.profile_data.posts_count > 0 
                             ? `${formatNumber(((threadsConnection.profile_data.insights_likes || 0) + (threadsConnection.profile_data.insights_replies || 0) + (threadsConnection.profile_data.insights_reposts || 0)) / threadsConnection.profile_data.posts_count)} engajamento por post`
                             : 'Dados completos via Insights API'
                           }

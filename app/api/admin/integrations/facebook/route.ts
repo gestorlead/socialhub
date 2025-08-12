@@ -58,7 +58,7 @@ async function verifySuperAdmin(request: NextRequest) {
       return { error: 'Profile not found', status: 403 }
     }
 
-    const userLevel = profile.roles?.level
+    const userLevel = (profile.roles as any)?.level || (Array.isArray(profile.roles) ? profile.roles[0]?.level : 0)
     console.log('Facebook API user level:', userLevel)
     
     if (userLevel < 3) { // 3 = Super Admin
@@ -245,8 +245,8 @@ export async function PUT(request: NextRequest) {
           environment: 'production', // integration_settings uses sandbox/production
           is_active: settingsData.is_active,
           config_data: {},
-          created_by: settingsData.created_by,
-          created_at: settingsData.created_at,
+          created_by: user.id,
+          created_at: new Date().toISOString(),
           updated_by: settingsData.updated_by,
           updated_at: settingsData.updated_at
         })

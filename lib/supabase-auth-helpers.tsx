@@ -187,7 +187,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
       
-      console.log('Auth state change:', event)
       
       setSession(session)
       setUser(session?.user ?? null)

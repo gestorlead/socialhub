@@ -312,7 +312,7 @@ export default function AnalyticsPage() {
                 <VideoList 
                   videos={videos}
                   loading={videosLoading}
-                  error={videosError}
+                  error={videosError || undefined}
                   hasMore={hasMore}
                   onLoadMore={fetchMore}
                   onRefresh={refetch}

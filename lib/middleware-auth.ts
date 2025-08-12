@@ -33,15 +33,6 @@ export async function validateAuthentication(req: NextRequest, res?: NextRespons
     'supabase.auth.token'
   ]
   
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🍪 Cookie patterns checked:', authCookiePatterns)
-    console.log('🍪 Available cookies:', req.cookies.getAll().map(c => c.name))
-    console.log('🔧 Supabase config:', { 
-      hostname, 
-      projectRef, 
-      supabaseUrl: supabaseUrl.substring(0, 50) + '...' 
-    })
-  }
   
   const hasAuthCookies = authCookiePatterns.some(pattern => {
     const cookie = req.cookies.get(pattern)
@@ -77,14 +68,6 @@ export async function validateAuthentication(req: NextRequest, res?: NextRespons
     indicators.hasTokenCookie ||
     (indicators.hasLoginSuccess && indicators.isRecentLogin)
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Auth Validation Results:', {
-      path: req.nextUrl.pathname,
-      isAuthenticated,
-      indicators,
-      user: session?.user?.email || 'none'
-    })
-  }
 
   return {
     isAuthenticated,

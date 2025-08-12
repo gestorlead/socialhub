@@ -16,6 +16,13 @@ export default function Home() {
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null)
   const [updatingStats, setUpdatingStats] = useState(false)
 
+  // Client-side authentication check
+  useEffect(() => {
+    if (!loading && !user) {
+      window.location.href = '/login'
+    }
+  }, [loading, user])
+
   useEffect(() => {
     // Check for connection success/error in URL params
     const urlParams = new URLSearchParams(window.location.search)
@@ -35,12 +42,6 @@ export default function Home() {
     }
   }, [refresh])
   
-  // Log TikTok connection data for debugging
-  useEffect(() => {
-    const tiktokConnection = getConnection('tiktok')
-    if (tiktokConnection) {
-    }
-  }, [getConnection])
   
   const updateTikTokStats = async () => {
     if (!user) return

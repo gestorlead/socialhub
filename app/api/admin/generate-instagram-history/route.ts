@@ -49,7 +49,7 @@ function generateHistoricalData(currentStats: any, days: number) {
       media_count: historicalMedia,
       impressions,
       reach,
-      profile_views
+      profile_views: profileViews
     })
   }
   

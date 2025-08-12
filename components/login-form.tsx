@@ -44,7 +44,6 @@ export function LoginForm({
         return
       }
 
-      console.log('✅ Login Successful! User:', email)
 
       // Set cookies for middleware detection
       document.cookie = `sh-login-success=true; path=/; max-age=60`

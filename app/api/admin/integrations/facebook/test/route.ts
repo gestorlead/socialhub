@@ -50,7 +50,7 @@ async function verifySuperAdmin(request: NextRequest) {
       return { error: 'Profile not found', status: 403 }
     }
 
-    const userLevel = profile.roles?.level
+    const userLevel = (profile.roles as any)?.level || (Array.isArray(profile.roles) ? profile.roles[0]?.level : 0)
     if (userLevel < 3) { // 3 = Super Admin
       return { error: 'Insufficient permissions. Super Admin access required.', status: 403 }
     }
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
       results.credentials = {
         passed: false,
         message: 'Error validating credentials',
-        details: error.message
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       }
     }
 
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       results.permissions = {
         passed: false,
         message: 'Error checking permissions',
-        details: error.message
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       }
     }
 
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
       results.pages_access = {
         passed: false,
         message: 'Error validating pages access',
-        details: error.message
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       }
     }
 
@@ -255,7 +255,7 @@ export async function POST(request: NextRequest) {
       results.api_access = {
         passed: false,
         message: 'Error testing API access',
-        details: error.message
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
       }
     }
 

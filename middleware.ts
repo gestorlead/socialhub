@@ -56,8 +56,20 @@ export async function middleware(req: NextRequest) {
       return response
     }
 
-    // For now, disable auth check to avoid middleware issues in Next.js 15
-    // TODO: Re-implement with proper Next.js 15 compatible auth check
+    // Create Supabase client for middleware
+    const { supabase } = createClientForMiddleware(req)
+    
+    // Check authentication
+    const { data: { session }, error } = await supabase.auth.getSession()
+    
+    if (error || !session?.user) {
+      // Redirect to login page for protected routes
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('redirect', req.nextUrl.pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    // User is authenticated, continue to the protected route
     return response
   } catch (error) {
     console.error('Middleware error:', error)
