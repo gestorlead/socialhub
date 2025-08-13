@@ -4,6 +4,10 @@ import path from 'path'
 import crypto from 'crypto'
 import { PRACTICAL_MAX_FILE_SIZE } from '@/lib/platform-limits'
 
+// Configure for large file uploads
+export const runtime = 'nodejs'
+export const maxDuration = 300 // 5 minutes for large files
+
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads')
 // Use practical maximum (5GB) instead of artificial 500MB limit
 // Platform-specific validation will happen during publication enqueuing

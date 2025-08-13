@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Configure API routes for large file uploads
+  serverExternalPackages: ['sharp'],
   // Note: File size limits are now handled at the API route level
   images: {
     remotePatterns: [

@@ -8,6 +8,7 @@ import { TikTokSandboxGuide } from './TikTokSandboxGuide'
 import { findNetworkOption } from '@/lib/network-configs'
 import { usePublicationStatus } from '@/hooks/usePublicationStatus'
 import { PRACTICAL_MAX_FILE_SIZE } from '@/lib/platform-limits'
+import { uploadMultipleFiles, UploadProgress } from '@/lib/chunked-upload'
 
 interface PublishState {
   selectedOptions: string[]
@@ -304,39 +305,32 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
         throw new Error(`Arquivo muito grande: ${oversizedFiles[0].name} (${(oversizedFiles[0].size / 1024 / 1024).toFixed(2)}MB). Máximo: ${maxSizeGB}GB. Limites específicos por plataforma serão validados durante a publicação.`)
       }
       
-      // Step 2: Upload files to our server first
+      // Step 2: Upload files to our server using chunked upload for large files
       setUploadProgress(prev => ({ ...prev, 'upload': 'Enviando arquivos para servidor...' }))
       
-      const formData = new FormData()
-      publishState.mediaFiles.forEach((file, index) => {
-        formData.append(`file${index}`, file)
-      })
-      formData.append('userId', user.id)
+      // Upload files with progress tracking
+      const uploadResults = await uploadMultipleFiles(
+        publishState.mediaFiles, 
+        user.id,
+        (fileIndex: number, progress: UploadProgress) => {
+          const fileName = publishState.mediaFiles[fileIndex]?.name || `Arquivo ${fileIndex + 1}`
+          let progressText = `Enviando ${fileName}: ${progress.percentage}%`
+          
+          if (progress.currentChunk && progress.totalChunks) {
+            progressText += ` (chunk ${progress.currentChunk}/${progress.totalChunks})`
+          }
+          
+          setUploadProgress(prev => ({ ...prev, 'upload': progressText }))
+        }
+      )
       
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-      
-      if (!uploadResponse.ok) {
-        const uploadError = await uploadResponse.json()
-        throw new Error(uploadError.error || 'Failed to upload files')
-      }
-      
-      const uploadResult = await uploadResponse.json()
-      const mediaFiles = Array.isArray(uploadResult.data) 
-        ? uploadResult.data.map((item: any, index: number) => ({
-            name: publishState.mediaFiles[index]?.name || `file${index}`,
-            size: publishState.mediaFiles[index]?.size || 0,
-            type: publishState.mediaFiles[index]?.type || 'unknown',
-            url: item.url
-          }))
-        : [{
-            name: publishState.mediaFiles[0]?.name || 'file',
-            size: publishState.mediaFiles[0]?.size || 0,
-            type: publishState.mediaFiles[0]?.type || 'unknown',
-            url: uploadResult.data.url
-          }]
+      const mediaFiles = uploadResults.map((result, index) => ({
+        name: publishState.mediaFiles[index]?.name || `file${index}`,
+        size: result.size,
+        type: result.type,
+        url: result.url,
+        path: result.path
+      }))
 
       // Step 3: Enqueue jobs for background processing
       setUploadProgress(prev => ({ ...prev, 'upload': 'Criando jobs de publicação...' }))
