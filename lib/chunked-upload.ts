@@ -5,8 +5,8 @@
 
 import { runUploadLimitTest } from './upload-limit-test'
 
-let CHUNK_SIZE = 1 * 1024 * 1024 // 1MB chunks (will be auto-adjusted based on server limits)
-const LARGE_FILE_THRESHOLD = 5 * 1024 * 1024 // 5MB threshold for chunked upload
+let CHUNK_SIZE = 400 * 1024 // 400KB chunks (below the 500KB server limit)
+const LARGE_FILE_THRESHOLD = 2 * 1024 * 1024 // 2MB threshold for chunked upload
 const MIN_CHUNK_SIZE = 100 * 1024 // 100KB minimum chunk size
 
 export interface UploadProgress {
@@ -37,9 +37,11 @@ export async function uploadFile(
   
   if (file.size <= LARGE_FILE_THRESHOLD) {
     // Use regular upload for small files
+    console.log(`[Upload File] File size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)}MB) - Using regular upload`)
     return uploadFileRegular(file, userId, onProgress)
   } else {
     // Use chunked upload for large files
+    console.log(`[Upload File] File size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)}MB) - Using chunked upload with ${CHUNK_SIZE/1024}KB chunks`)
     return uploadFileChunked(file, userId, onProgress)
   }
 }
