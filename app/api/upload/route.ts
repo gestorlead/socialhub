@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import crypto from 'crypto'
+import { PRACTICAL_MAX_FILE_SIZE } from '@/lib/platform-limits'
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads')
-const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB limit
+// Use practical maximum (5GB) instead of artificial 500MB limit
+// Platform-specific validation will happen during publication enqueuing
+const MAX_FILE_SIZE = PRACTICAL_MAX_FILE_SIZE // 5GB - covers all platform limits
 
 // Ensure upload directory exists
 async function ensureUploadDir() {
@@ -53,11 +56,12 @@ export async function POST(request: NextRequest) {
     const uploadedFiles = []
     
     for (const [index, currentFile] of files.entries()) {
-      // Validate file size
+      // Validate file size (general upload limit - platform-specific validation happens during enqueuing)
       if (currentFile.size > MAX_FILE_SIZE) {
+        const limitGB = Math.round(MAX_FILE_SIZE / (1024*1024*1024))
         return NextResponse.json({ 
           error: 'File too large',
-          details: `File ${index + 1}: Maximum file size is ${MAX_FILE_SIZE / (1024*1024)}MB`
+          details: `File ${index + 1}: Maximum file size is ${limitGB}GB. Platform-specific limits will be validated during publication.`
         }, { status: 400 })
       }
       

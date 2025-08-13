@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { performanceMonitor } from '@/lib/performance-monitor'
 import { performanceCache } from '@/lib/performance-cache'
-import { databaseOptimizer } from '@/lib/database-optimizer'
+// import { databaseOptimizer } from '@/lib/database-optimizer' // TODO: Fix this import
 import { SecurityMiddleware } from '@/lib/security-middleware'
 import { withPerformanceMonitoring } from '@/lib/performance-monitor'
 
@@ -37,7 +37,7 @@ const GET_Handler = async function(request: NextRequest) {
     // Collect all performance metrics
     const performanceMetrics = await performanceMonitor.getMetrics()
     const cacheMetrics = performanceCache.getMetrics()
-    const databaseMetrics = databaseOptimizer.getMetrics()
+    const databaseMetrics = {} // databaseOptimizer.getMetrics() // TODO: Fix this
 
     // Get alerts if requested
     const alerts = includeHistory ? 

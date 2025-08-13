@@ -6,6 +6,8 @@ import { useAuth } from '@/lib/supabase-auth-helpers'
 import { TikTokUploadInfo } from './TikTokUploadInfo'
 import { TikTokSandboxGuide } from './TikTokSandboxGuide'
 import { findNetworkOption } from '@/lib/network-configs'
+import { usePublicationStatus } from '@/hooks/usePublicationStatus'
+import { PRACTICAL_MAX_FILE_SIZE } from '@/lib/platform-limits'
 
 interface PublishState {
   selectedOptions: string[]
@@ -33,15 +35,19 @@ interface ValidationIssue {
 
 export function PublishButton({ publishState, onPublish, getEffectiveCaption }: PublishButtonProps) {
   const { user } = useAuth()
-  const [publishStatus, setPublishStatus] = useState<{
-    [key: string]: 'pending' | 'uploading' | 'success' | 'error'
-  }>({})
+  const [currentJobIds, setCurrentJobIds] = useState<string[]>([])
   const [publishErrors, setPublishErrors] = useState<{
     [key: string]: string
   }>({})
   const [showTikTokInfo, setShowTikTokInfo] = useState(false)
   const [showSandboxGuide, setShowSandboxGuide] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  
+  // Use the publication status hook for real-time job tracking
+  const { jobs, statusByPlatform, isLoading: jobsLoading } = usePublicationStatus({
+    jobIds: currentJobIds,
+    autoFetch: true
+  })
   
   // Reset validation errors when user makes changes
   useEffect(() => {
@@ -283,262 +289,23 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     
     if (!canPublish || !user) return
     
-    // Reset publish status and errors
-    const initialStatus: { [key: string]: 'pending' | 'uploading' | 'success' | 'error' } = {}
-    publishState.selectedOptions.forEach(optionId => {
-      initialStatus[optionId] = 'pending'
-    })
-    setPublishStatus(initialStatus)
+    // Reset errors
     setPublishErrors({})
     
     // Call the parent's publish handler
     onPublish()
-    
-    // Process each option
-    for (const optionId of publishState.selectedOptions) {
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      
-      try {
-        if (optionId === 'tiktok_video') {
-          await publishToTikTok(optionId)
-        } else if (optionId === 'facebook_post' || optionId === 'facebook_story' || optionId === 'facebook_reels') {
-          await publishToFacebook(optionId)
-        } else if (optionId.startsWith('instagram_')) {
-          await publishToInstagram(optionId)
-        } else if (optionId.startsWith('youtube_')) {
-          await publishToYouTube(optionId)
-        } else if (optionId === 'threads_post') {
-          await publishToThreads(optionId)
-        } else if (optionId === 'x_post') {
-          await publishToX(optionId)
-        } else if (optionId.startsWith('linkedin_')) {
-          await publishToLinkedIn(optionId)
-        } else {
-          // Opção não reconhecida
-          const result = findNetworkOption(optionId)
-          const optionName = result?.option.name || optionId
-          
-          setPublishStatus(prev => ({ ...prev, [optionId]: 'error' }))
-          setPublishErrors(prev => ({ 
-            ...prev, 
-            [optionId]: `${optionName} não reconhecido` 
-          }))
-        }
-      } catch (error) {
-        setPublishStatus(prev => ({ ...prev, [optionId]: 'error' }))
-        setPublishErrors(prev => ({ 
-          ...prev, 
-          [optionId]: error instanceof Error ? error.message : 'Unknown error' 
-        }))
-      }
-    }
-  }
-
-  const publishToTikTok = async (optionId: string) => {
-    if (!user || publishState.mediaFiles.length === 0) return
 
     try {
-      // Step 1: Upload file to our server
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando arquivo para servidor...' }))
-      
-      const formData = new FormData()
-      formData.append('file', publishState.mediaFiles[0]) // Use first file for TikTok
-      formData.append('userId', user.id)
-      
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-      
-      if (!uploadResponse.ok) {
-        const uploadError = await uploadResponse.json()
-        throw new Error(uploadError.error || 'Failed to upload file')
+      // Step 1: Basic file size validation (general upload limit)
+      // Platform-specific validation will happen during enqueuing
+      const oversizedFiles = publishState.mediaFiles.filter(file => file.size > PRACTICAL_MAX_FILE_SIZE)
+      if (oversizedFiles.length > 0) {
+        const maxSizeGB = Math.round(PRACTICAL_MAX_FILE_SIZE / (1024*1024*1024))
+        throw new Error(`Arquivo muito grande: ${oversizedFiles[0].name} (${(oversizedFiles[0].size / 1024 / 1024).toFixed(2)}MB). Máximo: ${maxSizeGB}GB. Limites específicos por plataforma serão validados durante a publicação.`)
       }
       
-      const uploadResult = await uploadResponse.json()
-      
-      // Step 2: Submit to TikTok using PULL_FROM_URL
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando para o TikTok...' }))
-      
-      const publishPayload = {
-        userId: user.id,
-        mediaUrl: uploadResult.data.url,
-        mediaType: publishState.mediaFiles[0].type,
-        caption: getEffectiveCaption(optionId),
-        settings: publishState.settings[optionId] || {
-          privacy: 'PUBLIC_TO_EVERYONE',
-          allowComments: true,
-          allowDuet: true,
-          allowStitch: true
-        }
-      }
-      
-      const publishResponse = await fetch('/api/social/tiktok/publish-url', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(publishPayload)
-      })
-      
-      const publishResult = await publishResponse.json()
-      
-      if (!publishResponse.ok || publishResult.error) {
-        throw new Error(publishResult.error || `HTTP ${publishResponse.status}`)
-      }
-      
-      // Step 3: Start checking status
-      if (publishResult.data?.publish_id) {
-        setUploadProgress(prev => ({ ...prev, [optionId]: 'Processando no TikTok...' }))
-        const publishId = publishResult.data.publish_id
-        
-        // Check status every 3 seconds, up to 10 times (30 seconds total)
-        let attempts = 0
-        const maxAttempts = 10
-        
-        const checkStatus = async () => {
-          const statusResponse = await fetch('/api/social/tiktok/status', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              publishId: publishId
-            })
-          })
-          
-          const statusResult = await statusResponse.json()
-          
-          if (statusResult.data?.status === 'PUBLISH_COMPLETE') {
-            setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
-            return true
-          } else if (statusResult.data?.status === 'FAILED') {
-            throw new Error(`TikTok publish failed: ${statusResult.data.fail_reason || 'Unknown reason'}`)
-          }
-          
-          return false
-        }
-        
-        // Initial check
-        const published = await checkStatus()
-        
-        if (!published) {
-          // Continue checking in background
-          const interval = setInterval(async () => {
-            attempts++
-            try {
-              const done = await checkStatus()
-              if (done || attempts >= maxAttempts) {
-                clearInterval(interval)
-                if (!done && attempts >= maxAttempts) {
-                }
-              }
-            } catch (error) {
-              clearInterval(interval)
-            }
-          }, 3000)
-        }
-      }
-      
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
-      
-    } catch (error) {
-      throw error
-    }
-  }
-
-  
-  const publishToFacebook = async (optionId: string) => {
-    if (!user || publishState.mediaFiles.length === 0) return
-
-    try {
-      // Step 1: Upload file to our server
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando arquivo para servidor...' }))
-      
-      const formData = new FormData()
-      publishState.mediaFiles.forEach((file, index) => {
-        formData.append(`file${index}`, file)
-      })
-      formData.append('userId', user.id)
-      
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-      
-      if (!uploadResponse.ok) {
-        const uploadError = await uploadResponse.json()
-        throw new Error(uploadError.error || 'Failed to upload file')
-      }
-      
-      const uploadResult = await uploadResponse.json()
-      const mediaUrls = Array.isArray(uploadResult.data) 
-        ? uploadResult.data.map((item: any) => item.url)
-        : [uploadResult.data.url]
-      
-      // Step 2: Submit to Facebook
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando para o Facebook...' }))
-      
-      const firstFile = publishState.mediaFiles[0]
-      const mediaType = firstFile.type.startsWith('video/') ? 'video' : 'photo'
-      
-      // Determine publication type based on optionId
-      let publication_type = 'post'
-      if (optionId === 'facebook_story') {
-        publication_type = 'story'
-      } else if (optionId === 'facebook_reels') {
-        publication_type = 'reels'
-      }
-      
-      const publishPayload = {
-        userId: user.id, // Add userId like other integrations
-        page_id: publishState.settings[optionId]?.page_id, // Get from settings
-        message: getEffectiveCaption(optionId),
-        media_urls: mediaUrls,
-        media_type: mediaType,
-        publication_type: publication_type, // Add publication type
-        privacy: publishState.settings[optionId]?.privacy || { value: 'EVERYONE' },
-        scheduled_publish_time: publishState.settings[optionId]?.scheduled_publish_time
-      }
-
-      const publishResponse = await fetch('/api/social/facebook/publish', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(publishPayload)
-      })
-      
-      const publishResult = await publishResponse.json()
-      
-      if (!publishResponse.ok || publishResult.error) {
-        throw new Error(publishResult.error || publishResult.details || `HTTP ${publishResponse.status}`)
-      }
-      
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Publicado com sucesso!' }))
-      
-    } catch (error: any) {
-      console.error('Facebook publish error:', error)
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'error' }))
-      setPublishErrors(prev => ({ 
-        ...prev, 
-        [optionId]: error.message || 'Erro ao publicar no Facebook' 
-      }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Erro na publicação' }))
-    }
-  }
-
-  const publishToInstagram = async (optionId: string) => {
-    if (!user || publishState.mediaFiles.length === 0) return
-
-    try {
-      // Step 1: Upload files to our server
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Enviando arquivos para servidor...' }))
+      // Step 2: Upload files to our server first
+      setUploadProgress(prev => ({ ...prev, 'upload': 'Enviando arquivos para servidor...' }))
       
       const formData = new FormData()
       publishState.mediaFiles.forEach((file, index) => {
@@ -557,103 +324,92 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       }
       
       const uploadResult = await uploadResponse.json()
-      const mediaUrls = Array.isArray(uploadResult.data) 
-        ? uploadResult.data.map((item: any) => item.url)
-        : [uploadResult.data.url]
+      const mediaFiles = Array.isArray(uploadResult.data) 
+        ? uploadResult.data.map((item: any, index: number) => ({
+            name: publishState.mediaFiles[index]?.name || `file${index}`,
+            size: publishState.mediaFiles[index]?.size || 0,
+            type: publishState.mediaFiles[index]?.type || 'unknown',
+            url: item.url
+          }))
+        : [{
+            name: publishState.mediaFiles[0]?.name || 'file',
+            size: publishState.mediaFiles[0]?.size || 0,
+            type: publishState.mediaFiles[0]?.type || 'unknown',
+            url: uploadResult.data.url
+          }]
+
+      // Step 3: Enqueue jobs for background processing
+      setUploadProgress(prev => ({ ...prev, 'upload': 'Criando jobs de publicação...' }))
       
-      // Step 2: Publish to Instagram
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Publicando no Instagram...' }))
-      
-      const publishPayload = {
-        userId: user.id,
-        optionId: optionId as 'instagram_feed' | 'instagram_story' | 'instagram_reels',
-        mediaUrls: mediaUrls,
-        caption: getEffectiveCaption(optionId),
-        settings: publishState.settings[optionId] || {}
-      }
-      
-      const publishResponse = await fetch('/api/social/instagram/publish', {
+      const enqueueResponse = await fetch('/api/publications/enqueue', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(publishPayload)
+        body: JSON.stringify({
+          userId: user.id,
+          selectedOptions: publishState.selectedOptions,
+          mediaFiles: mediaFiles,
+          captions: publishState.captions,
+          settings: publishState.settings
+        })
       })
       
-      const publishResult = await publishResponse.json()
-      
-      if (!publishResponse.ok || publishResult.error) {
-        throw new Error(publishResult.error || publishResult.details || `HTTP ${publishResponse.status}`)
+      let enqueueResult
+      try {
+        enqueueResult = await enqueueResponse.json()
+      } catch (jsonError) {
+        // Handle non-JSON responses (like 413 error pages)
+        if (enqueueResponse.status === 413) {
+          throw new Error('Payload muito grande. Verifique os limites por plataforma e tente novamente.')
+        }
+        throw new Error(`Erro do servidor (${enqueueResponse.status}). Tente novamente.`)
       }
       
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'success' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Publicado com sucesso!' }))
+      if (!enqueueResponse.ok || !enqueueResult.success) {
+        throw new Error(enqueueResult.error || 'Failed to enqueue publication jobs')
+      }
+
+      // Step 4: Track the created jobs
+      const { jobs, errors } = enqueueResult.data
       
-    } catch (error: any) {
-      console.error('Instagram publish error:', error)
-      throw error
+      // Set job IDs for tracking
+      setCurrentJobIds(jobs.map((job: any) => job.job_id))
+
+      // Handle any jobs that failed to enqueue
+      if (errors && errors.length > 0) {
+        const errorMap: { [key: string]: string } = {}
+        errors.forEach((error: any) => {
+          errorMap[error.platform] = error.error
+        })
+        setPublishErrors(errorMap)
+      }
+
+      console.log('[PublishButton] Jobs enqueued successfully:', {
+        totalJobs: jobs.length,
+        totalErrors: errors?.length || 0,
+        jobIds: jobs.map((j: any) => j.job_id)
+      })
+
+      // Clear upload progress after successful enqueue
+      setUploadProgress({})
+
+    } catch (error) {
+      console.error('[PublishButton] Enqueue failed:', error)
+      
+      // Set all selected options to error state
+      const errorMap: { [key: string]: string } = {}
+      publishState.selectedOptions.forEach(optionId => {
+        errorMap[optionId] = error instanceof Error ? error.message : 'Failed to enqueue job'
+      })
+      setPublishErrors(errorMap)
+      setUploadProgress({})
     }
   }
 
-  const publishToYouTube = async (optionId: string) => {
-    if (!user || publishState.mediaFiles.length === 0) return
-
-    try {
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para YouTube...' }))
-      
-      // TODO: Implementar API do YouTube
-      throw new Error('YouTube ainda não implementado')
-      
-    } catch (error: any) {
-      throw error
-    }
-  }
-
-  const publishToThreads = async (optionId: string) => {
-    if (!user || publishState.mediaFiles.length === 0) return
-
-    try {
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para Threads...' }))
-      
-      // TODO: Implementar API do Threads
-      throw new Error('Threads ainda não implementado')
-      
-    } catch (error: any) {
-      throw error
-    }
-  }
-
-  const publishToX = async (optionId: string) => {
-    if (!user || publishState.mediaFiles.length === 0) return
-
-    try {
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para X...' }))
-      
-      // TODO: Implementar API do X
-      throw new Error('X ainda não implementado')
-      
-    } catch (error: any) {
-      throw error
-    }
-  }
-
-  const publishToLinkedIn = async (optionId: string) => {
-    if (!user || publishState.mediaFiles.length === 0) return
-
-    try {
-      setPublishStatus(prev => ({ ...prev, [optionId]: 'uploading' }))
-      setUploadProgress(prev => ({ ...prev, [optionId]: 'Preparando para LinkedIn...' }))
-      
-      // TODO: Implementar API do LinkedIn
-      throw new Error('LinkedIn ainda não implementado')
-      
-    } catch (error: any) {
-      throw error
-    }
-  }
+  // Note: Individual platform publish functions removed
+  // Publishing is now handled by the queue system via /api/publications/enqueue
+  // and processed in background by /api/internal/process-publication
 
   const getOptionName = (optionId: string) => {
     const result = findNetworkOption(optionId)
@@ -664,14 +420,14 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
     switch (status) {
       case 'pending':
         return <Clock className="w-4 h-4 text-yellow-500" />
-      case 'uploading':
+      case 'processing':
         return <Upload className="w-4 h-4 text-blue-500 animate-pulse" />
-      case 'success':
+      case 'completed':
         return <CheckCircle className="w-4 h-4 text-green-500" />
-      case 'error':
+      case 'failed':
         return <AlertTriangle className="w-4 h-4 text-red-500" />
       default:
-        return null
+        return <Clock className="w-4 h-4 text-gray-400" />
     }
   }
   
@@ -682,21 +438,43 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'Aguardando...'
-      case 'uploading':
+        return 'Na fila...'
+      case 'processing':
         return 'Publicando...'
-      case 'success':
+      case 'completed':
         return 'Publicado!'
-      case 'error':
+      case 'failed':
         return 'Erro na publicação'
       default:
-        return ''
+        return 'Aguardando...'
     }
   }
   
-  const isPublishing = Object.values(publishStatus).some(status => 
-    status === 'pending' || status === 'uploading'
-  )
+  // Combine job statuses with local errors for comprehensive status tracking
+  const getEffectiveStatus = (optionId: string) => {
+    // Check if there's an error for this platform
+    if (publishErrors[optionId]) {
+      return 'failed'
+    }
+    
+    // Check real-time job status
+    const jobStatus = statusByPlatform[optionId]
+    if (jobStatus) {
+      return jobStatus
+    }
+    
+    // Default to pending if job was enqueued
+    if (currentJobIds.length > 0) {
+      return 'pending'
+    }
+    
+    return null
+  }
+  
+  const isPublishing = publishState.selectedOptions.some(optionId => {
+    const status = getEffectiveStatus(optionId)
+    return status === 'pending' || status === 'processing'
+  }) || Object.keys(uploadProgress).length > 0
   
   return (
     <div className="bg-card border rounded-lg p-6">
@@ -736,45 +514,61 @@ export function PublishButton({ publishState, onPublish, getEffectiveCaption }: 
       )}
       
       {/* Publishing Status */}
-      {Object.keys(publishStatus).length > 0 && (
+      {(currentJobIds.length > 0 || Object.keys(publishErrors).length > 0) && (
         <div className="mb-4">
           <h4 className="text-sm font-medium mb-2">Status da Publicação:</h4>
           <div className="space-y-2">
             {publishState.selectedOptions.map(optionId => {
-              const status = publishStatus[optionId]
+              const status = getEffectiveStatus(optionId)
               const error = publishErrors[optionId]
+              const job = Object.values(jobs).find(j => j.platform === optionId)
+              
               return (
                 <div key={optionId} className="border rounded">
                   <div className="flex items-center justify-between p-2">
                     <span className="text-sm font-medium">{getOptionName(optionId)}</span>
                     <div className="flex items-center gap-2">
-                      {getStatusIcon(status)}
+                      {getStatusIcon(status || 'pending')}
                       <div className="text-right">
-                        <div className="text-sm">{getStatusText(status)}</div>
-                        {uploadProgress[optionId] && status === 'uploading' && (
+                        <div className="text-sm">{getStatusText(status || 'pending')}</div>
+                        {uploadProgress[optionId] && (
                           <div className="text-xs text-muted-foreground">
                             {uploadProgress[optionId]}
+                          </div>
+                        )}
+                        {job && status === 'processing' && job.started_at && (
+                          <div className="text-xs text-muted-foreground">
+                            Iniciado {new Date(job.started_at).toLocaleTimeString()}
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
-                  {error && status === 'error' && (
+                  {(error || (job?.error_message && status === 'failed')) && (
                     <div className="px-2 pb-2">
                       <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded p-2">
-                        <p className="text-xs text-red-700 dark:text-red-300">{error}</p>
+                        <p className="text-xs text-red-700 dark:text-red-300">
+                          {error || job?.error_message}
+                        </p>
+                        {job && job.retry_count > 0 && job.retry_count < job.max_retries && (
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                            Tentativa {job.retry_count} de {job.max_retries}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
-                  {status === 'success' && (
+                  {status === 'completed' && (
                     <div className="px-2 pb-2">
                       <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded p-2">
                         <p className="text-xs text-green-700 dark:text-green-300">
                           ✓ Processo concluído com sucesso
                         </p>
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          Verifique a plataforma para confirmar a publicação
-                        </p>
+                        {job?.completed_at && (
+                          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                            Finalizado em {new Date(job.completed_at).toLocaleTimeString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}

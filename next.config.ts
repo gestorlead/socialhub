@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Note: File size limits are now handled at the API route level
   images: {
     remotePatterns: [
       {

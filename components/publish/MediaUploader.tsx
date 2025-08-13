@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { Upload, X, FileVideo, FileImage, AlertTriangle, CheckCircle2, Plus, GripVertical } from 'lucide-react'
 import { findNetworkOption, getMaxFilesForOption, optionSupportsMediaType } from '@/lib/network-configs'
+import { PRACTICAL_MAX_FILE_SIZE } from '@/lib/platform-limits'
 
 interface MediaUploaderProps {
   onFileSelect: (files: File[], previews: string[]) => void
@@ -12,7 +13,7 @@ interface MediaUploaderProps {
 
 const TIKTOK_LIMITS = {
   video: {
-    maxSize: 500 * 1024 * 1024, // 500MB (server upload limit)
+    maxSize: PRACTICAL_MAX_FILE_SIZE, // Use practical maximum (5GB)
     formats: ['video/mp4', 'video/mov', 'video/avi'],
     maxDuration: 10 * 60, // 10 minutes in seconds
     minDuration: 3, // 3 seconds
@@ -22,7 +23,7 @@ const TIKTOK_LIMITS = {
     }
   },
   image: {
-    maxSize: 20 * 1024 * 1024, // 20MB
+    maxSize: PRACTICAL_MAX_FILE_SIZE, // Use practical maximum
     formats: ['image/jpeg', 'image/jpg', 'image/png']
   }
 }
@@ -349,7 +350,7 @@ export function MediaUploader({ onFileSelect, selectedOptions, maxFiles = 10 }: 
             
             {selectedOptions.includes('tiktok_video') && (
               <div className="text-xs text-muted-foreground space-y-1">
-                <p><strong>TikTok:</strong> MP4, MOV, AVI • Máx: 500MB por vídeo • 3s-10min</p>
+                <p><strong>TikTok:</strong> MP4, MOV, AVI • Máx: 4GB por vídeo • 3s-10min</p>
                 <p className="text-green-600 dark:text-green-400">
                   ✓ Upload via servidor - suporte a arquivos grandes
                 </p>
