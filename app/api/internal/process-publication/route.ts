@@ -394,8 +394,41 @@ async function processYouTubeJob(userId: string, content: any, platform: string)
  */
 async function processThreadsJob(userId: string, content: any) {
   console.log('[Process Publication API] Processing Threads job')
-  // TODO: Implement Threads API integration
-  throw new Error('Threads integration not yet implemented')
+  
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://socialhub.gestorlead.com.br'
+  const mediaFiles = Array.isArray(content?.mediaFiles) ? content.mediaFiles : []
+  const firstFile = mediaFiles[0]
+  const hasMedia = !!firstFile?.url
+  const isVideo = hasMedia && typeof firstFile?.type === 'string' && firstFile.type.startsWith('video/')
+  const mediaType = hasMedia ? (isVideo ? 'VIDEO' : 'IMAGE') : 'TEXT'
+
+  const payload: any = { text: content.caption || '', media_type: mediaType }
+  if (hasMedia) {
+    if (isVideo) payload.video_url = firstFile.url
+    else payload.image_url = firstFile.url
+  }
+
+  const url = `${baseUrl}/api/social/threads/publish?user_id=${encodeURIComponent(userId)}`
+  console.log('[Threads Process] Making request to:', url)
+  console.log('[Threads Process] Payload summary:', {
+    textLength: (payload.text || '').length,
+    mediaType: payload.media_type,
+    mediaCount: payload.media_urls?.length || 0
+  })
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(60000)
+  })
+
+  const result = await response.json().catch(() => ({}))
+  if (!response.ok || result.error) {
+    throw new Error(result.error || result.details || `Threads API error: ${response.status}`)
+  }
+
+  return result
 }
 
 /**

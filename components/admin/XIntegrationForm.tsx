@@ -22,9 +22,11 @@ interface XSettings {
   client_id?: string
   client_secret?: string
   bearer_token?: string
-  environment: 'development' | 'production'
+  environment: 'sandbox' | 'production'
   callback_url?: string
   is_active: boolean
+  scopes?: string[]
+  client_type?: 'public' | 'confidential'
   config_data?: {
     source?: string
     last_updated_by?: string
@@ -48,8 +50,10 @@ interface TestResults {
 export function XIntegrationForm() {
   const { user, session } = useAuth()
   const [settings, setSettings] = useState<XSettings>({
-    environment: 'development',
-    is_active: true
+    environment: 'sandbox',
+    is_active: true,
+    scopes: ['tweet.read','tweet.write','users.read','offline.access','media.write'],
+    client_type: 'public'
   })
   
   const [loading, setLoading] = useState(true)
@@ -124,8 +128,13 @@ export function XIntegrationForm() {
       setSuccessMessage('')
       
       // Validate required fields for OAuth 2.0
-      if (!settings.client_id || !settings.client_secret) {
-        setErrorMessage('Client ID e Client Secret são obrigatórios para OAuth 2.0')
+      if (!settings.client_id) {
+        setErrorMessage('Client ID é obrigatório para OAuth 2.0')
+        setSaving(false)
+        return
+      }
+      if (settings.client_type === 'confidential' && !settings.client_secret) {
+        setErrorMessage('Client Secret é obrigatório para apps Confidential')
         setSaving(false)
         return
       }
@@ -241,6 +250,20 @@ export function XIntegrationForm() {
         {/* OAuth 2.0 Credentials */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Credenciais OAuth 2.0 (Obrigatórias)</h3>
+          {/* Client Type */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Tipo de Cliente</label>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input type="radio" name="client_type" value="public" checked={settings.client_type === 'public'} onChange={(e)=>handleInputChange('client_type', e.target.value)} className="mr-2" />
+                Public (PKCE)
+              </label>
+              <label className="flex items-center">
+                <input type="radio" name="client_type" value="confidential" checked={settings.client_type === 'confidential'} onChange={(e)=>handleInputChange('client_type', e.target.value)} className="mr-2" />
+                Confidential
+              </label>
+            </div>
+          </div>
           
           {/* Client ID */}
           <div>
@@ -266,8 +289,8 @@ export function XIntegrationForm() {
             </div>
           </div>
 
-          {/* Client Secret */}
-          <div>
+          {/* Client Secret (somente confidential) */}
+          <div className={settings.client_type === 'confidential' ? '' : 'opacity-50 pointer-events-none'}>
             <label className="block text-sm font-medium mb-2">
               Client Secret *
             </label>
@@ -278,7 +301,7 @@ export function XIntegrationForm() {
                 onChange={(e) => handleInputChange('client_secret', e.target.value)}
                 className="w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Digite o Client Secret do X"
-                required
+                required={settings.client_type === 'confidential'}
               />
               <button
                 type="button"
@@ -382,12 +405,12 @@ export function XIntegrationForm() {
                 <input
                   type="radio"
                   name="environment"
-                  value="development"
-                  checked={settings.environment === 'development'}
+                  value="sandbox"
+                  checked={settings.environment === 'sandbox'}
                   onChange={(e) => handleInputChange('environment', e.target.value)}
                   className="mr-2"
                 />
-                Development
+                Sandbox
               </label>
               <label className="flex items-center">
                 <input
@@ -436,6 +459,27 @@ export function XIntegrationForm() {
               Configure esta URL no seu App do X Developer Portal
             </p>
           </div>
+          {/* Scopes */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Scopes</label>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {['tweet.read','tweet.write','users.read','users.email','follows.read','follows.write','offline.access','media.write','like.read','like.write'].map(scope => (
+                <label key={scope} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={settings.scopes?.includes(scope) || false}
+                    onChange={(e)=>{
+                      const next = new Set(settings.scopes || [])
+                      if (e.target.checked) next.add(scope); else next.delete(scope)
+                      handleInputChange('scopes', Array.from(next))
+                    }}
+                  />
+                  {scope}
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Recomendado: tweet.read, tweet.write, users.read, offline.access, media.write</p>
+          </div>
         </div>
 
         {/* Free Tier Notice */}
@@ -473,6 +517,24 @@ export function XIntegrationForm() {
           >
             {testing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <TestTube className="w-4 h-4" />}
             {testing ? 'Testando...' : 'Testar Conectividade'}
+          </button>
+          <button
+            type="button"
+            onClick={async()=>{
+              setErrorMessage(''); setSuccessMessage('')
+              const token = await getAuthToken()
+              const res = await fetch('/api/auth/x/authorize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ client_id: settings.client_id, redirect_uri: settings.callback_url, scopes: settings.scopes, user_id: user?.id, client_type: settings.client_type })
+              })
+              const data = await res.json()
+              if (!res.ok || !data?.authorize_url) { setErrorMessage(data.error || 'Falha ao gerar URL de autorização'); return }
+              window.open(data.authorize_url, '_blank')
+            }}
+            className="flex items-center gap-2 px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50"
+          >
+            🔑 Iniciar OAuth (PKCE)
           </button>
         </div>
       </form>

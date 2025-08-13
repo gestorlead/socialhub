@@ -1,4 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+function parseState(state: string) {
+  try {
+    const [raw] = state.split('.')
+    const json = Buffer.from(raw.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
+    return JSON.parse(json)
+  } catch {
+    return null
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const code = searchParams.get('code')
+    const stateParam = searchParams.get('state')
+
+    if (!code || !stateParam) {
+      return NextResponse.json({ error: 'Missing code or state' }, { status: 400 })
+    }
+
+    const state = parseState(stateParam)
+    if (!state?.v || !state?.c || !state?.r || !state?.u) {
+      return NextResponse.json({ error: 'Invalid state' }, { status: 400 })
+    }
+
+    const tokenUrl = 'https://api.x.com/2/oauth2/token'
+    const params = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      client_id: state.c,
+      redirect_uri: state.r,
+      code_verifier: state.v
+    })
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    })
+
+    const tokenData = await response.json().catch(() => ({}))
+    if (!response.ok || !tokenData?.access_token) {
+      return NextResponse.json({ error: 'Failed to exchange code', details: tokenData }, { status: 400 })
+    }
+
+    // Persist tokenData em um endpoint interno admin já existente (não implementado aqui)
+    // Você pode criar /api/admin/integrations/x/tokens para salvar em social_connections
+
+    return NextResponse.json({ success: true, tokens: { access_token: tokenData.access_token, expires_in: tokenData.expires_in, scope: tokenData.scope, refresh_token: tokenData.refresh_token } })
+  } catch (error) {
+    return NextResponse.json({ error: 'Callback failed' }, { status: 500 })
+  }
+}
+
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(

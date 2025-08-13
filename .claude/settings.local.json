@@ -75,7 +75,8 @@
       "Bash(sudo certbot:*)",
       "Bash(sudo openssl x509:*)",
       "Bash(sudo:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(command -v:*)"
     ],
     "deny": []
   }
