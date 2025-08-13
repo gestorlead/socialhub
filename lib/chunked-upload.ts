@@ -3,8 +3,11 @@
  * Breaks files into smaller chunks to bypass server payload limits
  */
 
-const CHUNK_SIZE = 4 * 1024 * 1024 // 4MB chunks
-const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024 // 10MB threshold for chunked upload
+import { runUploadLimitTest } from './upload-limit-test'
+
+let CHUNK_SIZE = 1 * 1024 * 1024 // 1MB chunks (will be auto-adjusted based on server limits)
+const LARGE_FILE_THRESHOLD = 5 * 1024 * 1024 // 5MB threshold for chunked upload
+const MIN_CHUNK_SIZE = 100 * 1024 // 100KB minimum chunk size
 
 export interface UploadProgress {
   loaded: number
@@ -121,6 +124,12 @@ async function uploadFileChunked(
     formData.append('fileId', fileId)
     formData.append('chunkIndex', chunkIndex.toString())
     formData.append('totalChunks', totalChunks.toString())
+    
+    // Detailed logging for diagnosis
+    console.log(`[Chunked Upload] Chunk ${chunkIndex + 1}/${totalChunks}:`)
+    console.log(`  - Raw chunk size: ${chunk.size} bytes (${(chunk.size / 1024 / 1024).toFixed(2)}MB)`)
+    console.log(`  - FormData fields: ${Array.from(formData.keys()).length}`)
+    console.log(`  - File name: ${file.name}`)
     
     try {
       const response = await fetch('/api/upload/chunked', {

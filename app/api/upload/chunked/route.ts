@@ -23,6 +23,8 @@ async function ensureDirs() {
 export async function POST(request: NextRequest) {
   try {
     console.log('[Chunked Upload API] Starting chunk upload')
+    console.log('[Chunked Upload API] Request headers:', Object.fromEntries(request.headers.entries()))
+    console.log('[Chunked Upload API] Content-Length:', request.headers.get('content-length'))
     
     const formData = await request.formData()
     const userId = formData.get('userId') as string
@@ -31,6 +33,12 @@ export async function POST(request: NextRequest) {
     const fileName = formData.get('fileName') as string
     const fileId = formData.get('fileId') as string
     const chunk = formData.get('chunk') as File
+    
+    console.log('[Chunked Upload API] Received chunk details:')
+    console.log(`  - Chunk ${chunkIndex + 1}/${totalChunks}`)
+    console.log(`  - File name: ${fileName}`)
+    console.log(`  - Chunk size: ${chunk?.size} bytes`)
+    console.log(`  - User ID: ${userId}`)
     
     if (!userId || !fileName || !fileId || !chunk || isNaN(chunkIndex) || isNaN(totalChunks)) {
       return NextResponse.json({ 
