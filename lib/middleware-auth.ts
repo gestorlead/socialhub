@@ -87,7 +87,8 @@ export function isProtectedPath(pathname: string): boolean {
   // API routes that handle their own authentication
   const selfAuthenticatedAPIs = [
     '/api/analytics/data',
-    '/api/social/'
+    '/api/social/',
+    '/api/internal/' // Internal APIs use service role authentication
   ]
   
   // Startup validation routes that should be publicly accessible

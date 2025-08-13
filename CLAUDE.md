@@ -219,3 +219,4 @@ NEXT_PUBLIC_SITE_URL
 - Content Security Policy headers in middleware
 - Input sanitization for user-generated content
 - Rate limiting on external API calls
+- Always use project_id unfdlpzcdalzvrjueanu to Supabase MCP

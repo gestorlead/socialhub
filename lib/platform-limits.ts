@@ -104,18 +104,29 @@ export function validateFileSize(
   };
 }
 
+// Check if an option ID represents a story type
+export function isStoryType(optionId: string): boolean {
+  return optionId.includes('_story');
+}
+
 // Validate multiple files (for platforms like Instagram that support multiple photos)
 export function validateMultipleFiles(
-  platform: string,
+  optionId: string,
   files: Array<{ size: number; type: string }>,
   isStory: boolean = false
 ): { valid: boolean; errors: string[]; validFiles: number } {
   const errors: string[] = [];
   let validFiles = 0;
+  
+  // Extract base platform name from composite option ID
+  const basePlatform = getBasePlatformName(optionId);
+  
+  // Auto-detect story type if not explicitly provided
+  const actualIsStory = isStory || isStoryType(optionId);
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const validation = validateFileSize(platform, file.size, file.type, isStory);
+    const validation = validateFileSize(basePlatform, file.size, file.type, actualIsStory);
     
     if (validation.valid) {
       validFiles++;
@@ -132,8 +143,9 @@ export function validateMultipleFiles(
 }
 
 // Get human-readable platform limits
-export function getPlatformLimitsInfo(platform: string): string | null {
-  const limits = PLATFORM_LIMITS[platform.toLowerCase()];
+export function getPlatformLimitsInfo(optionId: string): string | null {
+  const basePlatform = getBasePlatformName(optionId);
+  const limits = PLATFORM_LIMITS[basePlatform.toLowerCase()];
   if (!limits) return null;
 
   const formatSize = (bytes: number): string => {
@@ -171,3 +183,51 @@ export const MAX_FILE_SIZE = getMaxFileSize(); // Will be 256GB but practical ma
 
 // Practical maximum file size (5GB - LinkedIn videos)
 export const PRACTICAL_MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
+
+// Extract base platform name from option ID
+export function getBasePlatformName(optionId: string): string {
+  // Handle composite platform names (e.g., "instagram_story" -> "instagram")
+  const platformMap: Record<string, string> = {
+    // Instagram variants
+    'instagram_feed': 'instagram',
+    'instagram_story': 'instagram',
+    'instagram_reels': 'instagram',
+    
+    // TikTok variants
+    'tiktok_video': 'tiktok',
+    
+    // YouTube variants
+    'youtube_video': 'youtube',
+    'youtube_shorts': 'youtube',
+    
+    // Facebook variants
+    'facebook_feed': 'facebook',
+    'facebook_story': 'facebook',
+    'facebook_reels': 'facebook',
+    
+    // X (Twitter) variants
+    'x_post': 'x',
+    
+    // LinkedIn variants
+    'linkedin_post': 'linkedin',
+    
+    // Threads variants
+    'threads_post': 'threads',
+  };
+  
+  // Check if it's a mapped composite name
+  if (platformMap[optionId]) {
+    return platformMap[optionId];
+  }
+  
+  // If not found, try extracting the base name (everything before the first underscore)
+  const baseName = optionId.split('_')[0];
+  
+  // Verify the base name exists in PLATFORM_LIMITS
+  if (PLATFORM_LIMITS[baseName]) {
+    return baseName;
+  }
+  
+  // Return the original optionId if no mapping found (will fail validation)
+  return optionId;
+}

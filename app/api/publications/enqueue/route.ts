@@ -96,22 +96,41 @@ export async function POST(request: NextRequest) {
         const platformSettings = settings[optionId] || {}
 
         // Validate file sizes against platform limits
-        const isStory = platformSettings.isStory || false
         const filesForValidation = mediaFiles.map(file => ({
           size: file.size,
           type: file.type
         }))
         
-        const validation = validateMultipleFiles(optionId, filesForValidation, isStory)
+        // The validateMultipleFiles function now automatically detects story types from optionId
+        const validation = validateMultipleFiles(optionId, filesForValidation)
         
         if (!validation.valid) {
           throw new Error(`Platform validation failed: ${validation.errors.join('; ')}`)
         }
 
-        // Extract file paths for cleanup tracking
+        // Extract file paths for cleanup tracking (preserve original paths for Storage compatibility)
         const filePaths = mediaFiles
-          .map(file => file.path || file.url.replace(/^.*\/uploads\//, '/uploads/'))
-          .filter(path => path.startsWith('/uploads/'))
+          .map(file => {
+            // Use the original path from upload result
+            if (file.path) {
+              return file.path
+            }
+            
+            // Fallback: extract path from URL if needed
+            if (file.url) {
+              // For Storage URLs, extract the storage path
+              if (file.url.includes('/storage/v1/object/public/media-uploads/')) {
+                return file.url.split('/storage/v1/object/public/media-uploads/')[1]
+              }
+              // For local URLs, convert to local path
+              if (file.url.includes('/uploads/')) {
+                return file.url.replace(/^.*\/uploads\//, '/uploads/')
+              }
+            }
+            
+            return null
+          })
+          .filter(path => path !== null)
 
         console.log(`[Publications Enqueue API] File paths for cleanup:`, filePaths)
 

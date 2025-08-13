@@ -28,16 +28,41 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[Process Publication API] Starting job processing')
     
-    // Verify service role authorization
+    // Verify service role authorization with proper security
     const authHeader = request.headers.get('authorization')
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
-    if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
-      console.error('[Process Publication API] Unauthorized access attempt')
+    // Security check: Validate service role key
+    // The key should be in format: Bearer <service_role_key>
+    if (!authHeader) {
+      console.error('[Process Publication API] Missing authorization header')
       return NextResponse.json({ 
-        error: 'Unauthorized - Service role key required' 
+        error: 'Unauthorized - Authorization header required' 
       }, { status: 401 })
     }
+    
+    if (!serviceRoleKey) {
+      console.error('[Process Publication API] Service role key not configured')
+      return NextResponse.json({ 
+        error: 'Internal configuration error - Service role key missing' 
+      }, { status: 500 })
+    }
+    
+    // Extract token from Bearer scheme
+    const token = authHeader.replace('Bearer ', '').trim()
+    
+    // Constant-time comparison to prevent timing attacks
+    const isValidKey = token.length === serviceRoleKey.length && 
+                       token === serviceRoleKey
+    
+    if (!isValidKey) {
+      console.error('[Process Publication API] Invalid service role key')
+      return NextResponse.json({ 
+        error: 'Unauthorized - Invalid service role key' 
+      }, { status: 401 })
+    }
+    
+    console.log('[Process Publication API] Service role authentication successful')
 
     let body: ProcessJobRequest
     try {
@@ -204,7 +229,17 @@ async function processTikTokJob(userId: string, content: any) {
   const mediaFile = content.mediaFiles[0] // TikTok uses first file only
   
   // Call existing TikTok publish-url API
-  const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/social/tiktok/publish-url`, {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://socialhub.gestorlead.com.br'
+  console.log('[TikTok Process] Making request to:', `${baseUrl}/api/social/tiktok/publish-url`)
+  console.log('[TikTok Process] Payload:', {
+    userId: userId,
+    mediaUrl: mediaFile.url.substring(0, 100) + '...',
+    mediaType: mediaFile.type,
+    captionLength: content.caption?.length || 0,
+    settings: content.settings
+  })
+
+  const response = await fetch(`${baseUrl}/api/social/tiktok/publish-url`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -220,7 +255,8 @@ async function processTikTokJob(userId: string, content: any) {
         allowDuet: true,
         allowStitch: true
       }
-    })
+    }),
+    signal: AbortSignal.timeout(60000) // 60 second timeout
   })
 
   const result = await response.json()
@@ -240,9 +276,38 @@ async function processTikTokJob(userId: string, content: any) {
  * Process Facebook publication job
  */
 async function processFacebookJob(userId: string, content: any, platform: string) {
-  console.log('[Process Publication API] Processing Facebook job')
+  console.log('[Facebook Process] Processing Facebook job')
   
-  const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/social/facebook/publish`, {
+  if (!content.mediaFiles || content.mediaFiles.length === 0) {
+    throw new Error('No media files provided for Facebook')
+  }
+  
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://socialhub.gestorlead.com.br'
+  
+  // Determine publication type based on platform
+  let publication_type = 'post'
+  if (platform === 'facebook_story') {
+    publication_type = 'story'
+  } else if (platform === 'facebook_reels') {
+    publication_type = 'reels'
+  }
+  
+  const firstFile = content.mediaFiles[0]
+  const mediaType = firstFile.type.startsWith('video/') ? 'video' : 'photo'
+  const mediaUrls = content.mediaFiles.map((file: any) => file.url)
+  
+  console.log('[Facebook Process] Making request to:', `${baseUrl}/api/social/facebook/publish`)
+  console.log('[Facebook Process] Payload:', {
+    userId: userId,
+    page_id: content.settings?.page_id,
+    mediaUrlsCount: mediaUrls.length,
+    mediaType: mediaType,
+    publication_type: publication_type,
+    captionLength: content.caption?.length || 0,
+    hasScheduledTime: !!content.settings?.scheduled_publish_time
+  })
+
+  const response = await fetch(`${baseUrl}/api/social/facebook/publish`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -251,18 +316,19 @@ async function processFacebookJob(userId: string, content: any, platform: string
       userId: userId,
       page_id: content.settings?.page_id,
       message: content.caption,
-      media_urls: content.mediaFiles.map((file: any) => file.url),
-      media_type: content.mediaFiles[0]?.type.startsWith('video/') ? 'video' : 'photo',
-      publication_type: platform.replace('facebook_', ''),
+      media_urls: mediaUrls,
+      media_type: mediaType,
+      publication_type: publication_type,
       privacy: content.settings?.privacy || { value: 'EVERYONE' },
       scheduled_publish_time: content.settings?.scheduled_publish_time
-    })
+    }),
+    signal: AbortSignal.timeout(60000) // 60 second timeout
   })
 
   const result = await response.json()
   
   if (!response.ok || result.error) {
-    throw new Error(result.error || `Facebook API error: ${response.status}`)
+    throw new Error(result.error || result.details || `Facebook API error: ${response.status}`)
   }
 
   return result.data || result
@@ -272,9 +338,25 @@ async function processFacebookJob(userId: string, content: any, platform: string
  * Process Instagram publication job
  */
 async function processInstagramJob(userId: string, content: any, platform: string) {
-  console.log('[Process Publication API] Processing Instagram job')
+  console.log('[Instagram Process] Processing Instagram job')
   
-  const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/social/instagram/publish`, {
+  if (!content.mediaFiles || content.mediaFiles.length === 0) {
+    throw new Error('No media files provided for Instagram')
+  }
+  
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://socialhub.gestorlead.com.br'
+  const mediaUrls = content.mediaFiles.map((file: any) => file.url)
+  
+  console.log('[Instagram Process] Making request to:', `${baseUrl}/api/social/instagram/publish`)
+  console.log('[Instagram Process] Payload:', {
+    userId: userId,
+    optionId: platform,
+    mediaUrlsCount: mediaUrls.length,
+    captionLength: content.caption?.length || 0,
+    settings: content.settings
+  })
+
+  const response = await fetch(`${baseUrl}/api/social/instagram/publish`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -282,16 +364,17 @@ async function processInstagramJob(userId: string, content: any, platform: strin
     body: JSON.stringify({
       userId: userId,
       optionId: platform as 'instagram_feed' | 'instagram_story' | 'instagram_reels',
-      mediaUrls: content.mediaFiles.map((file: any) => file.url),
+      mediaUrls: mediaUrls,
       caption: content.caption,
       settings: content.settings || {}
-    })
+    }),
+    signal: AbortSignal.timeout(60000) // 60 second timeout
   })
 
   const result = await response.json()
   
   if (!response.ok || result.error) {
-    throw new Error(result.error || `Instagram API error: ${response.status}`)
+    throw new Error(result.error || result.details || `Instagram API error: ${response.status}`)
   }
 
   return result.data || result

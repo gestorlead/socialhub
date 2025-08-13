@@ -38,10 +38,10 @@ BEGIN
   -- Get base URL for cleanup API calls
   base_url := get_app_setting('base_url', 'http://localhost:3000');
   
-  -- Make async HTTP request to cleanup files
+  -- Make async HTTP request to cleanup files (enhanced storage support)
   BEGIN
     SELECT INTO cleanup_response * FROM net.http_post(
-      url := base_url || '/api/internal/cleanup-files',
+      url := base_url || '/api/internal/cleanup-files/storage',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
         'Authorization', 'Bearer ' || get_app_setting('service_role_key', '')
@@ -80,15 +80,32 @@ CREATE TABLE IF NOT EXISTS publication_jobs_cleanup_log (
   created_at timestamptz DEFAULT now()
 );
 
+-- Create enhanced cleanup log table for the new API
+CREATE TABLE IF NOT EXISTS cleanup_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id text NOT NULL,
+  user_id uuid NOT NULL,
+  files_deleted integer DEFAULT 0,
+  files_failed integer DEFAULT 0,
+  cleanup_details jsonb,
+  cleanup_timestamp timestamptz DEFAULT now()
+);
+
 -- Index for cleanup log queries
 CREATE INDEX IF NOT EXISTS publication_jobs_cleanup_log_job_id_idx ON publication_jobs_cleanup_log(job_id);
 CREATE INDEX IF NOT EXISTS publication_jobs_cleanup_log_status_idx ON publication_jobs_cleanup_log(cleanup_status);
 CREATE INDEX IF NOT EXISTS publication_jobs_cleanup_log_created_at_idx ON publication_jobs_cleanup_log(created_at DESC);
 
--- Enable RLS on cleanup log
-ALTER TABLE publication_jobs_cleanup_log ENABLE ROW LEVEL SECURITY;
+-- Indexes for enhanced cleanup log
+CREATE INDEX IF NOT EXISTS cleanup_log_job_id_idx ON cleanup_log(job_id);
+CREATE INDEX IF NOT EXISTS cleanup_log_user_id_idx ON cleanup_log(user_id);
+CREATE INDEX IF NOT EXISTS cleanup_log_timestamp_idx ON cleanup_log(cleanup_timestamp DESC);
 
--- RLS policy for cleanup log (admin access only)
+-- Enable RLS on cleanup logs
+ALTER TABLE publication_jobs_cleanup_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cleanup_log ENABLE ROW LEVEL SECURITY;
+
+-- RLS policy for publication jobs cleanup log (admin access only)
 CREATE POLICY "Admin can view cleanup logs" 
   ON publication_jobs_cleanup_log FOR SELECT 
   USING (
@@ -98,6 +115,25 @@ CREATE POLICY "Admin can view cleanup logs"
       AND profiles.role >= 2
     )
   );
+
+-- RLS policies for enhanced cleanup log
+CREATE POLICY "Service role can insert cleanup logs" 
+  ON cleanup_log FOR INSERT 
+  WITH CHECK (true); -- Service role operations
+
+CREATE POLICY "Admin can view enhanced cleanup logs" 
+  ON cleanup_log FOR SELECT 
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.user_id = auth.uid() 
+      AND profiles.role >= 2
+    )
+  );
+
+CREATE POLICY "Users can view their own cleanup logs" 
+  ON cleanup_log FOR SELECT 
+  USING (user_id = auth.uid());
 
 -- Function to trigger cleanup when job status changes
 CREATE OR REPLACE FUNCTION trigger_job_cleanup()

@@ -1,12 +1,10 @@
 /**
  * Chunked file upload utility for large files
- * Breaks files into smaller chunks to bypass server payload limits
+ * Now uses local server upload exclusively - proxy issue resolved
  */
 
-import { runUploadLimitTest } from './upload-limit-test'
-
-let CHUNK_SIZE = 400 * 1024 // 400KB chunks (below the 500KB server limit)
-const LARGE_FILE_THRESHOLD = 2 * 1024 * 1024 // 2MB threshold for chunked upload
+let CHUNK_SIZE = 4 * 1024 * 1024 // 4MB chunks (proxy now supports large uploads)
+const LARGE_FILE_THRESHOLD = 10 * 1024 * 1024 // 10MB threshold for chunked upload
 const MIN_CHUNK_SIZE = 100 * 1024 // 100KB minimum chunk size
 
 export interface UploadProgress {
@@ -184,18 +182,26 @@ function generateFileId(): string {
 }
 
 /**
- * Upload multiple files with progress tracking
+ * Upload multiple files using local server exclusively
+ * Now that proxy supports large uploads, we use local storage only
  */
 export async function uploadMultipleFiles(
   files: File[], 
   userId: string,
+  authToken?: string, // Keep for compatibility but not used
   onProgress?: (fileIndex: number, progress: UploadProgress) => void
 ): Promise<UploadResult[]> {
   
+  console.log(`[Upload Multiple Files] Uploading ${files.length} files to local server`)
+  console.log(`  - Total size: ${(files.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)}MB`)
+  
   const results: UploadResult[] = []
   
+  // Upload all files via local server (proxy now supports large uploads)
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
+    
+    console.log(`[Upload Multiple Files] Uploading file ${i + 1}/${files.length}: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
     
     try {
       const result = await uploadFile(file, userId, (progress) => {
@@ -205,11 +211,14 @@ export async function uploadMultipleFiles(
       })
       
       results.push(result)
+      console.log(`[Upload Multiple Files] File ${i + 1} uploaded successfully: ${result.filename}`)
+      
     } catch (error) {
-      console.error(`Failed to upload file ${i + 1} (${file.name}):`, error)
+      console.error(`[Upload Multiple Files] Failed to upload file ${i + 1} (${file.name}):`, error)
       throw error
     }
   }
   
+  console.log(`[Upload Multiple Files] Successfully uploaded ${results.length} files to local server`)
   return results
 }
