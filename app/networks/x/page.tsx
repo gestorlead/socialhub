@@ -9,11 +9,26 @@ import Image from "next/image"
 import Link from "next/link"
 
 export default function XPage() {
-  const { user, loading } = useAuth()
+  const { user, loading, session } = useAuth()
   const { isConnected, getConnection, refresh, disconnect, connectX } = useSocialConnections()
   const [refreshing, setRefreshing] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
   const [connecting, setConnecting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [infoMsg, setInfoMsg] = useState<string | null>(null)
+  const [counts, setCounts] = useState<{ total?: number, source?: 'all' | 'recent', both?: { all: number|null, recent: number|null } } | null>(null)
+
+  // Helper to avoid long-hanging requests
+  const fetchWithTimeout = async (input: RequestInfo | URL, init: RequestInit = {}, ms = 12000) => {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), ms)
+    try {
+      const res = await fetch(input, { ...init, signal: controller.signal })
+      return res
+    } finally {
+      clearTimeout(id)
+    }
+  }
 
   const xConnection = getConnection('x')
   const profile = xConnection?.profile_data
@@ -39,12 +54,43 @@ export default function XPage() {
 
   const handleConnect = async () => {
     if (!user) return
-    
     setConnecting(true)
+    setErrorMsg(null)
     try {
-      await connectX()
-    } catch (error) {
-      alert('Erro ao conectar com X. Tente novamente.')
+      // 1) Buscar configurações para obter client_id, callback_url e scopes
+      const token = session?.access_token
+      const settingsRes = await fetch('/api/admin/integrations/x', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      if (!settingsRes.ok) {
+        const err = await settingsRes.json().catch(() => ({}))
+        throw new Error(err.error || 'Falha ao carregar configurações do X')
+      }
+      const settingsJson = await settingsRes.json()
+      const cfg = settingsJson?.data || {}
+
+      const client_id = cfg.client_id
+      const redirect_uri = cfg.callback_url
+      const scopes: string[] = cfg.scopes || ['tweet.read','tweet.write','users.read','offline.access','media.write']
+      if (!client_id || !redirect_uri) {
+        throw new Error('Configuração inválida: client_id ou callback_url ausente')
+      }
+
+      // 2) Gerar URL de autorização (PKCE)
+      const authRes = await fetch('/api/auth/x/authorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id, redirect_uri, scopes, user_id: user.id, client_type: cfg.client_type || 'public' })
+      })
+      const authJson = await authRes.json().catch(() => ({}))
+      if (!authRes.ok || !authJson?.authorize_url) {
+        throw new Error(authJson.error || 'Falha ao iniciar OAuth do X')
+      }
+
+      // 3) Redirecionar usuário para o consentimento
+      window.location.href = authJson.authorize_url
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Erro ao conectar com X')
     } finally {
       setConnecting(false)
     }
@@ -55,11 +101,29 @@ export default function XPage() {
     
     setRefreshing(true)
     try {
-      const response = await fetch(`/api/social/x/refresh?user_id=${user.id}`, {
-        method: 'POST'
-      })
-      if (response.ok) {
-        await refresh()
+      // 1) Tenta refresh remoto com timeout; não bloqueia infinito
+      try {
+        const response = await fetchWithTimeout(`/api/social/x/refresh?user_id=${user.id}`, { method: 'POST' }, 12000)
+        if (response.ok) {
+          await refresh()
+        }
+      } catch (e) {
+        console.warn('X refresh timeout/erro, seguindo com dados locais')
+      }
+
+      // 2) Busca counts com timeout, mas não manter loading se falhar
+      try {
+        const cRes = await fetchWithTimeout(`/api/social/x/counts?user_id=${user.id}`, {}, 10000)
+        const cJson = await cRes.json().catch(()=>({}))
+        if (cRes.ok && cJson?.success) {
+          const total = (typeof cJson?.totals?.all === 'number') ? cJson.totals.all : cJson.totals?.recent
+          const source = (typeof cJson?.totals?.all === 'number') ? 'all' : 'recent'
+          setCounts({ total, source, both: { all: cJson?.totals?.all ?? null, recent: cJson?.totals?.recent ?? null } })
+        } else {
+          setCounts(null)
+        }
+      } catch (e) {
+        setCounts(null)
       }
     } catch (error) {
       console.error('Error refreshing:', error)
@@ -72,11 +136,13 @@ export default function XPage() {
     if (disconnecting) return
     setDisconnecting(true)
     try {
+      const ok = window.confirm('Tem certeza que deseja desconectar sua conta do X?')
+      if (!ok) return
       await disconnect('x')
       // Redirect to dashboard after disconnect
       window.location.href = '/'
     } catch (error) {
-      alert('Erro ao desconectar conta. Tente novamente.')
+      setErrorMsg('Erro ao desconectar conta. Tente novamente.')
     } finally {
       setDisconnecting(false)
     }
@@ -99,6 +165,9 @@ export default function XPage() {
     return (
       <DashboardLayout>
         <div className="space-y-6">
+          {errorMsg && (
+            <div className="p-3 border border-red-300 bg-red-50 text-red-700 rounded">{errorMsg}</div>
+          )}
           <div>
             <h1 className="text-3xl font-bold tracking-tight">X (Twitter)</h1>
             <p className="text-muted-foreground">
@@ -169,6 +238,14 @@ export default function XPage() {
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               Atualizar Dados
+            </button>
+            <button
+              onClick={handleConnect}
+              disabled={connecting}
+              className="flex items-center gap-2 px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
+            >
+              {connecting ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
+              Reautenticar X
             </button>
           </div>
         </div>
@@ -261,15 +338,21 @@ export default function XPage() {
                   </div>
                 </div>
                 
-                <div className="bg-card border rounded-lg p-6 hover:border-red-200 dark:hover:border-red-800 transition-colors">
+            <div className="bg-card border rounded-lg p-6 hover:border-red-200 dark:hover:border-red-800 transition-colors">
                   <div className="flex items-center justify-between mb-4">
                     <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
                       <MessageSquare className="w-6 h-6 text-red-600 dark:text-red-400" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{formatNumber(displayStats.tweet_count)}</p>
-                    <p className="text-sm text-muted-foreground">Posts</p>
+                <p className="text-2xl font-bold">{formatNumber(counts?.total ?? displayStats.tweet_count)}</p>
+                <p className="text-sm text-muted-foreground">Posts {counts?.source ? `(${counts.source})` : ''}</p>
+                {counts?.both && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {typeof counts.both.all === 'number' ? `All: ${formatNumber(counts.both.all)} • ` : ''}
+                    {typeof counts.both.recent === 'number' ? `Recent: ${formatNumber(counts.both.recent)}` : ''}
+                  </p>
+                )}
                   </div>
                 </div>
                 
@@ -368,10 +451,13 @@ export default function XPage() {
                   const hasValidToken = xConnection?.access_token && (!expiresAt || expiresAt > now)
                   
                   if (hasValidToken) {
+                    const mins = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / 60000)) : null
                     return (
                       <>
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm text-green-600 dark:text-green-400">Válido</span>
+                        <span className="text-sm text-green-600 dark:text-green-400">
+                          Válido{mins !== null ? ` • expira em ${mins} min` : ''}
+                        </span>
                       </>
                     )
                   } else {
@@ -417,6 +503,19 @@ export default function XPage() {
               <span className="inline-block mt-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-full">
                 100/mês
               </span>
+              {(() => {
+                const scopeStr = (xConnection?.scope || '').toString()
+                const hasWrite = scopeStr.includes('tweet.write')
+                const hasMedia = scopeStr.includes('media.write')
+                if (!hasWrite || !hasMedia) {
+                  return (
+                    <div className="mt-2 text-xs text-red-600 dark:text-red-400">
+                      Escopos insuficientes para publicar imagens. Clique em "Reautenticar X" para conceder tweet.write e media.write.
+                    </div>
+                  )
+                }
+                return null
+              })()}
             </Link>
             
             <div className="p-4 border rounded-lg opacity-50">

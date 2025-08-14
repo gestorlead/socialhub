@@ -1,60 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-function parseState(state: string) {
-  try {
-    const [raw] = state.split('.')
-    const json = Buffer.from(raw.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
-    return JSON.parse(json)
-  } catch {
-    return null
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const code = searchParams.get('code')
-    const stateParam = searchParams.get('state')
-
-    if (!code || !stateParam) {
-      return NextResponse.json({ error: 'Missing code or state' }, { status: 400 })
-    }
-
-    const state = parseState(stateParam)
-    if (!state?.v || !state?.c || !state?.r || !state?.u) {
-      return NextResponse.json({ error: 'Invalid state' }, { status: 400 })
-    }
-
-    const tokenUrl = 'https://api.x.com/2/oauth2/token'
-    const params = new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      client_id: state.c,
-      redirect_uri: state.r,
-      code_verifier: state.v
-    })
-
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
-    })
-
-    const tokenData = await response.json().catch(() => ({}))
-    if (!response.ok || !tokenData?.access_token) {
-      return NextResponse.json({ error: 'Failed to exchange code', details: tokenData }, { status: 400 })
-    }
-
-    // Persist tokenData em um endpoint interno admin já existente (não implementado aqui)
-    // Você pode criar /api/admin/integrations/x/tokens para salvar em social_connections
-
-    return NextResponse.json({ success: true, tokens: { access_token: tokenData.access_token, expires_in: tokenData.expires_in, scope: tokenData.scope, refresh_token: tokenData.refresh_token } })
-  } catch (error) {
-    return NextResponse.json({ error: 'Callback failed' }, { status: 500 })
-  }
-}
-
-import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -67,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const code = searchParams.get('code')
-    const state = searchParams.get('state')
+    const stateParam = searchParams.get('state')
     const error = searchParams.get('error')
 
     if (error) {
@@ -75,33 +19,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/networks/x?error=oauth_denied`)
     }
 
-    if (!code || !state) {
+    if (!code || !stateParam) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/networks/x?error=missing_parameters`)
     }
 
-
-    // Validate OAuth state (consistent with other integrations)
-    const { data: stateData, error: stateError } = await supabase
-      .from('oauth_states')
-      .select('user_id, data')
-      .eq('state', state)
-      .eq('provider', 'x')
-      .gte('expires_at', new Date().toISOString())
-      .single()
-
-    if (stateError || !stateData) {
-      console.error('Invalid or expired state token:', stateError)
+    // Decode signed state from /api/auth/x/authorize
+    const parseState = (state: string) => {
+      try {
+        const [raw] = state.split('.')
+        const json = Buffer.from(raw.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
+        return JSON.parse(json)
+      } catch {
+        return null
+      }
+    }
+    const parsed = parseState(stateParam)
+    if (!parsed?.v || !parsed?.c || !parsed?.r || !parsed?.u) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/networks/x?error=invalid_state`)
     }
-
-    const userId = stateData.user_id
-    const oauthData = stateData.data
-
-    // Clean up used state token
-    await supabase
-      .from('oauth_states')
-      .delete()
-      .eq('state', state)
+    const userId = parsed.u
 
     // Get X integration settings from unified table
     const { data: settings } = await supabase
@@ -111,16 +47,16 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     const config = settings ? {
-      client_id: settings.client_key,
+      client_id: settings.client_key || parsed.c,
       client_secret: settings.client_secret,
-      callback_url: settings.callback_url || `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/x/callback`
+      callback_url: settings.callback_url || parsed.r || `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/x/callback`
     } : {
-      client_id: process.env.X_CLIENT_ID,
+      client_id: process.env.X_CLIENT_ID || parsed.c,
       client_secret: process.env.X_CLIENT_SECRET,
-      callback_url: process.env.X_CALLBACK_URL || `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/x/callback`
+      callback_url: process.env.X_CALLBACK_URL || parsed.r || `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/x/callback`
     }
 
-    if (!config.client_id || !config.client_secret) {
+    if (!config.client_id) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/networks/x?error=integration_not_configured`)
     }
 
@@ -128,17 +64,28 @@ export async function GET(request: NextRequest) {
     const tokenRequestBody = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: config.client_id,
-      client_secret: config.client_secret,
       redirect_uri: config.callback_url,
       code: code,
-      code_verifier: oauthData.code_verifier
+      code_verifier: parsed.v
     })
+    if (config.client_secret) {
+      tokenRequestBody.set('client_secret', config.client_secret)
+    }
 
-    const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
+    // Build headers; confidential clients must authenticate with Authorization header
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    if (config.client_secret) {
+      const basic = Buffer.from(`${config.client_id}:${config.client_secret}`).toString('base64')
+      headers['Authorization'] = `Basic ${basic}`
+      // Do not send client_secret in body if Authorization header present to avoid conflicts
+      tokenRequestBody.delete('client_secret')
+    }
+
+    const tokenResponse = await fetch('https://api.x.com/2/oauth2/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers,
       body: tokenRequestBody
     })
 
@@ -151,7 +98,7 @@ export async function GET(request: NextRequest) {
     const tokenData = await tokenResponse.json()
 
     // Get user profile data
-    const profileResponse = await fetch('https://api.twitter.com/2/users/me?user.fields=id,username,name,profile_image_url,public_metrics,verified', {
+    const profileResponse = await fetch('https://api.x.com/2/users/me?user.fields=id,username,name,profile_image_url,public_metrics,verified', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`
       }
